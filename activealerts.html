@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SP SafeRoute - Active Alerts</title>
+  <style>
+    body { font-family: system-ui; background: #f3f4f6; margin: 0; }
+    .header { padding: 12px 16px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 16px; }
+    .btn-back { background: none; border: none; font-size: 24px; cursor: pointer; color: #1A73E8; }
+    h2 { margin: 0; font-size: 20px; }
+    .alerts-container { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+    .alert-card { background: white; border-radius: 12px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 5px solid; cursor: pointer; }
+    .alert-type { font-weight: bold; font-size: 14px; margin-bottom: 4px; }
+    .alert-desc { font-size: 14px; color: #1f2937; margin-bottom: 6px; }
+    .alert-location { font-size: 12px; color: #4b5563; margin-bottom: 4px; }
+    .alert-date { font-size: 11px; color: #6b7280; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; visibility: hidden; opacity: 0; transition: visibility 0.2s, opacity 0.2s; }
+    .modal-overlay.active { visibility: visible; opacity: 1; }
+    .modal-content { background: white; width: 90%; max-width: 400px; border-radius: 24px; padding: 20px; max-height: 85vh; overflow-y: auto; position: relative; }
+    .modal-close { position: absolute; top: 12px; right: 16px; font-size: 24px; cursor: pointer; background: none; border: none; color: #6b7280; }
+    .modal-title { font-size: 20px; font-weight: bold; margin-bottom: 16px; padding-right: 24px; }
+    .modal-label { font-weight: bold; margin-top: 12px; margin-bottom: 4px; color: #374151; }
+    .modal-text { margin-bottom: 8px; color: #1f2937; }
+    .modal-button { background: #1A73E8; color: white; border: none; padding: 12px; border-radius: 12px; font-size: 16px; font-weight: bold; width: 100%; margin-top: 16px; cursor: pointer; }
+    .modal-button.close { background: #6b7280; margin-top: 8px; }
+  </style>
+</head>
+<body>
+<div class="header">
+  <button class="btn-back" onclick="location.href='index.html'">←</button>
+  <h2>Active Alerts</h2>
+</div>
+<div id="alertsList" class="alerts-container"></div>
+
+<div id="incidentModal" class="modal-overlay">
+  <div class="modal-content">
+    <button class="modal-close" id="closeModalBtn">&times;</button>
+    <div id="modalType" class="modal-title"></div>
+    <div><div class="modal-label">Description:</div><div id="modalDesc" class="modal-text"></div></div>
+    <div><div class="modal-label">Location:</div><div id="modalLocation" class="modal-text"></div></div>
+    <div><div class="modal-label">Reported at:</div><div id="modalDate" class="modal-text"></div></div>
+    <button id="viewLocationBtn" class="modal-button">📍 View Live Location</button>
+    <button id="closeModalBtn2" class="modal-button close">Close</button>
+  </div>
+</div>
+
+<script>
+  const API_BASE = '';
+  let TOKEN = localStorage.getItem('token');
+  if (!TOKEN) location.href = 'index.html';
+
+  async function fetchIncidents() {
+    const res = await fetch('/incidents/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  }
+
+  function formatDate(ts) {
+    return new Date(ts).toLocaleString();
+  }
+
+  const modal = document.getElementById('incidentModal');
+  let currentLocation = null;
+
+  function closeModal() { modal.classList.remove('active'); }
+  function openModal(incident) {
+    const borderColor = incident.type === 'accident' ? '#dc2626' : incident.type === 'crime' ? '#7c3aed' : '#f59e0b';
+    document.getElementById('modalType').innerHTML = `<span style="color:${borderColor}">${incident.type.toUpperCase()}</span>`;
+    document.getElementById('modalDesc').innerText = incident.description;
+    document.getElementById('modalLocation').innerText = incident.location_name || `${incident.lat}, ${incident.lng}`;
+    document.getElementById('modalDate').innerText = formatDate(incident.created_at);
+    currentLocation = { lat: incident.lat, lng: incident.lng };
+    modal.classList.add('active');
+  }
+  document.getElementById('viewLocationBtn').addEventListener('click', () => {
+    if (currentLocation) window.open(`https://www.google.com/maps?q=${currentLocation.lat},${currentLocation.lng}`, '_blank');
+  });
+  document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+  document.getElementById('closeModalBtn2').addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+  async function loadAlerts() {
+    try {
+      const incidents = await fetchIncidents();
+      const container = document.getElementById('alertsList');
+      container.innerHTML = '';
+      if (incidents.length === 0) {
+        container.innerHTML = '<div class="alert-card">No active alerts. Be safe!</div>';
+        return;
+      }
+      incidents.forEach(inc => {
+        const borderColor = inc.type === 'accident' ? '#dc2626' : inc.type === 'crime' ? '#7c3aed' : '#f59e0b';
+        const card = document.createElement('div');
+        card.className = 'alert-card';
+        card.style.borderLeftColor = borderColor;
+        card.innerHTML = `
+          <div class="alert-type" style="color:${borderColor}">${inc.type.toUpperCase()}</div>
+          <div class="alert-desc">${inc.description.substring(0, 80)}${inc.description.length > 80 ? '...' : ''}</div>
+          <div class="alert-location">📍 ${inc.location_name || `${inc.lat.toFixed(4)}, ${inc.lng.toFixed(4)}`}</div>
+          <div class="alert-date">${formatDate(inc.created_at)}</div>
+        `;
+        card.addEventListener('click', () => openModal(inc));
+        container.appendChild(card);
+      });
+    } catch (err) {
+      console.error(err);
+      document.getElementById('alertsList').innerHTML = '<div class="alert-card">Error loading alerts</div>';
+    }
+  }
+  loadAlerts();
+</script>
+</body>
+</html>

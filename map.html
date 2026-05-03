@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SP SafeRoute - Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body { margin: 0; font-family: system-ui; }
+    .header { padding: 12px 16px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 16px; }
+    .btn-back { background: none; border: none; font-size: 24px; cursor: pointer; color: #1A73E8; }
+    h2 { margin: 0; font-size: 20px; }
+    #map { height: 500px; width: 100%; background: #e0e0e0; }
+  </style>
+</head>
+<body>
+<div class="header">
+  <button class="btn-back" onclick="location.href='index.html'">←</button>
+  <h2>Map</h2>
+</div>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const API_BASE = '';
+  let TOKEN = localStorage.getItem('token');
+
+  function getHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': TOKEN ? `Bearer ${TOKEN}` : ''
+    };
+  }
+
+  async function loadIncidents() {
+    try {
+      const response = await fetch(`${API_BASE}/incidents/`, { headers: getHeaders() });
+      const incidents = await response.json();
+      if (!response.ok) throw new Error(incidents.detail);
+      return incidents;
+    } catch (err) {
+      console.error('Failed to load incidents:', err);
+      return [];
+    }
+  }
+
+  // Create map immediately
+  var map = L.map('map').setView([14.07, 121.3255], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+  }).addTo(map);
+
+  // Check auth and load incidents
+  if (!TOKEN) {
+    location.href = 'index.html';
+  } else {
+    loadIncidents().then(incidents => {
+      incidents.forEach(inc => {
+        const color = inc.type === 'accident' ? 'red' : inc.type === 'crime' ? 'purple' : 'orange';
+        L.marker([inc.lat, inc.lng])
+          .addTo(map)
+          .bindPopup(`<b>${inc.type}</b><br>${inc.description}`);
+      });
+    });
+  }
+</script>
+</body>
+</html>

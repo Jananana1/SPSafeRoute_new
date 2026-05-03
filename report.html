@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SP SafeRoute - Report Incident</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body { font-family: system-ui; background: #f3f4f6; margin: 0; }
+    .header { padding: 12px 16px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 16px; }
+    .btn-back { background: none; border: none; font-size: 24px; cursor: pointer; color: #1A73E8; }
+    h2 { margin: 0; font-size: 20px; }
+    .container { padding: 20px; }
+    .input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 12px; font-size: 16px; font-family: inherit; }
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
+    .btn-primary { background: #1A73E8; color: white; }
+    .btn-secondary { background: #6b7280; color: white; margin-bottom: 12px; }
+    .suggestions-list { background: white; border: 1px solid #ccc; border-radius: 12px; margin-bottom: 12px; max-height: 200px; overflow-y: auto; }
+    .suggestion-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; }
+    .message { text-align: center; margin-top: 12px; color: #dc2626; }
+    #map { height: 300px; width: 100%; margin-bottom: 20px; border-radius: 12px; background: #e0e0e0; }
+  </style>
+</head>
+<body>
+<div class="header">
+  <button class="btn-back" onclick="location.href='index.html'">←</button>
+  <h2>Report Incident</h2>
+</div>
+<div class="container">
+  <div id="map"></div>
+  <select id="incidentType" class="input">
+    <option value="">Select Type</option>
+    <option value="accident">Accident</option>
+    <option value="crime">Crime</option>
+    <option value="hazard">Hazard</option>
+  </select>
+  <textarea id="incidentDesc" placeholder="Description" class="input" rows="3"></textarea>
+  <input type="text" id="locationSearch" placeholder="Search location in San Pablo City" class="input">
+  <div id="locationSuggestions" class="suggestions-list"></div>
+  <button id="useCurrentLocationBtn" class="btn-secondary">📍 Use Current Location</button>
+  <input type="file" id="incidentImage" accept="image/*" class="input">
+  <button id="submitReportBtn" class="btn-primary">Submit Report</button>
+  <div id="message" class="message"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const API_BASE = '';
+  let TOKEN = localStorage.getItem('token');
+  if (!TOKEN) location.href = 'index.html';
+
+  const CITY_BOUNDS = { south: 14.0400, west: 121.2000, north: 14.1100, east: 121.3800 };
+  const CITY_CENTER = { lat: 14.0700, lng: 121.3255 };
+  let map = L.map('map').setView([CITY_CENTER.lat, CITY_CENTER.lng], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+  map.setMaxBounds([[CITY_BOUNDS.south, CITY_BOUNDS.west], [CITY_BOUNDS.north, CITY_BOUNDS.east]]);
+
+  let selectedLocation = null;
+  let searchTimeout = null;
+
+  async function loadIncidentMarkers() {
+    const res = await fetch('/incidents/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+    const incidents = await res.json();
+    if (res.ok) {
+      incidents.forEach(inc => {
+        const color = inc.type === 'accident' ? 'red' : inc.type === 'crime' ? 'purple' : 'orange';
+        L.marker([inc.lat, inc.lng]).addTo(map).bindPopup(`<b>${inc.type}</b><br>${inc.description}`);
+      });
+    }
+  }
+  loadIncidentMarkers();
+
+  function isWithinSanPablo(lat, lng) {
+    return lat >= CITY_BOUNDS.south && lat <= CITY_BOUNDS.north && lng >= CITY_BOUNDS.west && lng <= CITY_BOUNDS.east;
+  }
+
+  async function searchLocation(query) {
+    if (!query || query.length < 3) return [];
+    const viewbox = `${CITY_BOUNDS.west},${CITY_BOUNDS.south},${CITY_BOUNDS.east},${CITY_BOUNDS.north}`;
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ', San Pablo City, Laguna, Philippines')}&format=json&limit=5&viewbox=${viewbox}&bounded=1`;
+    try {
+      const res = await fetch(url, { headers: { 'User-Agent': 'SP-SafeRoute/1.0' } });
+      const data = await res.json();
+      return data.filter(item => isWithinSanPablo(parseFloat(item.lat), parseFloat(item.lon)));
+    } catch (err) { return []; }
+  }
+
+  const locationInput = document.getElementById('locationSearch');
+  const suggestionsDiv = document.getElementById('locationSuggestions');
+  locationInput.addEventListener('input', function(e) {
+    clearTimeout(searchTimeout);
+    const query = e.target.value;
+    if (query.length < 3) { suggestionsDiv.innerHTML = ''; return; }
+    searchTimeout = setTimeout(async () => {
+      const suggestions = await searchLocation(query);
+      suggestionsDiv.innerHTML = '';
+      if (suggestions.length === 0) {
+        suggestionsDiv.innerHTML = '<div class="suggestion-item">No locations found</div>';
+        return;
+      }
+      suggestions.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'suggestion-item';
+        div.textContent = s.display_name;
+        div.onclick = () => {
+          locationInput.value = s.display_name;
+          selectedLocation = { lat: parseFloat(s.lat), lng: parseFloat(s.lon), name: s.display_name };
+          suggestionsDiv.innerHTML = '';
+          map.setView([selectedLocation.lat, selectedLocation.lng], 15);
+        };
+        suggestionsDiv.appendChild(div);
+      });
+    }, 500);
+  });
+
+  document.getElementById('useCurrentLocationBtn').addEventListener('click', () => {
+    if (!navigator.geolocation) return alert('Geolocation not supported');
+    navigator.geolocation.getCurrentPosition(pos => {
+      const { latitude, longitude } = pos.coords;
+      if (!isWithinSanPablo(latitude, longitude)) return alert('Outside San Pablo City');
+      selectedLocation = { lat: latitude, lng: longitude, name: 'Current Location' };
+      locationInput.value = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+      map.setView([latitude, longitude], 15);
+    }, () => alert('Location denied'));
+  });
+
+  document.getElementById('submitReportBtn').addEventListener('click', async () => {
+    const type = document.getElementById('incidentType').value;
+    const description = document.getElementById('incidentDesc').value;
+    if (!type || !description) {
+      document.getElementById('message').innerText = 'Please fill type and description.';
+      return;
+    }
+    let lat, lng, locName;
+    if (selectedLocation) {
+      lat = selectedLocation.lat;
+      lng = selectedLocation.lng;
+      locName = selectedLocation.name;
+    } else {
+      if (!navigator.geolocation) {
+        document.getElementById('message').innerText = 'Geolocation not supported.';
+        return;
+      }
+      try {
+        const pos = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject));
+        lat = pos.coords.latitude;
+        lng = pos.coords.longitude;
+        locName = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        if (!isWithinSanPablo(lat, lng)) {
+          document.getElementById('message').innerText = 'Location outside San Pablo City.';
+          return;
+        }
+      } catch (err) {
+        document.getElementById('message').innerText = 'Could not get location.';
+        return;
+      }
+    }
+    const response = await fetch('/incidents/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+      body: JSON.stringify({ type, description, lat, lng, location_name: locName })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      document.getElementById('message').innerText = data.detail || 'Failed to report';
+    } else {
+      document.getElementById('message').innerText = 'Incident reported! Redirecting...';
+      setTimeout(() => location.href = 'index.html', 1500);
+    }
+  });
+</script>
+</body>
+</html>

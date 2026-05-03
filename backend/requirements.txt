@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+sqlalchemy
+pymysql
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+email-validator
+python-dotenv
+jinja2==3.1.2
+apscheduler==3.10.4
+pywebpush==1.14.1
+firebase-admin apscheduler

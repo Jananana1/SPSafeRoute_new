@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SP SafeRoute - SOS</title>
+  <style>
+    body { font-family: system-ui; background: #f3f4f6; margin: 0; }
+    .header { padding: 12px 16px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 16px; }
+    .btn-back { background: none; border: none; font-size: 24px; cursor: pointer; color: #1A73E8; }
+    h2 { margin: 0; font-size: 20px; }
+    .container { padding: 20px; text-align: center; }
+    .warning { color: #6b7280; margin-bottom: 30px; }
+    .btn-danger { background: #dc2626; color: white; border: none; padding: 16px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; }
+  </style>
+</head>
+<body>
+<div class="header">
+  <button class="btn-back" onclick="location.href='index.html'">←</button>
+  <h2>Emergency SOS</h2>
+</div>
+<div class="container">
+  <p class="warning">Press the button to send your live location to emergency contacts and log the alert.</p>
+  <button id="sendSOSBtn" class="btn-danger">SEND SOS</button>
+</div>
+
+<script>
+  const API_BASE = '';
+  let TOKEN = localStorage.getItem('token');
+  if (!TOKEN) location.href = 'index.html';
+
+  async function sendSOS() {
+    if (!navigator.geolocation) {
+      alert('Geolocation not supported');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(async pos => {
+      const { latitude, longitude } = pos.coords;
+      const mapUrl = `https://maps.google.com/?q=${latitude},${longitude}`;
+      alert(`SOS Sent! Your location: ${mapUrl}`);
+      try {
+        await fetch('/sos/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+          body: JSON.stringify({ lat: latitude, lng: longitude })
+        });
+      } catch (err) {
+        console.error('Failed to log SOS:', err);
+      }
+    }, () => alert('Could not get your location. Please enable location services.'));
+  }
+
+  document.getElementById('sendSOSBtn').addEventListener('click', sendSOS);
+</script>
+</body>
+</html>
