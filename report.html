@@ -2,89 +2,172 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>SP SafeRoute - Report Incident</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css" />
   <style>
-    body { font-family: system-ui; background: #f3f4f6; margin: 0; }
-    .header { padding: 12px 16px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 16px; }
-    .btn-back { background: none; border: none; font-size: 24px; cursor: pointer; color: #1A73E8; }
-    h2 { margin: 0; font-size: 20px; }
-    .container { padding: 20px; }
-    .input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 12px; font-size: 16px; font-family: inherit; }
-    .btn { width: 100%; padding: 12px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
-    .btn-primary { background: #1A73E8; color: white; }
-    .btn-secondary { background: #6b7280; color: white; margin-bottom: 12px; }
-    .suggestions-list { background: white; border: 1px solid #ccc; border-radius: 12px; margin-bottom: 12px; max-height: 200px; overflow-y: auto; }
-    .suggestion-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; }
-    .message { text-align: center; margin-top: 12px; color: #dc2626; }
-    #map { height: 300px; width: 100%; margin-bottom: 20px; border-radius: 12px; background: #e0e0e0; }
+    .report-overlay {
+      position: absolute; top: 20px; left: 20px; z-index: 1000;
+      width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .glass-panel {
+      background: var(--glass-bg); backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .header-panel { display: flex; align-items: center; gap: 16px; }
+    .btn-back {
+      background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border);
+      color: var(--text-main); width: 40px; height: 40px; border-radius: 50%;
+      font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .btn-back:hover { background: var(--primary); color: white; }
+    
+    .suggestions-list {
+      background: var(--glass-bg); border: 1px solid var(--glass-border);
+      border-radius: 12px; margin-top: -8px; margin-bottom: 12px;
+      max-height: 200px; overflow-y: auto; backdrop-filter: blur(10px);
+    }
+    .suggestion-item { padding: 12px; border-bottom: 1px solid var(--glass-border); cursor: pointer; color: var(--text-main); }
+    .suggestion-item:hover { background: var(--nav-hover); }
+    
+    textarea { resize: vertical; min-height: 80px; }
+    
+    .top-right-controls {
+      position: absolute; top: 20px; right: 20px; z-index: 1000;
+      display: flex; gap: 12px;
+    }
+    .control-btn {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--glass-bg); backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border); display: flex;
+      align-items: center; justify-content: center; font-size: 20px;
+      cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s; color: var(--text-main);
+    }
+    .control-btn:hover { transform: scale(1.1); }
   </style>
 </head>
 <body>
-<div class="header">
-  <button class="btn-back" onclick="location.href='index.html'">←</button>
-  <h2>Report Incident</h2>
+
+<div id="map" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;"></div>
+
+<div class="top-right-controls">
+    <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌗</div>
 </div>
-<div class="container">
-  <div id="map"></div>
-  <select id="incidentType" class="input">
-    <option value="">Select Type</option>
-    <option value="accident">Accident</option>
-    <option value="crime">Crime</option>
-    <option value="hazard">Hazard</option>
-  </select>
-  <textarea id="incidentDesc" placeholder="Description" class="input" rows="3"></textarea>
-  <input type="text" id="locationSearch" placeholder="Search location in San Pablo City" class="input">
-  <div id="locationSuggestions" class="suggestions-list"></div>
-  <button id="useCurrentLocationBtn" class="btn-secondary">📍 Use Current Location</button>
-  <input type="file" id="incidentImage" accept="image/*" class="input">
-  <button id="submitReportBtn" class="btn-primary">Submit Report</button>
-  <div id="message" class="message"></div>
+
+<div class="report-overlay">
+  <div class="glass-panel header-panel">
+    <button class="btn-back" onclick="location.href='index.html'">←</button>
+    <h2 style="margin:0; font-size: 20px; color: var(--text-main);">Report Incident</h2>
+  </div>
+
+  <div class="glass-panel">
+    <select id="incidentType" class="input">
+      <option value="">Select Incident Type</option>
+      <option value="accident">🚨 Accident</option>
+      <option value="crime">🔪 Crime</option>
+      <option value="hazard">⚠️ Hazard</option>
+    </select>
+    
+    <textarea id="incidentDesc" placeholder="Describe what happened..." class="input"></textarea>
+    
+    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <input type="text" id="locationSearch" placeholder="Incident Location" class="input" style="margin-bottom:0;">
+        <button id="useCurrentLocationBtn" class="btn-back" title="Use Current Location" style="width: 50px; height: 50px; border-radius: 12px;">📍</button>
+    </div>
+    <div id="locationSuggestions" class="suggestions-list"></div>
+    
+    <label for="incidentImage" style="font-size: 14px; color: var(--text-main); margin-bottom: 4px; display: block;">Attach Image (Optional)</label>
+    <input type="file" id="incidentImage" accept="image/*" class="input" style="padding: 8px;">
+    
+    <button id="submitReportBtn" class="btn btn-primary" style="margin-top: 10px;">Submit Report</button>
+    <div id="message" class="message error" style="margin-top: 12px; text-align:center;"></div>
+  </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-  const API_BASE = '';
   let TOKEN = localStorage.getItem('token');
   if (!TOKEN) location.href = 'index.html';
 
   const CITY_BOUNDS = { south: 14.0400, west: 121.2000, north: 14.1100, east: 121.3800 };
   const CITY_CENTER = { lat: 14.0700, lng: 121.3255 };
-  let map = L.map('map').setView([CITY_CENTER.lat, CITY_CENTER.lng], 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
-  map.setMaxBounds([[CITY_BOUNDS.south, CITY_BOUNDS.west], [CITY_BOUNDS.north, CITY_BOUNDS.east]]);
-
+  
+  let map;
+  let incidentDraggableMarker = null;
   let selectedLocation = null;
   let searchTimeout = null;
 
-  async function loadIncidentMarkers() {
-    const res = await fetch('/incidents/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
-    const incidents = await res.json();
-    if (res.ok) {
-      incidents.forEach(inc => {
-        const color = inc.type === 'accident' ? 'red' : inc.type === 'crime' ? 'purple' : 'orange';
-        L.marker([inc.lat, inc.lng]).addTo(map).bindPopup(`<b>${inc.type}</b><br>${inc.description}`);
+  document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    
+    map = L.map('map', { zoomControl: false }).setView([CITY_CENTER.lat, CITY_CENTER.lng], 13);
+    const tileUrl = savedTheme === 'dark' 
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' 
+        : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    L.tileLayer(tileUrl, { id: 'map-tiles', attribution: '© OpenStreetMap CARTO', maxZoom: 20 }).addTo(map);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    
+    loadIncidentMarkers();
+  });
+
+  document.getElementById('themeToggleBtn').addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      if (newTheme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+          document.documentElement.removeAttribute('data-theme');
+      }
+      localStorage.setItem('theme', newTheme);
+      
+      const newTileUrl = newTheme === 'dark' 
+          ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' 
+          : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+      
+      map.eachLayer(layer => {
+          if (layer.options && layer.options.id === 'map-tiles') {
+              layer.setUrl(newTileUrl);
+          }
       });
-    }
+  });
+
+  async function loadIncidentMarkers() {
+    try {
+        const res = await fetch('/incidents/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+        const incidents = await res.json();
+        if (res.ok) {
+            incidents.forEach(inc => {
+                const color = inc.type === 'accident' ? '#ef4444' : inc.type === 'crime' ? '#8b5cf6' : '#f59e0b';
+                L.circleMarker([inc.lat, inc.lng], { radius: 6, color: '#fff', weight: 1, fillColor: color, fillOpacity: 0.8 }).addTo(map);
+            });
+        }
+    } catch(e){}
   }
-  loadIncidentMarkers();
 
   function isWithinSanPablo(lat, lng) {
     return lat >= CITY_BOUNDS.south && lat <= CITY_BOUNDS.north && lng >= CITY_BOUNDS.west && lng <= CITY_BOUNDS.east;
   }
 
-  async function searchLocation(query) {
-    if (!query || query.length < 3) return [];
-    const viewbox = `${CITY_BOUNDS.west},${CITY_BOUNDS.south},${CITY_BOUNDS.east},${CITY_BOUNDS.north}`;
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ', San Pablo City, Laguna, Philippines')}&format=json&limit=5&viewbox=${viewbox}&bounded=1`;
-    try {
-      const res = await fetch(url, { headers: { 'User-Agent': 'SP-SafeRoute/1.0' } });
-      const data = await res.json();
-      return data.filter(item => isWithinSanPablo(parseFloat(item.lat), parseFloat(item.lon)));
-    } catch (err) { return []; }
+  function updateMarkerCoordinate(lat, lng, name) {
+      if (incidentDraggableMarker) {
+          incidentDraggableMarker.setLatLng([lat, lng]);
+      } else {
+          incidentDraggableMarker = L.marker([lat, lng], { draggable: true, title: 'Incident Location' }).addTo(map);
+          incidentDraggableMarker.bindTooltip("Incident Location (Drag to move)", { permanent: true, direction: 'top' });
+          incidentDraggableMarker.on('dragend', e => {
+              const pos = e.target.getLatLng();
+              selectedLocation = { lat: pos.lat, lng: pos.lng, name: 'Pinned Location' };
+              document.getElementById('locationSearch').value = `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`;
+          });
+      }
+      map.setView([lat, lng], 16);
+      selectedLocation = { lat, lng, name };
+      document.getElementById('locationSearch').value = name;
   }
 
   const locationInput = document.getElementById('locationSearch');
@@ -94,79 +177,71 @@
     const query = e.target.value;
     if (query.length < 3) { suggestionsDiv.innerHTML = ''; return; }
     searchTimeout = setTimeout(async () => {
-      const suggestions = await searchLocation(query);
-      suggestionsDiv.innerHTML = '';
-      if (suggestions.length === 0) {
-        suggestionsDiv.innerHTML = '<div class="suggestion-item">No locations found</div>';
-        return;
-      }
-      suggestions.forEach(s => {
-        const div = document.createElement('div');
-        div.className = 'suggestion-item';
-        div.textContent = s.display_name;
-        div.onclick = () => {
-          locationInput.value = s.display_name;
-          selectedLocation = { lat: parseFloat(s.lat), lng: parseFloat(s.lon), name: s.display_name };
+      const viewbox = `${CITY_BOUNDS.west},${CITY_BOUNDS.south},${CITY_BOUNDS.east},${CITY_BOUNDS.north}`;
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ', San Pablo City, Laguna, Philippines')}&format=json&limit=5&viewbox=${viewbox}&bounded=1`;
+      try {
+          const res = await fetch(url, { headers: { 'User-Agent': 'SP-SafeRoute/1.0' } });
+          const suggestions = await res.json();
           suggestionsDiv.innerHTML = '';
-          map.setView([selectedLocation.lat, selectedLocation.lng], 15);
-        };
-        suggestionsDiv.appendChild(div);
-      });
+          if (suggestions.length === 0) {
+            suggestionsDiv.innerHTML = '<div class="suggestion-item">No locations found</div>';
+            return;
+          }
+          suggestions.filter(item => isWithinSanPablo(parseFloat(item.lat), parseFloat(item.lon))).forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'suggestion-item';
+            div.textContent = s.display_name;
+            div.onclick = () => {
+              suggestionsDiv.innerHTML = '';
+              updateMarkerCoordinate(parseFloat(s.lat), parseFloat(s.lon), s.display_name);
+            };
+            suggestionsDiv.appendChild(div);
+          });
+      } catch (err) {}
     }, 500);
   });
 
   document.getElementById('useCurrentLocationBtn').addEventListener('click', () => {
     if (!navigator.geolocation) return alert('Geolocation not supported');
+    document.getElementById('locationSearch').value = 'Locating...';
     navigator.geolocation.getCurrentPosition(pos => {
       const { latitude, longitude } = pos.coords;
-      if (!isWithinSanPablo(latitude, longitude)) return alert('Outside San Pablo City');
-      selectedLocation = { lat: latitude, lng: longitude, name: 'Current Location' };
-      locationInput.value = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-      map.setView([latitude, longitude], 15);
-    }, () => alert('Location denied'));
+      if (!isWithinSanPablo(latitude, longitude)) {
+          document.getElementById('message').innerText = 'Outside San Pablo City';
+          document.getElementById('locationSearch').value = '';
+          return;
+      }
+      updateMarkerCoordinate(latitude, longitude, 'Current Location');
+    }, () => {
+        document.getElementById('message').innerText = 'Location denied';
+        document.getElementById('locationSearch').value = '';
+    });
   });
 
   document.getElementById('submitReportBtn').addEventListener('click', async () => {
     const type = document.getElementById('incidentType').value;
     const description = document.getElementById('incidentDesc').value;
-    if (!type || !description) {
-      document.getElementById('message').innerText = 'Please fill type and description.';
-      return;
-    }
-    let lat, lng, locName;
-    if (selectedLocation) {
-      lat = selectedLocation.lat;
-      lng = selectedLocation.lng;
-      locName = selectedLocation.name;
-    } else {
-      if (!navigator.geolocation) {
-        document.getElementById('message').innerText = 'Geolocation not supported.';
-        return;
-      }
-      try {
-        const pos = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject));
-        lat = pos.coords.latitude;
-        lng = pos.coords.longitude;
-        locName = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-        if (!isWithinSanPablo(lat, lng)) {
-          document.getElementById('message').innerText = 'Location outside San Pablo City.';
-          return;
-        }
-      } catch (err) {
-        document.getElementById('message').innerText = 'Could not get location.';
-        return;
-      }
-    }
+    const msgBox = document.getElementById('message');
+    
+    if (!type || !description) { msgBox.innerText = 'Please select a type and add a description.'; return; }
+    if (!selectedLocation) { msgBox.innerText = 'Please pinpoint the incident location.'; return; }
+    
+    msgBox.style.color = 'var(--text-main)';
+    msgBox.innerText = 'Submitting...';
+    
     const response = await fetch('/incidents/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
-      body: JSON.stringify({ type, description, lat, lng, location_name: locName })
+      body: JSON.stringify({ type, description, lat: selectedLocation.lat, lng: selectedLocation.lng, location_name: selectedLocation.name })
     });
-    const data = await response.json();
+    
     if (!response.ok) {
-      document.getElementById('message').innerText = data.detail || 'Failed to report';
+      msgBox.style.color = 'var(--danger)';
+      const data = await response.json();
+      msgBox.innerText = data.detail || 'Failed to report incident';
     } else {
-      document.getElementById('message').innerText = 'Incident reported! Redirecting...';
+      msgBox.style.color = 'var(--success)';
+      msgBox.innerText = 'Incident reported successfully! Redirecting...';
       setTimeout(() => location.href = 'index.html', 1500);
     }
   });

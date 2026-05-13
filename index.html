@@ -4,73 +4,93 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>SP SafeRoute</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; }
-        .glass-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 40px; padding: 30px; width: 100%; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
-        h1 { font-size: 32px; font-weight: 700; background: linear-gradient(135deg, #1A73E8, #0d47a1); -webkit-background-clip: text; background-clip: text; color: transparent; text-align: center; margin-bottom: 30px; }
-        .input { width: 100%; padding: 14px 16px; margin-bottom: 16px; border: 1px solid #e5e7eb; border-radius: 30px; font-size: 16px; }
-        .btn-primary { width: 100%; background: #1A73E8; color: white; border: none; padding: 14px; border-radius: 30px; font-weight: 600; cursor: pointer; }
-        .btn-primary:hover { background: #1557b0; }
-        .link { text-align: center; margin-top: 16px; color: #1A73E8; cursor: pointer; font-size: 14px; }
-        .error { color: #dc2626; text-align: center; margin-top: 12px; font-size: 14px; }
-        .hidden { display: none; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .header-right { display: flex; gap: 12px; align-items: center; }
-        .bell-icon { font-size: 24px; cursor: pointer; transition: transform 0.2s; }
-        .bell-icon:hover { transform: scale(1.1); }
-        .logout-btn { background: #6b7280; color: white; border: none; padding: 8px 16px; border-radius: 30px; cursor: pointer; }
-        .feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 20px; }
-        .feature-card { background: white; padding: 20px; border-radius: 24px; text-align: center; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .feature-card:hover { transform: translateY(-4px); }
-    </style>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+    
     <!-- Firebase SDKs for FCM -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
+    
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#667eea">
+    <meta name="theme-color" content="#0f172a">
     <link rel="apple-touch-icon" href="/static/icons/icon-152x152.png">
 </head>
 <body>
-<div id="loginPanel" class="glass-card">
-    <h1>SP SafeRoute</h1>
-    <input type="email" id="email" placeholder="Email" class="input">
-    <input type="password" id="password" placeholder="Password" class="input">
-    <button id="loginBtn" class="btn-primary">Login</button>
-    <div class="link" id="showRegisterBtn">Don't have an account? Sign Up</div>
-    <div id="loginMessage" class="error"></div>
-</div>
 
-<div id="registerPanel" class="glass-card hidden">
-    <h1>Create Account</h1>
-    <input type="text" id="regName" placeholder="Full Name" class="input">
-    <input type="email" id="regEmail" placeholder="Email" class="input">
-    <input type="password" id="regPassword" placeholder="Password" class="input">
-    <button id="registerBtn" class="btn-primary">Sign Up</button>
-    <div class="link" id="showLoginBtn">Already have an account? Log In</div>
-    <div id="registerMessage" class="error"></div>
-</div>
+<div id="appLayout">
+    <!-- Full Screen Map Background -->
+    <div id="map"></div>
 
-<div id="mainPanel" class="glass-card hidden">
-    <div class="header">
-        <h2>Welcome, <span id="userName"></span>!</h2>
-        <div class="header-right">
-            <span id="bellIcon" class="bell-icon" title="Enable notifications">🔔</span>
-            <button id="logoutBtn" class="logout-btn">Logout</button>
+    <!-- Toggle Button for Sidebar (Visible when logged in and sidebar is collapsed) -->
+    <div id="sidebarToggle" class="sidebar-toggle hidden">
+        ☰
+    </div>
+
+    <!-- Top Right Controls (Visible when logged in) -->
+    <div id="topRightControls" class="top-right-controls hidden">
+        <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌗</div>
+        <div id="bellIcon" class="control-btn" title="Enable Notifications">🔔</div>
+    </div>
+
+    <!-- Sidebar Menu (Visible when logged in) -->
+    <div id="sidebar" class="sidebar hidden">
+        <div class="sidebar-header">
+            <h2>SP SafeRoute</h2>
+            <button id="closeSidebarBtn" class="close-btn">×</button>
+        </div>
+        
+        <div class="user-info">
+            <h3 id="userName">Welcome</h3>
+            <p id="userEmail">user@example.com</p>
+        </div>
+
+        <div class="nav-menu">
+            <a href="saferoute.html" class="nav-item">🛡️ Safe Route</a>
+            <a href="report.html" class="nav-item">⚠️ Report Incident</a>
+            <a href="activealerts.html" class="nav-item">📋 Active Alerts</a>
+            <a href="backend/app/templates/admin_dashboard.html" class="nav-item hidden" id="adminBtn">👑 Admin</a>
+            <a href="sos.html" class="nav-item danger">🆘 SOS Emergency</a>
+        </div>
+
+        <div class="sidebar-footer">
+            <button id="logoutBtn" class="logout-btn">Log Out</button>
         </div>
     </div>
-    <div class="feature-grid">
-        <div class="feature-card" id="mapBtn">🗺️ View Map</div>
-        <div class="feature-card" id="reportBtn">⚠️ Report Incident</div>
-        <div class="feature-card" id="routeBtn">🛡️ Safe Route</div>
-        <div class="feature-card" id="alertsBtn">📋 Active Alerts</div>
-        <div class="feature-card" id="sosBtn">🆘 SOS</div>
-        <div class="feature-card" id="adminBtn" style="display:none;">👑 Admin</div>
+
+    <!-- Authentication Overlay (Visible when not logged in) -->
+    <div id="authOverlay" class="auth-container">
+        <!-- Login Panel -->
+        <div id="loginPanel" class="glass-card">
+            <h1 class="app-title">SP SafeRoute</h1>
+            <input type="email" id="email" placeholder="Email" class="input">
+            <input type="password" id="password" placeholder="Password" class="input">
+            <button id="loginBtn" class="btn btn-primary">Login</button>
+            <div class="link" id="showRegisterBtn">Don't have an account? Sign Up</div>
+            <div id="loginMessage" class="error"></div>
+        </div>
+
+        <!-- Register Panel -->
+        <div id="registerPanel" class="glass-card hidden">
+            <h1 class="app-title">Create Account</h1>
+            <input type="text" id="regName" placeholder="Full Name" class="input">
+            <input type="email" id="regEmail" placeholder="Email" class="input">
+            <input type="password" id="regPassword" placeholder="Password" class="input">
+            <button id="registerBtn" class="btn btn-primary">Sign Up</button>
+            <div class="link" id="showLoginBtn">Already have an account? Log In</div>
+            <div id="registerMessage" class="error"></div>
+        </div>
     </div>
 </div>
 
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
-    // Firebase config and messaging
+    // --- Firebase and Map Initialization ---
     const firebaseConfig = {
         apiKey: "AIzaSyBv92XnzznnO-e7q-F7n8IqiyABvj2fhwU",
         authDomain: "spsaferoute.firebaseapp.com",
@@ -82,59 +102,114 @@
     firebase.initializeApp(firebaseConfig);
     const messaging = firebase.messaging();
 
-    // Register service worker and wait for it to be ready
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/firebase-messaging-sw.js')
-            .then(reg => console.log('Service Worker registered:', reg))
             .catch(err => console.error('Service Worker registration failed:', err));
     }
 
-    // --- FIXED: enablePushNotifications waits for active service worker ---
-    async function enablePushNotifications() {
-        try {
-            // Ensure user is logged in
-            if (!localStorage.getItem('token')) throw new Error("Not logged in");
+    let map;
+    let darkTileLayer;
+    let lightTileLayer;
+    let currentTileLayer;
 
-            // Wait for the service worker to become active (this is the key fix)
-            await navigator.serviceWorker.ready;
+    // Theme initialization (force light default unless specifically saved as dark)
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
 
-            // Request permission using native browser API
-            const permission = await Notification.requestPermission();
-            if (permission !== 'granted') throw new Error('Permission denied');
+    document.getElementById('themeToggleBtn').addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        if (newTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+        localStorage.setItem('theme', newTheme);
+        updateMapTheme(newTheme);
+    });
 
-            // Get FCM token
-            const token = await messaging.getToken({ 
-                vapidKey: "BKnT_hLfIL2DlonLwZrXY4kwjBEjlp6BaJIr6_ESnVT_K4R985hNmpftY7A9YA9HWSNjCNEeEcTuN8v6VBFDHeI" 
+    function initMap() {
+        if (!map) {
+            map = L.map('map', { zoomControl: false }).setView([14.07, 121.3255], 13);
+            
+            darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 20
             });
-            console.log("FCM Token:", token);
 
-            // Send token to backend
-            const authToken = localStorage.getItem('token');
-            const response = await fetch('/user/fcm-token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`
-                },
-                body: JSON.stringify({ token: token })
+            lightTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 20
             });
-            if (response.ok) {
-                console.log("Notifications enabled and token saved");
-                alert("✅ Notifications enabled. You will receive updates.");
-            } else {
-                throw new Error("Failed to save token");
-            }
-        } catch (err) {
-            console.error("Push notification error:", err);
-            if (err.message === 'Permission denied') {
-                alert("❌ Notification permission denied. You can enable it later from browser settings.");
-            } else {
-                alert("❌ Could not enable notifications: " + err.message);
-            }
+
+            const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+            currentTileLayer = currentTheme === 'dark' ? darkTileLayer : lightTileLayer;
+            currentTileLayer.addTo(map);
+            
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
         }
     }
 
-    // ========== AUTH ==========
+    function updateMapTheme(theme) {
+        if (!map) return;
+        map.removeLayer(currentTileLayer);
+        currentTileLayer = theme === 'dark' ? darkTileLayer : lightTileLayer;
+        currentTileLayer.addTo(map);
+    }
+
+    async function loadIncidentsOnMap() {
+        if (!map) return;
+        try {
+            const res = await fetch('/incidents/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+            const incidents = await res.json();
+            if (res.ok) {
+                incidents.forEach(inc => {
+                    let color = inc.type === 'accident' ? '#ef4444' : inc.type === 'crime' ? '#a855f7' : '#f59e0b';
+                    L.circleMarker([inc.lat, inc.lng], {
+                        radius: 8,
+                        fillColor: color,
+                        color: '#ffffff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }).addTo(map).bindPopup(`<b>${inc.type.toUpperCase()}</b><br>${inc.description}`);
+                });
+            }
+        } catch (e) { console.error('Failed to load incidents', e); }
+    }
+
+    // --- UI Interactions ---
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const authOverlay = document.getElementById('authOverlay');
+    const loginPanel = document.getElementById('loginPanel');
+    const registerPanel = document.getElementById('registerPanel');
+
+    document.getElementById('sidebarToggle').addEventListener('click', () => {
+        sidebar.classList.remove('collapsed');
+        sidebarToggle.classList.add('hidden-toggle');
+    });
+
+    document.getElementById('closeSidebarBtn').addEventListener('click', () => {
+        sidebar.classList.add('collapsed');
+        sidebarToggle.classList.remove('hidden-toggle');
+    });
+
+    document.getElementById('showRegisterBtn').addEventListener('click', () => {
+        loginPanel.classList.add('hidden');
+        registerPanel.classList.remove('hidden');
+    });
+
+    document.getElementById('showLoginBtn').addEventListener('click', () => {
+        registerPanel.classList.add('hidden');
+        loginPanel.classList.remove('hidden');
+    });
+
+    // --- Auth Logic ---
     let TOKEN = localStorage.getItem('token');
 
     function setToken(token) {
@@ -143,33 +218,33 @@
         else localStorage.removeItem('token');
     }
 
-    async function apiRequest(endpoint, method = 'GET', body = null) {
-        const headers = { 'Content-Type': 'application/json' };
-        if (TOKEN) headers['Authorization'] = `Bearer ${TOKEN}`;
-        const response = await fetch(endpoint, {
-            method,
-            headers,
-            body: body ? JSON.stringify(body) : null,
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.detail || 'Request failed');
-        return data;
-    }
-
-    const loginPanel = document.getElementById('loginPanel');
-    const registerPanel = document.getElementById('registerPanel');
-    const mainPanel = document.getElementById('mainPanel');
-    const loginMessage = document.getElementById('loginMessage');
-    const registerMessage = document.getElementById('registerMessage');
-    const bellIcon = document.getElementById('bellIcon');
-
     async function loadUser() {
         try {
-            const user = await apiRequest('/users/me');
-            document.getElementById('userName').innerText = user.full_name || user.email;
-            const adminBtn = document.getElementById('adminBtn');
-            if (adminBtn) adminBtn.style.display = user.is_admin ? 'flex' : 'none';
-        } catch (e) { logout(); }
+            const response = await fetch('/users/me', {
+                headers: { 'Authorization': `Bearer ${TOKEN}` }
+            });
+            const user = await response.json();
+            if (!response.ok) throw new Error('Failed to load user');
+            
+            document.getElementById('userName').innerText = user.full_name || 'User';
+            document.getElementById('userEmail').innerText = user.email || '';
+            if (user.is_admin) {
+                document.getElementById('adminBtn').classList.remove('hidden');
+            }
+            return user;
+        } catch (e) { logout(); return null; }
+    }
+
+    function showMainApp() {
+        authOverlay.classList.add('hidden');
+        sidebar.classList.remove('hidden');
+        sidebarToggle.classList.remove('hidden');
+        document.getElementById('topRightControls').classList.remove('hidden');
+        sidebar.classList.remove('collapsed'); // Open sidebar by default on login
+        sidebarToggle.classList.add('hidden-toggle');
+        initMap();
+        setTimeout(() => map.invalidateSize(), 100);
+        loadIncidentsOnMap();
     }
 
     async function login() {
@@ -187,11 +262,14 @@
             const data = await response.json();
             if (!response.ok) throw new Error(data.detail);
             setToken(data.access_token);
-            loginPanel.classList.add('hidden');
-            mainPanel.classList.remove('hidden');
-            await loadUser();
+            const user = await loadUser();
+            if (user && user.is_admin) {
+                window.location.href = 'backend/app/templates/admin_dashboard.html';
+            } else {
+                showMainApp();
+            }
         } catch (err) {
-            loginMessage.innerText = err.message;
+            document.getElementById('loginMessage').innerText = err.message;
         }
     }
 
@@ -208,60 +286,67 @@
             const data = await response.json();
             if (!response.ok) throw new Error(data.detail);
             setToken(data.access_token);
-            registerPanel.classList.add('hidden');
-            mainPanel.classList.remove('hidden');
-            await loadUser();
+            const user = await loadUser();
+            if (user && user.is_admin) {
+                window.location.href = 'backend/app/templates/admin_dashboard.html';
+            } else {
+                showMainApp();
+            }
         } catch (err) {
-            registerMessage.innerText = err.message;
+            document.getElementById('registerMessage').innerText = err.message;
         }
     }
 
     function logout() {
         setToken(null);
-        mainPanel.classList.add('hidden');
+        sidebar.classList.add('hidden');
+        sidebarToggle.classList.add('hidden');
+        document.getElementById('topRightControls').classList.add('hidden');
+        authOverlay.classList.remove('hidden');
         loginPanel.classList.remove('hidden');
         registerPanel.classList.add('hidden');
     }
 
-    // Navigation
-    document.getElementById('mapBtn')?.addEventListener('click', () => location.href = 'map.html');
-    document.getElementById('reportBtn')?.addEventListener('click', () => location.href = 'report.html');
-    document.getElementById('routeBtn')?.addEventListener('click', () => location.href = 'saferoute.html');
-    document.getElementById('alertsBtn')?.addEventListener('click', () => location.href = 'activealerts.html');
-    document.getElementById('sosBtn')?.addEventListener('click', () => location.href = 'sos.html');
-    document.getElementById('adminBtn')?.addEventListener('click', () => location.href = 'backend/app/templates/admin_dashboard.html');
-    document.getElementById('loginBtn')?.addEventListener('click', login);
-    document.getElementById('registerBtn')?.addEventListener('click', register);
-    document.getElementById('logoutBtn')?.addEventListener('click', logout);
-    document.getElementById('showRegisterBtn')?.addEventListener('click', () => {
-        loginPanel.classList.add('hidden');
-        registerPanel.classList.remove('hidden');
-    });
-    document.getElementById('showLoginBtn')?.addEventListener('click', () => {
-        registerPanel.classList.add('hidden');
-        loginPanel.classList.remove('hidden');
-    });
+    document.getElementById('loginBtn').addEventListener('click', login);
+    document.getElementById('registerBtn').addEventListener('click', register);
+    document.getElementById('logoutBtn').addEventListener('click', logout);
 
-    // Notification bell click handler
-    if (bellIcon) {
-        bellIcon.addEventListener('click', () => {
-            if (!localStorage.getItem('token')) {
-                alert("Please log in first to enable notifications.");
-                return;
+    // Initial state check
+    if (TOKEN) {
+        initMap();
+        loadUser().then((user) => {
+            if (user && user.is_admin) {
+                window.location.href = 'backend/app/templates/admin_dashboard.html';
+            } else {
+                showMainApp();
             }
-            enablePushNotifications();
-        });
-    }
-
-    // Initial state
-    if (localStorage.getItem('token')) {
-        loadUser().then(() => {
-            loginPanel.classList.add('hidden');
-            mainPanel.classList.remove('hidden');
         }).catch(() => logout());
     } else {
-        loginPanel.classList.remove('hidden');
+        // Initialize map in background for visual effect behind auth panel
+        initMap();
     }
+
+    // --- Push Notifications ---
+    document.getElementById('bellIcon').addEventListener('click', async () => {
+        if (!TOKEN) return;
+        try {
+            await navigator.serviceWorker.ready;
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') throw new Error('Permission denied');
+            const token = await messaging.getToken({ 
+                vapidKey: "BKnT_hLfIL2DlonLwZrXY4kwjBEjlp6BaJIr6_ESnVT_K4R985hNmpftY7A9YA9HWSNjCNEeEcTuN8v6VBFDHeI" 
+            });
+            const response = await fetch('/user/fcm-token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+                body: JSON.stringify({ token: token })
+            });
+            if (response.ok) alert("✅ Notifications enabled!");
+        } catch (err) {
+            alert("❌ Could not enable notifications.");
+        }
+    });
+
 </script>
 </body>
 </html>

@@ -2,62 +2,141 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>SP SafeRoute - Active Alerts</title>
+  <link rel="stylesheet" href="style.css" />
   <style>
-    body { font-family: system-ui; background: #f3f4f6; margin: 0; }
-    .header { padding: 12px 16px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 16px; }
-    .btn-back { background: none; border: none; font-size: 24px; cursor: pointer; color: #1A73E8; }
-    h2 { margin: 0; font-size: 20px; }
-    .alerts-container { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
-    .alert-card { background: white; border-radius: 12px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 5px solid; cursor: pointer; }
-    .alert-type { font-weight: bold; font-size: 14px; margin-bottom: 4px; }
-    .alert-desc { font-size: 14px; color: #1f2937; margin-bottom: 6px; }
-    .alert-location { font-size: 12px; color: #4b5563; margin-bottom: 4px; }
-    .alert-date { font-size: 11px; color: #6b7280; }
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; visibility: hidden; opacity: 0; transition: visibility 0.2s, opacity 0.2s; }
+    body { padding: 20px; max-width: 800px; margin: 0 auto; padding-top: 80px; }
+    
+    .fixed-header {
+      position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
+      background: var(--glass-bg); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+    }
+    
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    
+    .btn-back {
+      background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border);
+      color: var(--text-main); width: 40px; height: 40px; border-radius: 50%;
+      font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .btn-back:hover { background: var(--primary); color: white; }
+    
+    .control-btn {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--glass-bg); backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border); display: flex;
+      align-items: center; justify-content: center; font-size: 20px;
+      cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s; color: var(--text-main);
+    }
+    .control-btn:hover { transform: scale(1.1); }
+    
+    .alerts-container { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; }
+    
+    .alert-card {
+      background: var(--glass-bg); backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border); border-radius: 16px;
+      padding: 20px; cursor: pointer; transition: transform 0.2s;
+      border-left: 6px solid var(--glass-border);
+    }
+    .alert-card:hover { transform: translateY(-2px); background: var(--nav-hover); }
+    
+    .alert-card.type-accident { border-left-color: #ef4444; }
+    .alert-card.type-crime { border-left-color: #8b5cf6; }
+    .alert-card.type-hazard { border-left-color: #f59e0b; }
+    
+    .alert-type { font-weight: bold; font-size: 14px; margin-bottom: 8px; letter-spacing: 1px; }
+    .alert-desc { font-size: 16px; color: var(--text-main); margin-bottom: 12px; line-height: 1.5; }
+    .alert-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
+    
+    /* Modal */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 1000; visibility: hidden; opacity: 0; transition: all 0.3s;
+    }
     .modal-overlay.active { visibility: visible; opacity: 1; }
-    .modal-content { background: white; width: 90%; max-width: 400px; border-radius: 24px; padding: 20px; max-height: 85vh; overflow-y: auto; position: relative; }
-    .modal-close { position: absolute; top: 12px; right: 16px; font-size: 24px; cursor: pointer; background: none; border: none; color: #6b7280; }
-    .modal-title { font-size: 20px; font-weight: bold; margin-bottom: 16px; padding-right: 24px; }
-    .modal-label { font-weight: bold; margin-top: 12px; margin-bottom: 4px; color: #374151; }
-    .modal-text { margin-bottom: 8px; color: #1f2937; }
-    .modal-button { background: #1A73E8; color: white; border: none; padding: 12px; border-radius: 12px; font-size: 16px; font-weight: bold; width: 100%; margin-top: 16px; cursor: pointer; }
-    .modal-button.close { background: #6b7280; margin-top: 8px; }
+    .modal-content {
+      background: var(--bg-main); border: 1px solid var(--glass-border);
+      width: 90%; max-width: 450px; border-radius: 24px; padding: 24px;
+      position: relative; color: var(--text-main); box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+    .modal-close {
+      position: absolute; top: 16px; right: 20px; font-size: 28px; cursor: pointer;
+      background: none; border: none; color: var(--text-muted);
+    }
+    .modal-label { font-size: 12px; text-transform: uppercase; color: var(--text-muted); margin-top: 16px; margin-bottom: 4px; }
+    .modal-text { font-size: 16px; line-height: 1.5; }
+    
+    .modal-button {
+      background: var(--primary); color: white; border: none; padding: 14px;
+      border-radius: 12px; font-size: 16px; font-weight: bold; width: 100%;
+      margin-top: 24px; cursor: pointer;
+    }
+    .modal-button.close { background: transparent; border: 1px solid var(--glass-border); color: var(--text-main); margin-top: 12px; }
   </style>
 </head>
 <body>
-<div class="header">
-  <button class="btn-back" onclick="location.href='index.html'">←</button>
-  <h2>Active Alerts</h2>
+
+<div class="fixed-header">
+  <div class="header-left">
+    <button class="btn-back" onclick="location.href='index.html'">←</button>
+    <h2 style="margin:0; font-size: 20px; color: var(--text-main);">Active Alerts</h2>
+  </div>
+  <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌗</div>
 </div>
-<div id="alertsList" class="alerts-container"></div>
+
+<div id="alertsList" class="alerts-container">
+  <div style="text-align:center; color: var(--text-muted); padding: 40px;">Loading alerts...</div>
+</div>
 
 <div id="incidentModal" class="modal-overlay">
   <div class="modal-content">
     <button class="modal-close" id="closeModalBtn">&times;</button>
-    <div id="modalType" class="modal-title"></div>
-    <div><div class="modal-label">Description:</div><div id="modalDesc" class="modal-text"></div></div>
-    <div><div class="modal-label">Location:</div><div id="modalLocation" class="modal-text"></div></div>
-    <div><div class="modal-label">Reported at:</div><div id="modalDate" class="modal-text"></div></div>
+    <div id="modalType" style="font-weight: bold; font-size: 20px; margin-bottom: 8px;"></div>
+    
+    <div class="modal-label">Description</div>
+    <div id="modalDesc" class="modal-text"></div>
+    
+    <div class="modal-label">Location</div>
+    <div id="modalLocation" class="modal-text"></div>
+    
+    <div class="modal-label">Reported At</div>
+    <div id="modalDate" class="modal-text" style="color: var(--text-muted);"></div>
+    
     <button id="viewLocationBtn" class="modal-button">📍 View Live Location</button>
     <button id="closeModalBtn2" class="modal-button close">Close</button>
   </div>
 </div>
 
 <script>
-  const API_BASE = '';
   let TOKEN = localStorage.getItem('token');
   if (!TOKEN) location.href = 'index.html';
 
-  async function fetchIncidents() {
-    const res = await fetch('/incidents/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
-  }
+  document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    loadAlerts();
+  });
+
+  document.getElementById('themeToggleBtn').addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      if (newTheme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+          document.documentElement.removeAttribute('data-theme');
+      }
+      localStorage.setItem('theme', newTheme);
+  });
 
   function formatDate(ts) {
-    return new Date(ts).toLocaleString();
+    return new Date(ts).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
 
   const modal = document.getElementById('incidentModal');
@@ -65,14 +144,15 @@
 
   function closeModal() { modal.classList.remove('active'); }
   function openModal(incident) {
-    const borderColor = incident.type === 'accident' ? '#dc2626' : incident.type === 'crime' ? '#7c3aed' : '#f59e0b';
-    document.getElementById('modalType').innerHTML = `<span style="color:${borderColor}">${incident.type.toUpperCase()}</span>`;
+    const color = incident.type === 'accident' ? '#ef4444' : incident.type === 'crime' ? '#8b5cf6' : '#f59e0b';
+    document.getElementById('modalType').innerHTML = `<span style="color:${color}">${incident.type.toUpperCase()}</span>`;
     document.getElementById('modalDesc').innerText = incident.description;
-    document.getElementById('modalLocation').innerText = incident.location_name || `${incident.lat}, ${incident.lng}`;
+    document.getElementById('modalLocation').innerText = incident.location_name || `${incident.lat.toFixed(4)}, ${incident.lng.toFixed(4)}`;
     document.getElementById('modalDate').innerText = formatDate(incident.created_at);
     currentLocation = { lat: incident.lat, lng: incident.lng };
     modal.classList.add('active');
   }
+
   document.getElementById('viewLocationBtn').addEventListener('click', () => {
     if (currentLocation) window.open(`https://www.google.com/maps?q=${currentLocation.lat},${currentLocation.lng}`, '_blank');
   });
@@ -82,33 +162,39 @@
 
   async function loadAlerts() {
     try {
-      const incidents = await fetchIncidents();
+      const res = await fetch('/incidents/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+      if (!res.ok) throw new Error();
+      const incidents = await res.json();
+      
       const container = document.getElementById('alertsList');
       container.innerHTML = '';
       if (incidents.length === 0) {
-        container.innerHTML = '<div class="alert-card">No active alerts. Be safe!</div>';
+        container.innerHTML = '<div style="text-align:center; color: var(--text-muted); padding: 40px;">No active alerts. Stay safe!</div>';
         return;
       }
+      
+      // Sort newest first
+      incidents.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+      
       incidents.forEach(inc => {
-        const borderColor = inc.type === 'accident' ? '#dc2626' : inc.type === 'crime' ? '#7c3aed' : '#f59e0b';
+        const color = inc.type === 'accident' ? '#ef4444' : inc.type === 'crime' ? '#8b5cf6' : '#f59e0b';
         const card = document.createElement('div');
-        card.className = 'alert-card';
-        card.style.borderLeftColor = borderColor;
+        card.className = `alert-card type-${inc.type}`;
         card.innerHTML = `
-          <div class="alert-type" style="color:${borderColor}">${inc.type.toUpperCase()}</div>
-          <div class="alert-desc">${inc.description.substring(0, 80)}${inc.description.length > 80 ? '...' : ''}</div>
-          <div class="alert-location">📍 ${inc.location_name || `${inc.lat.toFixed(4)}, ${inc.lng.toFixed(4)}`}</div>
-          <div class="alert-date">${formatDate(inc.created_at)}</div>
+          <div class="alert-type" style="color:${color}">${inc.type.toUpperCase()}</div>
+          <div class="alert-desc">${inc.description.substring(0, 100)}${inc.description.length > 100 ? '...' : ''}</div>
+          <div class="alert-meta">
+            <span>📍 ${inc.location_name ? inc.location_name.substring(0,25) : `${inc.lat.toFixed(4)}, ${inc.lng.toFixed(4)}`}</span>
+            <span>${formatDate(inc.created_at)}</span>
+          </div>
         `;
         card.addEventListener('click', () => openModal(inc));
         container.appendChild(card);
       });
     } catch (err) {
-      console.error(err);
-      document.getElementById('alertsList').innerHTML = '<div class="alert-card">Error loading alerts</div>';
+      document.getElementById('alertsList').innerHTML = '<div style="text-align:center; color: var(--danger); padding: 40px;">Error loading alerts</div>';
     }
   }
-  loadAlerts();
 </script>
 </body>
 </html>

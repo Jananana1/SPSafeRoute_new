@@ -2,80 +2,182 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - SafeRoute</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>SafeRoute - Admin Dashboard</title>
+    <!-- Use our global glassmorphism styles -->
+    <link rel="stylesheet" href="/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .sidebar { min-height: 100vh; background: #2c3e50; }
-        .sidebar .nav-link { color: #ecf0f1; }
-        .sidebar .nav-link:hover { background: #34495e; }
-        .incident-row:hover { background: #f8f9fa; }
-        .badge-accident { background: #e74c3c; }
-        .badge-hazard { background: #f39c12; }
-        .badge-crime { background: #2c3e50; }
+        body {
+            margin: 0; padding: 0; min-height: 100vh;
+            display: flex; font-family: system-ui;
+        }
+        
+        .admin-sidebar {
+            width: 250px; background: var(--glass-bg); backdrop-filter: blur(16px);
+            border-right: 1px solid var(--glass-border); display: flex; flex-direction: column;
+            padding: 20px 0; z-index: 100;
+        }
+        
+        .admin-sidebar-header {
+            padding: 0 20px 20px; border-bottom: 1px solid var(--glass-border); margin-bottom: 20px;
+        }
+        
+        .admin-nav-item {
+            padding: 12px 20px; color: var(--text-muted); cursor: pointer;
+            transition: all 0.2s; font-weight: bold; border-left: 4px solid transparent;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .admin-nav-item:hover { color: var(--text-main); background: var(--nav-hover); }
+        .admin-nav-item.active { color: var(--primary); border-left-color: var(--primary); background: var(--nav-hover); }
+        
+        .admin-nav-danger { color: #ef4444; margin-top: auto; }
+        .admin-nav-danger:hover { color: #fca5a5; background: rgba(239, 68, 68, 0.1); }
+
+        .admin-content {
+            flex: 1; padding: 30px; overflow-y: auto;
+        }
+        
+        .top-bar {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;
+        }
+        
+        .top-bar-right { display: flex; align-items: center; gap: 16px; }
+        
+        .control-btn {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+            cursor: pointer; color: var(--text-main); transition: transform 0.2s;
+        }
+        .control-btn:hover { transform: scale(1.1); }
+        
+        .glass-card {
+            background: var(--glass-bg); backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border); border-radius: 20px;
+            padding: 24px; margin-bottom: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; color: var(--text-main); }
+        th { padding: 12px 16px; font-weight: bold; color: var(--text-muted); border-bottom: 1px solid var(--glass-border); }
+        td { padding: 16px; border-bottom: 1px solid var(--glass-border); }
+        tr:hover td { background: var(--nav-hover); }
+        
+        .badge {
+            padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; color: white;
+        }
+        .badge-accident { background: #ef4444; }
+        .badge-hazard { background: #f59e0b; }
+        .badge-crime { background: #8b5cf6; }
+        
+        .status-completed { color: #10b981; font-weight: bold; }
+        .status-pending { color: #f59e0b; font-weight: bold; }
+        
+        .action-btn {
+            padding: 6px 12px; border-radius: 8px; border: none; font-size: 12px; font-weight: bold;
+            cursor: pointer; transition: transform 0.1s; margin-right: 8px; color: white;
+        }
+        .action-btn:active { transform: scale(0.95); }
+        .btn-success { background: #10b981; }
+        .btn-danger { background: #ef4444; }
+        
+        /* Chart grids */
+        .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        @media (max-width: 900px) { .analytics-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-2 p-0 sidebar">
-            <div class="p-3">
-                <h4 class="text-white">SafeRoute Admin</h4>
-                <hr class="bg-light">
-            </div>
-            <nav class="nav flex-column">
-                <a class="nav-link active" href="#" onclick="showSection('incidents')">📋 Incidents</a>
-                <a class="nav-link" href="#" onclick="showSection('analytics')">📊 Analytics</a>
-                <a class="nav-link text-danger" href="#" onclick="logout()">🚪 Logout</a>
-            </nav>
+
+<div class="admin-sidebar">
+    <div class="admin-sidebar-header">
+        <h2 style="margin:0; font-size: 20px; color: var(--primary);">SafeRoute Admin</h2>
+    </div>
+    
+    <div class="admin-nav-item active" onclick="showSection('incidents', this)">
+        📋 Manage Incidents
+    </div>
+    <div class="admin-nav-item" onclick="showSection('analytics', this)">
+        📊 Analytics
+    </div>
+    
+    <div style="flex:1;"></div>
+    <div class="admin-nav-item admin-nav-danger" onclick="logout()">
+        🚪 Logout
+    </div>
+</div>
+
+<div class="admin-content">
+    <div class="top-bar">
+        <h1 style="margin:0; font-size: 28px; color: var(--text-main);">Dashboard Overview</h1>
+        <div class="top-bar-right">
+            <span style="color: var(--text-muted); font-size: 14px;">Welcome, {{ user.email }}</span>
+            <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌗</div>
         </div>
-        <div class="col-md-10 p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>Admin Dashboard</h2>
-                <div>Welcome, {{ user.email }}</div>
+    </div>
+    
+    <div id="incidentsSection">
+        <div class="glass-card">
+            <h3 style="margin-top:0; color: var(--text-main); margin-bottom: 20px;">All Reports</h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th><th>Type</th><th>Location</th><th>Description</th><th>User ID</th><th>Status</th><th>Reported</th><th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="incidentsList">
+                        <tr><td colspan="8" style="text-align:center;">Loading incidents...</td></tr>
+                    </tbody>
+                </table>
             </div>
-            <div id="incidentsSection">
-                <div class="card">
-                    <div class="card-header">All Incidents</div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr><th>ID</th><th>Type</th><th>Location</th><th>Description</th><th>User ID</th><th>Status</th><th>Reported</th><th>Actions</th></tr>
-                                </thead>
-                                <tbody id="incidentsList"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+        </div>
+    </div>
+    
+    <div id="analyticsSection" style="display:none;">
+        <div class="analytics-grid">
+            <div class="glass-card">
+                <h3 style="margin-top:0; color: var(--text-main);">Monthly Trends</h3>
+                <canvas id="monthlyChart"></canvas>
             </div>
-            <div id="analyticsSection" style="display:none;">
-                <div class="row">
-                    <div class="col-md-6"><div class="card"><div class="card-header">Monthly Trends</div><div class="card-body"><canvas id="monthlyChart"></canvas></div></div></div>
-                    <div class="col-md-6"><div class="card"><div class="card-header">Most Prone Areas</div><div class="card-body"><canvas id="areaChart"></canvas></div></div></div>
-                </div>
+            <div class="glass-card">
+                <h3 style="margin-top:0; color: var(--text-main);">Most Prone Areas</h3>
+                <canvas id="areaChart"></canvas>
             </div>
         </div>
     </div>
 </div>
-<script>
-// Get token from localStorage (same key as in index.html)
-const token = localStorage.getItem('token');
-if (!token) {
-    // Not logged in – redirect to login page
-    window.location.href = '/';
-}
 
-// Helper function for authenticated fetch
+<script>
+// Theme Initialization
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+});
+
+document.getElementById('themeToggleBtn').addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    if (newTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+    }
+    localStorage.setItem('theme', newTheme);
+    // Reload charts to update text colors if needed
+    if(document.getElementById('analyticsSection').style.display !== 'none') {
+        loadAnalytics();
+    }
+});
+
+// Admin Logic
+const token = localStorage.getItem('token');
+if (!token) { window.location.href = '/'; }
+
 async function authFetch(url, options = {}) {
-    options.headers = {
-        ...options.headers,
-        'Authorization': `Bearer ${token}`
-    };
+    options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
     const response = await fetch(url, options);
     if (response.status === 401) {
-        // Token expired or invalid – redirect to login
         localStorage.removeItem('token');
         window.location.href = '/';
         throw new Error('Not authenticated');
@@ -83,9 +185,13 @@ async function authFetch(url, options = {}) {
     return response;
 }
 
-function showSection(section) {
+function showSection(section, element) {
     document.getElementById('incidentsSection').style.display = section === 'incidents' ? 'block' : 'none';
     document.getElementById('analyticsSection').style.display = section === 'analytics' ? 'block' : 'none';
+    
+    document.querySelectorAll('.admin-nav-item:not(.admin-nav-danger)').forEach(el => el.classList.remove('active'));
+    if (element) element.classList.add('active');
+    
     if (section === 'incidents') loadIncidents();
     if (section === 'analytics') loadAnalytics();
 }
@@ -98,89 +204,95 @@ async function loadIncidents() {
         const tbody = document.getElementById('incidentsList');
         tbody.innerHTML = '';
         if (incidents.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center">No incidents found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: var(--text-muted);">No incidents found</td></tr>';
             return;
         }
         incidents.forEach(inc => {
             const row = tbody.insertRow();
             row.insertCell(0).textContent = inc.id;
-            row.insertCell(1).innerHTML = `<span class="badge badge-${inc.type}">${inc.type}</span>`;
-            row.insertCell(2).textContent = inc.location_name || `${inc.lat},${inc.lng}`;
-            row.insertCell(3).textContent = inc.description?.substring(0, 50) || '';
+            row.insertCell(1).innerHTML = `<span class="badge badge-${inc.type}">${inc.type.toUpperCase()}</span>`;
+            row.insertCell(2).textContent = inc.location_name || `${parseFloat(inc.lat).toFixed(3)}, ${parseFloat(inc.lng).toFixed(3)}`;
+            row.insertCell(3).textContent = inc.description?.substring(0, 40) + (inc.description?.length > 40 ? '...' : '');
             row.insertCell(4).textContent = inc.user_id;
-            row.insertCell(5).innerHTML = `<span class="badge bg-${inc.status === 'completed' ? 'success' : 'warning'}">${inc.status}</span>`;
-            row.insertCell(6).textContent = new Date(inc.created_at).toLocaleString();
+            
+            const isCompleted = inc.status === 'completed';
+            row.insertCell(5).innerHTML = `<span class="${isCompleted ? 'status-completed' : 'status-pending'}">${isCompleted ? 'Resolved' : 'Pending'}</span>`;
+            row.insertCell(6).textContent = new Date(inc.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            
             const actions = row.insertCell(7);
-            if (inc.status !== 'completed') {
+            if (!isCompleted) {
                 const completeBtn = document.createElement('button');
-                completeBtn.textContent = 'Complete & Notify';
-                completeBtn.className = 'btn btn-sm btn-success me-2';
+                completeBtn.textContent = 'Resolve';
+                completeBtn.className = 'action-btn btn-success';
                 completeBtn.onclick = () => completeIncident(inc.id);
                 actions.appendChild(completeBtn);
             }
             const deleteBtn = document.createElement('button');
             deleteBtn.textContent = 'Delete';
-            deleteBtn.className = 'btn btn-sm btn-danger';
+            deleteBtn.className = 'action-btn btn-danger';
             deleteBtn.onclick = () => deleteIncident(inc.id);
             actions.appendChild(deleteBtn);
         });
     } catch (err) {
-        console.error('Failed to load incidents:', err);
-        document.getElementById('incidentsList').innerHTML = '<tr><td colspan="8" class="text-danger">Failed to load incidents</td></tr>';
+        document.getElementById('incidentsList').innerHTML = '<tr><td colspan="8" style="text-align:center; color: #ef4444;">Failed to load incidents</td></tr>';
     }
 }
 
 async function completeIncident(id) {
-    if (!confirm('Mark as completed and notify user?')) return;
+    if (!confirm('Mark this incident as resolved and notify the user?')) return;
     try {
         const res = await authFetch(`/admin/incidents/${id}/complete`, { method: 'POST' });
         if (res.ok) {
-            alert('Completed & user notified');
+            alert('Incident resolved successfully.');
             loadIncidents();
-        } else {
-            alert('Failed to complete incident');
-        }
-    } catch (err) {
-        alert('Error: ' + err.message);
-    }
+        } else alert('Failed to complete incident');
+    } catch (err) { alert('Error: ' + err.message); }
 }
 
 async function deleteIncident(id) {
-    if (!confirm('Delete permanently?')) return;
+    if (!confirm('Are you sure you want to permanently delete this report?')) return;
     try {
         const res = await authFetch(`/admin/incidents/${id}`, { method: 'DELETE' });
-        if (res.ok) {
-            loadIncidents();
-        } else {
-            alert('Delete failed');
-        }
-    } catch (err) {
-        alert('Error: ' + err.message);
-    }
+        if (res.ok) loadIncidents();
+        else alert('Delete failed');
+    } catch (err) { alert('Error: ' + err.message); }
 }
+
+let monthlyChartInstance = null;
+let areaChartInstance = null;
 
 async function loadAnalytics() {
     try {
         const res = await authFetch('/admin/analytics');
         if (!res.ok) throw new Error('Analytics fetch failed');
         const data = await res.json();
-        new Chart(document.getElementById('monthlyChart'), {
+        
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const textColor = isDark ? '#e2e8f0' : '#1e293b';
+        const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+
+        Chart.defaults.color = textColor;
+
+        if (monthlyChartInstance) monthlyChartInstance.destroy();
+        monthlyChartInstance = new Chart(document.getElementById('monthlyChart'), {
             type: 'line',
             data: {
                 labels: data.monthly_stats.map(m => m.month),
-                datasets: [{ label: 'Incidents', data: data.monthly_stats.map(m => m.count), borderColor: '#667eea' }]
-            }
+                datasets: [{ label: 'Incidents Reported', data: data.monthly_stats.map(m => m.count), borderColor: '#1A73E8', tension: 0.3, fill: true, backgroundColor: 'rgba(26, 115, 232, 0.1)' }]
+            },
+            options: { scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor }, beginAtZero: true } } }
         });
-        new Chart(document.getElementById('areaChart'), {
+
+        if (areaChartInstance) areaChartInstance.destroy();
+        areaChartInstance = new Chart(document.getElementById('areaChart'), {
             type: 'bar',
             data: {
                 labels: data.area_stats.map(a => a.area),
-                datasets: [{ label: 'Incidents', data: data.area_stats.map(a => a.count), backgroundColor: '#764ba2' }]
-            }
+                datasets: [{ label: 'Incidents', data: data.area_stats.map(a => a.count), backgroundColor: '#8b5cf6', borderRadius: 6 }]
+            },
+            options: { scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor }, beginAtZero: true } } }
         });
-    } catch (err) {
-        console.error('Analytics error:', err);
-    }
+    } catch (err) { console.error('Analytics error:', err); }
 }
 
 function logout() {
@@ -188,10 +300,6 @@ function logout() {
     window.location.href = '/';
 }
 
-// Attach logout button
-document.getElementById('logoutBtn')?.addEventListener('click', logout);
-
-// Initial load
 showSection('incidents');
 </script>
 </body>
