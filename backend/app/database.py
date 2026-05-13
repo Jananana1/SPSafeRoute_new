@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-MYSQL_USER = "sp_user"
+MYSQL_USER = "root"
 MYSQL_PASSWORD = ""   # ← change to the actual password
 MYSQL_HOST = "localhost"
 MYSQL_DB = "sp_core"
