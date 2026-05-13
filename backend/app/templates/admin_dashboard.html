@@ -31,8 +31,23 @@
         .admin-nav-item:hover { color: var(--text-main); background: var(--nav-hover); }
         .admin-nav-item.active { color: var(--primary); border-left-color: var(--primary); background: var(--nav-hover); }
         
-        .admin-nav-danger { color: #ef4444; margin-top: auto; }
-        .admin-nav-danger:hover { color: #fca5a5; background: rgba(239, 68, 68, 0.1); }
+        .admin-nav-danger { color: #ffffff; margin-top: auto; }
+        .admin-nav-danger.logout-btn {
+            background: #ef4444;
+            color: #ffffff;
+            border: none;
+            width: calc(100% - 40px);
+            margin: 0 20px 20px;
+            border-radius: 18px;
+            justify-content: center;
+            padding: 14px 20px;
+            font-size: 15px;
+            font-weight: 700;
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.28);
+            transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+        .admin-nav-danger.logout-btn:hover { background: #dc2626; transform: translateY(-1px); }
+        .admin-nav-danger.logout-btn:focus { outline: none; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.35); }
 
         .admin-content {
             flex: 1; padding: 30px; overflow-y: auto;
@@ -102,16 +117,16 @@
     </div>
     
     <div style="flex:1;"></div>
-    <div class="admin-nav-item admin-nav-danger" onclick="logout()">
-        🚪 Logout
-    </div>
+    <button type="button" class="admin-nav-item admin-nav-danger logout-btn" onclick="logout()">
+        🔒 Logout
+    </button>
 </div>
 
 <div class="admin-content">
     <div class="top-bar">
         <h1 style="margin:0; font-size: 28px; color: var(--text-main);">Dashboard Overview</h1>
         <div class="top-bar-right">
-            <span style="color: var(--text-muted); font-size: 14px;">Welcome, {{ user.email }}</span>
+            <span style="color: var(--text-muted); font-size: 14px;">Welcome Admin</span>
             <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌗</div>
         </div>
     </div>
