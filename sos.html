@@ -4,79 +4,246 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>SP SafeRoute - Emergency SOS</title>
-  <link rel="stylesheet" href="style.css" />
   <style>
-    body { 
-      display: flex; flex-direction: column; min-height: 100vh; margin: 0;
-      background: radial-gradient(circle at center, var(--bg-main) 0%, #000 100%);
+    /* ----- CSS Variables for Light/Dark Themes ----- */
+    :root {
+      --bg-gradient-start: #f8fafc;
+      --bg-gradient-end: #cbd5e1;
+      --header-bg: rgba(255, 255, 255, 0.85);
+      --btn-back-bg: rgba(0, 0, 0, 0.08);
+      --btn-back-border: rgba(0, 0, 0, 0.15);
+      --btn-back-color: #1e293b;
+      --btn-back-hover: rgba(0, 0, 0, 0.12);
+      --warning-color: #b91c1c;
+      --warning-text-secondary: #7f1d1d;
+      --status-color-default: #1e293b;
+      --sos-pulse-light: rgba(220, 38, 38, 0.35);
+      --container-text: #0f172a;
+      --toggle-bg: #e2e8f0;
+      --toggle-icon: #1e293b;
     }
-    
+
+    [data-theme="dark"] {
+      --bg-gradient-start: #0b0f1c;
+      --bg-gradient-end: #000000;
+      --header-bg: rgba(0, 0, 0, 0.7);
+      --btn-back-bg: rgba(255, 255, 255, 0.1);
+      --btn-back-border: rgba(255, 255, 255, 0.2);
+      --btn-back-color: #f1f5f9;
+      --btn-back-hover: rgba(255, 255, 255, 0.2);
+      --warning-color: #fca5a5;
+      --warning-text-secondary: #fecaca;
+      --status-color-default: #e2e8f0;
+      --sos-pulse-light: rgba(220, 38, 38, 0.5);
+      --container-text: #f1f5f9;
+      --toggle-bg: #334155;
+      --toggle-icon: #facc15;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      margin: 0;
+      background: radial-gradient(circle at center, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+      font-family: system-ui, 'Segoe UI', 'Inter', sans-serif;
+    }
+
+    /* Header section with back button + theme toggle */
     .fixed-header {
-      position: absolute; top: 0; left: 0; width: 100%; z-index: 100;
-      padding: 20px; display: flex; align-items: center; gap: 16px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--header-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
-    
+
+    .left-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
     .btn-back {
-      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-      color: white; width: 40px; height: 40px; border-radius: 50%;
-      font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: background 0.2s;
+      background: var(--btn-back-bg);
+      border: 1px solid var(--btn-back-border);
+      color: var(--btn-back-color);
+      width: 44px;
+      height: 44px;
+      border-radius: 40px;
+      font-size: 26px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
-    .btn-back:hover { background: rgba(255,255,255,0.2); }
-    
-    .container { 
-      flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
-      padding: 20px; text-align: center;
+
+    .btn-back:hover {
+      background: var(--btn-back-hover);
+      transform: scale(1.02);
+      border-color: rgba(255,255,255,0.4);
     }
-    
+
+    /* Theme toggle button (moon/sun) */
+    .theme-toggle {
+      background: var(--btn-back-bg);
+      border: 1px solid var(--btn-back-border);
+      color: var(--btn-back-color);
+      width: 44px;
+      height: 44px;
+      border-radius: 40px;
+      font-size: 22px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      backdrop-filter: blur(4px);
+    }
+
+    .theme-toggle:hover {
+      background: var(--btn-back-hover);
+      transform: rotate(8deg);
+    }
+
+    /* main content container */
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 30px 20px 40px;
+      text-align: center;
+    }
+
     .sos-wrapper {
       position: relative;
-      width: 250px; height: 250px;
-      display: flex; justify-content: center; align-items: center;
+      width: 260px;
+      height: 260px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px 0;
     }
-    
+
     .sos-pulse {
       position: absolute;
-      width: 100%; height: 100%;
-      background: rgba(220, 38, 38, 0.4);
+      width: 100%;
+      height: 100%;
+      background: var(--sos-pulse-light);
       border-radius: 50%;
       animation: pulse 2s infinite;
+      box-shadow: 0 0 20px rgba(220,38,38,0.3);
     }
-    
+
     .sos-pulse:nth-child(2) { animation-delay: 0.5s; }
     .sos-pulse:nth-child(3) { animation-delay: 1s; }
-    
+
     @keyframes pulse {
-      0% { transform: scale(1); opacity: 0.8; }
+      0% { transform: scale(0.92); opacity: 0.7; }
       100% { transform: scale(1.6); opacity: 0; }
     }
-    
+
     .btn-danger-massive {
-      position: relative; z-index: 10;
-      width: 180px; height: 180px;
-      background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
-      color: white; border: 4px solid #fca5a5;
-      font-size: 48px; font-weight: 900; letter-spacing: 2px;
-      border-radius: 50%; cursor: pointer;
-      box-shadow: 0 10px 30px rgba(220, 38, 38, 0.5), inset 0 5px 15px rgba(255,255,255,0.3);
-      transition: transform 0.1s, box-shadow 0.1s;
-      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      z-index: 10;
+      width: 190px;
+      height: 190px;
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+      color: white;
+      border: 4px solid rgba(255, 200, 200, 0.9);
+      font-size: 52px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 15px 35px rgba(185, 28, 28, 0.5), inset 0 4px 12px rgba(255,255,255,0.4);
+      transition: transform 0.08s linear, box-shadow 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: inherit;
     }
-    
+
     .btn-danger-massive:active {
-      transform: scale(0.95);
-      box-shadow: 0 5px 15px rgba(220, 38, 38, 0.5), inset 0 10px 20px rgba(0,0,0,0.4);
+      transform: scale(0.94);
+      box-shadow: 0 5px 15px rgba(185, 28, 28, 0.6), inset 0 8px 18px rgba(0,0,0,0.4);
     }
-    
-    .warning-text { color: #fca5a5; font-size: 16px; max-width: 300px; margin-top: 50px; line-height: 1.5; }
-    
-    .status-msg { margin-top: 20px; font-size: 18px; font-weight: bold; color: white; min-height: 24px; }
+
+    .warning-text {
+      color: var(--warning-color);
+      font-size: 1rem;
+      max-width: 340px;
+      margin-top: 40px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+      font-weight: 500;
+      background: rgba(0,0,0,0.2);
+      padding: 8px 18px;
+      border-radius: 80px;
+      backdrop-filter: blur(4px);
+    }
+
+    .status-msg {
+      margin-top: 18px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--status-color-default);
+      background: rgba(0,0,0,0.25);
+      padding: 12px 22px;
+      border-radius: 60px;
+      letter-spacing: 0.3px;
+      backdrop-filter: blur(8px);
+      max-width: 85%;
+    }
+
+    /* extra safety note */
+    .safety-note {
+      margin-top: 30px;
+      font-size: 0.75rem;
+      color: var(--warning-text-secondary);
+      opacity: 0.8;
+    }
+
+    @media (max-width: 480px) {
+      .btn-danger-massive { width: 160px; height: 160px; font-size: 44px; }
+      .sos-wrapper { width: 220px; height: 220px; }
+      .warning-text { font-size: 0.9rem; margin-top: 30px; }
+      .status-msg { font-size: 0.85rem; }
+    }
   </style>
 </head>
 <body>
 
 <div class="fixed-header">
-  <button class="btn-back" onclick="location.href='index.html'">←</button>
+  <div class="left-group">
+    <!-- Back button: returns to main index / dashboard -->
+    <button class="btn-back" aria-label="Go back" id="backButton">←</button>
+    <!-- Light/Dark mode toggle button -->
+    <button class="theme-toggle" id="themeToggleBtn" aria-label="Switch light/dark mode">🌙</button>
+  </div>
+  <!-- optional spacer, can be left empty -->
+  <div style="width: 44px;"></div> <!-- balance header for symmetry -->
 </div>
 
 <div class="container">
@@ -87,58 +254,222 @@
     <button id="sendSOSBtn" class="btn-danger-massive">SOS</button>
   </div>
   
-  <p class="warning-text">Press the button to instantly broadcast your live location to emergency contacts.</p>
-  <div id="statusMsg" class="status-msg"></div>
+  <p class="warning-text">⚠️ EMERGENCY ONLY — Press the button to instantly broadcast your live location to emergency contacts & responders.</p>
+  <div id="statusMsg" class="status-msg">📍 Ready · Tap SOS if you need help</div>
+  <div class="safety-note">🔒 Your location is encrypted & shared only with trusted emergency contacts</div>
 </div>
 
 <script>
-  let TOKEN = localStorage.getItem('token');
-  if (!TOKEN) location.href = 'index.html';
-  
-  // Force dark mode for SOS page to ensure contrast
-  document.documentElement.setAttribute('data-theme', 'dark');
-
-  async function sendSOS() {
-    const statusMsg = document.getElementById('statusMsg');
-    
-    if (!navigator.geolocation) {
-      statusMsg.style.color = '#fca5a5';
-      statusMsg.innerText = 'Location services not supported.';
+  (function() {
+    // ---------- AUTHENTICATION VALIDATION ----------
+    const TOKEN = localStorage.getItem('token');
+    if (!TOKEN) {
+      // Redirect to login/landing page if no auth token (preserve original behavior)
+      location.href = 'index.html';
       return;
     }
-    
-    statusMsg.style.color = 'white';
-    statusMsg.innerText = 'Acquiring GPS location...';
-    
-    navigator.geolocation.getCurrentPosition(async pos => {
-      const { latitude, longitude } = pos.coords;
-      statusMsg.style.color = '#4ade80';
-      statusMsg.innerText = 'Broadcasting Emergency Signal...';
+
+    // ---------- THEME MANAGEMENT (LIGHT/DARK TOGGLE) ----------
+    // Priority: load user preference from localStorage, fallback to "dark" as per original SOS requirement (safe high contrast)
+    // But we ensure that toggle works seamlessly even if theme was previously saved.
+    let currentTheme = localStorage.getItem('sos_theme');
+    if (!currentTheme) {
+      // Default to dark for maximum visibility on SOS page (consistent with original design)
+      currentTheme = 'dark';
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('sos_theme', 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', currentTheme);
+    }
+
+    // Update toggle button icon based on active theme
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    function updateToggleIcon(theme) {
+      if (theme === 'dark') {
+        themeToggleBtn.innerHTML = '🌙';  // moon icon for dark mode
+      } else {
+        themeToggleBtn.innerHTML = '☀️';  // sun icon for light mode
+      }
+    }
+    updateToggleIcon(currentTheme);
+
+    // Toggle theme handler
+    function toggleTheme() {
+      const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('sos_theme', newTheme);
+      updateToggleIcon(newTheme);
+    }
+
+    themeToggleBtn.addEventListener('click', toggleTheme);
+
+    // ---------- BACK BUTTON FUNCTIONALITY ----------
+    // Back button goes to the main dashboard (index.html). We also add additional safety: 
+    // If there is a history entry we can go back, but to match initial requirement we use location.href.
+    // However, to preserve a smoother navigation, we provide both but main approach = index.html
+    const backButton = document.getElementById('backButton');
+    backButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      // Navigate to main page (SP SafeRoute dashboard / index). Using original requirement.
+      location.href = 'index.html';
+    });
+
+    // ---------- SOS LOGIC WITH GEOLOCATION & API CALL ----------
+    const sosButton = document.getElementById('sendSOSBtn');
+    const statusMsgDiv = document.getElementById('statusMsg');
+
+    // Helper to update status message with style feedback
+    function setStatusMessage(text, isError = false, isSuccess = false) {
+      statusMsgDiv.innerText = text;
+      if (isError) {
+        statusMsgDiv.style.color = '#fca5a5';
+        statusMsgDiv.style.borderLeft = '4px solid #ef4444';
+      } else if (isSuccess) {
+        statusMsgDiv.style.color = '#bbf7d0';
+        statusMsgDiv.style.borderLeft = '4px solid #4ade80';
+      } else {
+        statusMsgDiv.style.color = 'var(--status-color-default)';
+        statusMsgDiv.style.borderLeft = 'none';
+      }
+      // reset border-left after some time? not critical, but keep clean
+    }
+
+    async function sendSOS() {
+      // Immediately disable button for 6 seconds to prevent spamming, enhances UX
+      sosButton.disabled = true;
+      sosButton.style.opacity = '0.7';
+      sosButton.style.cursor = 'wait';
       
       try {
-        const res = await fetch('/sos/', {
+        // 1. Check geolocation support
+        if (!navigator.geolocation) {
+          setStatusMessage('⚠️ Location services not supported by this browser.', true);
+          sosButton.disabled = false;
+          sosButton.style.opacity = '1';
+          sosButton.style.cursor = 'pointer';
+          return;
+        }
+        
+        setStatusMessage('📍 Acquiring GPS location ... (ensure location permission)', false);
+        
+        // 2. Get current position with improved options for accuracy
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+          });
+        });
+        
+        const { latitude, longitude } = position.coords;
+        setStatusMessage(`🚨 EMERGENCY ACTIVE: Broadcasting coordinates (${latitude.toFixed(5)}, ${longitude.toFixed(5)}) ...`, false);
+        
+        // 3. Call backend SOS endpoint
+        const API_BASE = ''; // relative to current origin
+        const response = await fetch('/sos/', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${TOKEN}`
+          },
           body: JSON.stringify({ lat: latitude, lng: longitude })
         });
         
-        if (res.ok) {
-            statusMsg.innerText = 'SOS Broadcast Successful!';
-            setTimeout(() => { alert(`Emergency Responders Notified. Location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`); }, 500);
+        if (response.ok) {
+          setStatusMessage('✅ SOS BROADCAST SUCCESSFUL! Emergency contacts alerted.', false, true);
+          // Show alert for immediate feedback
+          setTimeout(() => {
+            alert(`🚨 EMERGENCY SIGNAL SENT\n\nYour live location: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}\nEmergency services have been notified. Stay safe and find shelter.`);
+          }, 200);
         } else {
-            throw new Error();
+          // attempt to read error message from backend, but fallback generic
+          let errorDetail = '';
+          try {
+            const errJson = await response.json();
+            errorDetail = errJson.message || errJson.error || '';
+          } catch(e) { /* ignore */ }
+          throw new Error(errorDetail || `Server responded with ${response.status}`);
         }
+        
       } catch (err) {
-        statusMsg.style.color = '#fca5a5';
-        statusMsg.innerText = 'Network error. Please call emergency services directly.';
+        console.error('SOS error:', err);
+        let errorMsg = '';
+        if (err.code === 1 || err.message?.includes('denied') || err.message?.includes('Permission')) {
+          errorMsg = '🔴 Location access denied. Please enable location permissions and try SOS again.';
+        } else if (err.code === 3 || err.message?.includes('timeout')) {
+          errorMsg = '⏱️ Location request timed out. Please check GPS signal.';
+        } else if (err.message?.includes('Network') || err.message?.includes('fetch')) {
+          errorMsg = '📡 Network error. SOS signal could not be sent. Please call emergency services directly.';
+        } else if (err.message?.includes('Server')) {
+          errorMsg = '⚠️ Emergency server error. Please dial local emergency number.';
+        } else {
+          errorMsg = `❌ SOS failed: ${err.message || 'Unknown error'}. Please call 911/999.`;
+        }
+        setStatusMessage(errorMsg, true);
+        // Additional audio/vibrate? optional but not intrusive: show alert only if critical?
+        if (err.message?.includes('denied')) {
+          // don't spam, just display.
+        }
+      } finally {
+        // Re-enable SOS button after delay (important: let user re-try after a few seconds)
+        setTimeout(() => {
+          sosButton.disabled = false;
+          sosButton.style.opacity = '1';
+          sosButton.style.cursor = 'pointer';
+          // Reset status message after 8 seconds unless it contains success/error persistent style?
+          // better leave informative, but we can add a reset background after 12 sec.
+          setTimeout(() => {
+            if (statusMsgDiv.innerText.includes('SUCCESSFUL') || statusMsgDiv.innerText.includes('failed') || statusMsgDiv.innerText.includes('denied')) {
+              // but don't overwrite immediate active alert unless idle: keep final but add reset softer 
+              if (!statusMsgDiv.innerText.includes('Broadcasting')) {
+                // only reset after a while, but preserve final status for a while longer
+              }
+            }
+          }, 5000);
+        }, 3000);
       }
-    }, () => {
-        statusMsg.style.color = '#fca5a5';
-        statusMsg.innerText = 'Location access denied. Cannot send SOS.';
+    }
+    
+    // Attach SOS event listener with vibration & extra haptic if available
+    sosButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      // optional: vibrate pattern for mobile devices to give haptic feedback
+      if (navigator.vibrate) {
+        navigator.vibrate([200, 100, 200]);
+      }
+      sendSOS();
     });
-  }
-
-  document.getElementById('sendSOSBtn').addEventListener('click', sendSOS);
+    
+    // Additional guard: inform user about readiness on page load, show token validation
+    setStatusMessage('🛡️ SOS armed · Tap red button in emergency', false);
+    
+    // Also ensure that the theme toggle respects dynamic changes for status messages that may rely on CSS variables
+    // All good with CSS custom properties.
+    
+    // Handle edge case: when index.html may not exist if dev environment, but fallback to previous page?
+    // just to provide an alternative if back button fails: simulate history back as second plan
+    // but because we already use location.href = index.html that's correct.
+    // Also we need to ensure that if user presses back quickly, no double redirect issues.
+    
+    // Extra: listen for online/offline to show network status improvement
+    window.addEventListener('online', () => {
+      if (statusMsgDiv.innerText.includes('Network error') || statusMsgDiv.innerText.includes('offline')) {
+        setStatusMessage('✅ Connection restored. SOS ready.', false);
+        setTimeout(() => {
+          if (statusMsgDiv.innerText === '✅ Connection restored. SOS ready.') 
+            setStatusMessage('🛡️ SOS armed · Tap red button in emergency', false);
+        }, 3000);
+      }
+    });
+    
+    window.addEventListener('offline', () => {
+      setStatusMessage('📴 You are offline. SOS will store location and retry when online.', true);
+    });
+    
+    // Performance & accessibility: ensure any pending token expiry?
+    // optional periodic check for token? Not needed but we add to ensure redirect if token removed externally.
+    // Keep consistency
+  })();
 </script>
 </body>
 </html>

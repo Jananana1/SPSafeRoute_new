@@ -3,160 +3,531 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>SafeRoute - Admin Dashboard</title>
-    <!-- Use our global glassmorphism styles -->
-    <link rel="stylesheet" href="/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>SafeRoute | Admin Dashboard — Complete Dark Mode Fix</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        body {
-            margin: 0; padding: 0; min-height: 100vh;
-            display: flex; font-family: system-ui;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        
-        .admin-sidebar {
-            width: 250px; background: var(--glass-bg); backdrop-filter: blur(16px);
-            border-right: 1px solid var(--glass-border); display: flex; flex-direction: column;
-            padding: 20px 0; z-index: 100;
-        }
-        
-        .admin-sidebar-header {
-            padding: 0 20px 20px; border-bottom: 1px solid var(--glass-border); margin-bottom: 20px;
-        }
-        
-        .admin-nav-item {
-            padding: 12px 20px; color: var(--text-muted); cursor: pointer;
-            transition: all 0.2s; font-weight: bold; border-left: 4px solid transparent;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .admin-nav-item:hover { color: var(--text-main); background: var(--nav-hover); }
-        .admin-nav-item.active { color: var(--primary); border-left-color: var(--primary); background: var(--nav-hover); }
-        
-        .admin-nav-danger { color: #ffffff; margin-top: auto; }
-        .admin-nav-danger.logout-btn {
-            background: #ef4444;
-            color: #ffffff;
-            border: none;
-            width: calc(100% - 40px);
-            margin: 0 20px 20px;
-            border-radius: 18px;
-            justify-content: center;
-            padding: 14px 20px;
-            font-size: 15px;
-            font-weight: 700;
-            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.28);
-            transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
-        }
-        .admin-nav-danger.logout-btn:hover { background: #dc2626; transform: translateY(-1px); }
-        .admin-nav-danger.logout-btn:focus { outline: none; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.35); }
 
+        /* ----- GLOBAL THEME VARIABLES (Full page theming) ----- */
+        :root {
+            --primary: #1A73E8;
+            --primary-dark: #0d5bbf;
+            --primary-glow: rgba(26, 115, 232, 0.25);
+            --glass-bg: rgba(255, 255, 255, 0.78);
+            --glass-bg-solid: rgba(255, 255, 255, 0.96);
+            --glass-border: rgba(0, 0, 0, 0.08);
+            --text-main: #0f172a;
+            --text-muted: #334155;
+            --nav-hover: rgba(0, 0, 0, 0.04);
+            --card-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.08);
+            --sidebar-shadow: 8px 0 28px -8px rgba(0, 0, 0, 0.12);
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --transition-default: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            --overlay-bg: rgba(0, 0, 0, 0.4);
+            --body-bg-start: rgba(26, 115, 232, 0.08);
+            --body-bg-end: rgba(139, 92, 246, 0.04);
+            --heading-color: #0f172a;
+        }
+
+        [data-theme="dark"] {
+            --glass-bg: rgba(18, 25, 35, 0.88);
+            --glass-bg-solid: rgba(15, 25, 35, 0.96);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-main: #f1f5f9;
+            --text-muted: #cbd5e6;
+            --nav-hover: rgba(255, 255, 255, 0.05);
+            --card-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.4);
+            --sidebar-shadow: 8px 0 28px -8px rgba(0, 0, 0, 0.5);
+            --overlay-bg: rgba(0, 0, 0, 0.6);
+            --body-bg-start: #0a0f1a;
+            --body-bg-end: #0f1420;
+            --heading-color: #f1f5f9;
+        }
+
+        /* Full page background that changes with theme */
+        body {
+            background: radial-gradient(ellipse at 20% 30%, var(--body-bg-start), var(--body-bg-end));
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            transition: background 0.3s ease;
+        }
+
+        /* ---------- SIDEBAR (Premium sticky) ---------- */
+        .admin-sidebar {
+            width: 280px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            padding: 28px 0 24px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 1200;
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1), background 0.2s;
+            box-shadow: var(--sidebar-shadow);
+        }
+
+        .admin-sidebar-header {
+            padding: 0 24px 28px 24px;
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: 24px;
+        }
+
+        .admin-sidebar-header h2 {
+            margin: 0;
+            font-size: 24px;
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+
+        .admin-nav-item {
+            padding: 12px 20px;
+            margin: 6px 16px;
+            border-radius: 16px;
+            color: var(--text-muted);
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 15px;
+            transition: var(--transition-default);
+            background: transparent;
+        }
+
+        .admin-nav-item:hover {
+            background: var(--nav-hover);
+            color: var(--text-main);
+            transform: translateX(6px);
+        }
+
+        .admin-nav-item.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 8px 18px var(--primary-glow);
+        }
+
+        .logout-btn {
+            margin: 20px 16px 16px 16px;
+            background: var(--danger);
+            color: white !important;
+            justify-content: center;
+            font-weight: 700;
+            border-radius: 40px;
+            padding: 14px !important;
+            transition: var(--transition-default);
+            box-shadow: 0 6px 14px rgba(239, 68, 68, 0.25);
+        }
+
+        .logout-btn:hover {
+            background: var(--danger-dark);
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .sidebar-spacer {
+            flex: 1;
+        }
+
+        /* ----- MAIN CONTENT ----- */
         .admin-content {
-            flex: 1; padding: 30px; overflow-y: auto;
+            flex: 1;
+            padding: 28px 36px;
+            overflow-y: auto;
         }
-        
+
+        /* top bar */
         .top-bar {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+            background: var(--glass-bg-solid);
+            backdrop-filter: blur(20px);
+            padding: 12px 24px;
+            border-radius: 80px;
+            border: 1px solid var(--glass-border);
+            position: sticky;
+            top: 18px;
+            z-index: 1150;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+            transition: background 0.2s, border 0.2s;
         }
-        
-        .top-bar-right { display: flex; align-items: center; gap: 16px; }
-        
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Hamburger button: hidden on desktop, visible only on mobile */
+        .sidebar-toggle {
+            display: none;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            cursor: pointer;
+            color: var(--text-main);
+            transition: 0.2s;
+            font-weight: 500;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(0.96);
+        }
+
+        .top-bar-left h1 {
+            font-size: 26px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-main), var(--primary));
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin: 0;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: transparent;
+        }
+
+        .admin-welcome {
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            background: var(--glass-bg);
+            padding: 8px 16px;
+            border-radius: 40px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(4px);
+            transition: background 0.2s;
+        }
+
         .control-btn {
-            width: 40px; height: 40px; border-radius: 50%;
-            background: var(--glass-bg); border: 1px solid var(--glass-border);
-            display: flex; align-items: center; justify-content: center; font-size: 18px;
-            cursor: pointer; color: var(--text-main); transition: transform 0.2s;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: var(--text-main);
         }
-        .control-btn:hover { transform: scale(1.1); }
-        
+
+        .control-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(0.96);
+        }
+
+        /* Sidebar overlay for mobile */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--overlay-bg);
+            backdrop-filter: blur(3px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 1190;
+        }
+
+        .sidebar-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* cards & tables - all text now uses CSS variables */
         .glass-card {
-            background: var(--glass-bg); backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border); border-radius: 20px;
-            padding: 24px; margin-bottom: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 28px;
+            margin-bottom: 28px;
+            box-shadow: var(--card-shadow);
+            transition: background 0.2s, border 0.2s;
         }
-        
-        .table-responsive { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; text-align: left; color: var(--text-main); }
-        th { padding: 12px 16px; font-weight: bold; color: var(--text-muted); border-bottom: 1px solid var(--glass-border); }
-        td { padding: 16px; border-bottom: 1px solid var(--glass-border); }
-        tr:hover td { background: var(--nav-hover); }
-        
+
+        /* Fix for all heading texts inside cards */
+        .glass-card h3,
+        .glass-card h2,
+        .glass-card h4,
+        .card-title {
+            color: var(--text-main) !important;
+            transition: color 0.2s ease;
+        }
+
+        /* Ensure any direct heading styling uses variable */
+        h3 {
+            color: var(--text-main);
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 24px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            min-width: 800px;
+        }
+
+        th, td {
+            padding: 14px 14px;
+            border-bottom: 1px solid var(--glass-border);
+            color: var(--text-main);
+            vertical-align: middle;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        th {
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.4px;
+            text-align: left;
+        }
+
+        /* Description column wrap */
+        td:nth-child(4) {
+            white-space: normal;
+            min-width: 200px;
+            max-width: 280px;
+            word-break: break-word;
+        }
+
+        td:nth-child(5) {
+            white-space: normal;
+            min-width: 100px;
+            max-width: 150px;
+            word-break: break-word;
+        }
+
+        /* Actions column */
+        td:last-child {
+            white-space: nowrap;
+            min-width: 160px;
+        }
+
         .badge {
-            padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; color: white;
+            padding: 5px 12px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-block;
         }
-        .badge-accident { background: #ef4444; }
-        .badge-hazard { background: #f59e0b; }
-        .badge-crime { background: #8b5cf6; }
-        
-        .status-completed { color: #10b981; font-weight: bold; }
-        .status-pending { color: #f59e0b; font-weight: bold; }
-        
+        .badge-accident { background: #ef4444; color: white; }
+        .badge-hazard { background: #f59e0b; color: white; }
+        .badge-crime { background: #8b5cf6; color: white; }
+
+        .status-completed { color: var(--success); font-weight: 700; }
+        .status-pending { color: var(--warning); font-weight: 700; }
+
+        /* Fixed button sizing */
         .action-btn {
-            padding: 6px 12px; border-radius: 8px; border: none; font-size: 12px; font-weight: bold;
-            cursor: pointer; transition: transform 0.1s; margin-right: 8px; color: white;
+            padding: 7px 16px;
+            border-radius: 40px;
+            border: none;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+            cursor: pointer;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 70px;
+            letter-spacing: 0.3px;
         }
-        .action-btn:active { transform: scale(0.95); }
-        .btn-success { background: #10b981; }
-        .btn-danger { background: #ef4444; }
-        
-        /* Chart grids */
-        .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-        @media (max-width: 900px) { .analytics-grid { grid-template-columns: 1fr; } }
+        .action-btn:last-child {
+            margin-right: 0;
+        }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .action-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(0.95);
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+        }
+        canvas {
+            max-height: 320px;
+            width: 100%;
+        }
+
+        /* ---------- RESPONSIVE ---------- */
+        @media (max-width: 1100px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar-toggle {
+                display: flex;
+            }
+            .admin-sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: 280px;
+                transform: translateX(0);
+                z-index: 1300;
+                background: var(--glass-bg);
+                backdrop-filter: blur(28px);
+                transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1), background 0.2s;
+                box-shadow: 8px 0 30px rgba(0, 0, 0, 0.3);
+            }
+            .admin-sidebar.hidden {
+                transform: translateX(-100%);
+            }
+            .admin-content {
+                padding: 20px 20px 32px;
+                width: 100%;
+            }
+            .top-bar {
+                top: 12px;
+            }
+            .sidebar-overlay {
+                backdrop-filter: blur(3px);
+            }
+        }
+
+        @media (max-width: 680px) {
+            .admin-content {
+                padding: 16px;
+            }
+            .top-bar {
+                padding: 8px 16px;
+            }
+            .top-bar-left h1 {
+                font-size: 18px;
+            }
+            .sidebar-toggle {
+                width: 40px;
+                height: 40px;
+                font-size: 22px;
+            }
+            .admin-welcome {
+                font-size: 12px;
+                padding: 5px 12px;
+            }
+            .control-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+            .glass-card {
+                padding: 18px;
+            }
+            .action-btn {
+                padding: 6px 12px;
+                min-width: 65px;
+                font-size: 11px;
+            }
+        }
+
+        .loader-text {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+        button {
+            background: none;
+            border: none;
+        }
     </style>
 </head>
 <body>
 
-<div class="admin-sidebar">
+<!-- SIDEBAR -->
+<div class="admin-sidebar" id="adminSidebar">
     <div class="admin-sidebar-header">
-        <h2 style="margin:0; font-size: 20px; color: var(--primary);">SafeRoute Admin</h2>
+        <h2>🛡️ SafeRoute</h2>
     </div>
-    
-    <div class="admin-nav-item active" onclick="showSection('incidents', this)">
-        📋 Manage Incidents
+    <div class="admin-nav-item active" data-section="incidents">
+        📋 Incident Reports
     </div>
-    <div class="admin-nav-item" onclick="showSection('analytics', this)">
-        📊 Analytics
+    <div class="admin-nav-item" data-section="analytics">
+        📊 Analytics & Insights
     </div>
-    
-    <div style="flex:1;"></div>
-    <button type="button" class="admin-nav-item admin-nav-danger logout-btn" onclick="logout()">
-        🔒 Logout
-    </button>
+    <div class="sidebar-spacer"></div>
+    <button class="admin-nav-item logout-btn" id="logoutButton">🔒 Logout</button>
 </div>
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
 
 <div class="admin-content">
     <div class="top-bar">
-        <h1 style="margin:0; font-size: 28px; color: var(--text-main);">Dashboard Overview</h1>
+        <div class="top-bar-left">
+            <div class="sidebar-toggle" id="mobileSidebarToggle" aria-label="Menu">☰</div>
+            <h1>Dashboard Overview</h1>
+        </div>
         <div class="top-bar-right">
-            <span style="color: var(--text-muted); font-size: 14px;">Welcome Admin</span>
+            <span class="admin-welcome">Welcome Admin</span>
             <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌗</div>
         </div>
     </div>
-    
+
+    <!-- Incidents Section -->
     <div id="incidentsSection">
         <div class="glass-card">
-            <h3 style="margin-top:0; color: var(--text-main); margin-bottom: 20px;">All Reports</h3>
+            <h3 style="margin-top:0; margin-bottom: 20px; display: flex; gap: 8px;">All Reports</h3>
             <div class="table-responsive">
-                <table>
+                <table id="incidentsTable">
                     <thead>
                         <tr>
                             <th>ID</th><th>Type</th><th>Location</th><th>Description</th><th>User ID</th><th>Status</th><th>Reported</th><th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="incidentsList">
-                        <tr><td colspan="8" style="text-align:center;">Loading incidents...</td></tr>
+                        <tr><td colspan="8" class="loader-text">📡 Loading incidents...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-    
-    <div id="analyticsSection" style="display:none;">
+
+    <!-- Analytics Section -->
+    <div id="analyticsSection" style="display: none;">
         <div class="analytics-grid">
             <div class="glass-card">
-                <h3 style="margin-top:0; color: var(--text-main);">Monthly Trends</h3>
+                <h3 style="margin-top:0;">📈 Monthly Trends</h3>
                 <canvas id="monthlyChart"></canvas>
             </div>
             <div class="glass-card">
-                <h3 style="margin-top:0; color: var(--text-main);">Most Prone Areas</h3>
+                <h3 style="margin-top:0;">📍 Most Prone Areas</h3>
                 <canvas id="areaChart"></canvas>
             </div>
         </div>
@@ -164,158 +535,274 @@
 </div>
 
 <script>
-// Theme Initialization
-document.addEventListener('DOMContentLoaded', () => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
-});
-
-document.getElementById('themeToggleBtn').addEventListener('click', () => {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    if (newTheme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-        document.documentElement.removeAttribute('data-theme');
-    }
-    localStorage.setItem('theme', newTheme);
-    // Reload charts to update text colors if needed
-    if(document.getElementById('analyticsSection').style.display !== 'none') {
-        loadAnalytics();
-    }
-});
-
-// Admin Logic
-const token = localStorage.getItem('token');
-if (!token) { window.location.href = '/'; }
-
-async function authFetch(url, options = {}) {
-    options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
-    const response = await fetch(url, options);
-    if (response.status === 401) {
-        localStorage.removeItem('token');
+    // ---------- AUTH & API HELPERS ----------
+    const token = localStorage.getItem('token');
+    if (!token) {
         window.location.href = '/';
-        throw new Error('Not authenticated');
     }
-    return response;
-}
 
-function showSection(section, element) {
-    document.getElementById('incidentsSection').style.display = section === 'incidents' ? 'block' : 'none';
-    document.getElementById('analyticsSection').style.display = section === 'analytics' ? 'block' : 'none';
-    
-    document.querySelectorAll('.admin-nav-item:not(.admin-nav-danger)').forEach(el => el.classList.remove('active'));
-    if (element) element.classList.add('active');
-    
-    if (section === 'incidents') loadIncidents();
-    if (section === 'analytics') loadAnalytics();
-}
+    async function authFetch(url, options = {}) {
+        options.headers = {
+            ...options.headers,
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        };
+        const response = await fetch(url, options);
+        if (response.status === 401) {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+            throw new Error('Session expired');
+        }
+        return response;
+    }
 
-async function loadIncidents() {
-    try {
-        const res = await authFetch('/admin/incidents');
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const incidents = await res.json();
-        const tbody = document.getElementById('incidentsList');
-        tbody.innerHTML = '';
-        if (incidents.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: var(--text-muted);">No incidents found</td></tr>';
+    // ---------- GLOBALS ----------
+    let currentSection = 'incidents';
+    let monthlyChartInstance = null;
+    let areaChartInstance = null;
+
+    const sidebarEl = document.getElementById('adminSidebar');
+    const overlayEl = document.getElementById('sidebarOverlay');
+    const hamburgerBtn = document.getElementById('mobileSidebarToggle');
+    const incidentsPanel = document.getElementById('incidentsSection');
+    const analyticsPanel = document.getElementById('analyticsSection');
+    const themeToggle = document.getElementById('themeToggleBtn');
+    const logoutButton = document.getElementById('logoutButton');
+
+    // ---------- SIDEBAR LOGIC (mobile only) ----------
+    function isMobile() {
+        return window.innerWidth <= 1100;
+    }
+
+    function setSidebarState(open) {
+        if (!isMobile()) {
+            sidebarEl.classList.remove('hidden');
+            overlayEl.classList.remove('visible');
+            document.body.style.overflow = '';
             return;
         }
-        incidents.forEach(inc => {
-            const row = tbody.insertRow();
-            row.insertCell(0).textContent = inc.id;
-            row.insertCell(1).innerHTML = `<span class="badge badge-${inc.type}">${inc.type.toUpperCase()}</span>`;
-            row.insertCell(2).textContent = inc.location_name || `${parseFloat(inc.lat).toFixed(3)}, ${parseFloat(inc.lng).toFixed(3)}`;
-            row.insertCell(3).textContent = inc.description?.substring(0, 40) + (inc.description?.length > 40 ? '...' : '');
-            row.insertCell(4).textContent = inc.user_id;
-            
-            const isCompleted = inc.status === 'completed';
-            row.insertCell(5).innerHTML = `<span class="${isCompleted ? 'status-completed' : 'status-pending'}">${isCompleted ? 'Resolved' : 'Pending'}</span>`;
-            row.insertCell(6).textContent = new Date(inc.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-            
-            const actions = row.insertCell(7);
-            if (!isCompleted) {
-                const completeBtn = document.createElement('button');
-                completeBtn.textContent = 'Resolve';
-                completeBtn.className = 'action-btn btn-success';
-                completeBtn.onclick = () => completeIncident(inc.id);
-                actions.appendChild(completeBtn);
-            }
-            const deleteBtn = document.createElement('button');
-            deleteBtn.textContent = 'Delete';
-            deleteBtn.className = 'action-btn btn-danger';
-            deleteBtn.onclick = () => deleteIncident(inc.id);
-            actions.appendChild(deleteBtn);
-        });
-    } catch (err) {
-        document.getElementById('incidentsList').innerHTML = '<tr><td colspan="8" style="text-align:center; color: #ef4444;">Failed to load incidents</td></tr>';
+        if (open) {
+            sidebarEl.classList.remove('hidden');
+            overlayEl.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+        } else {
+            sidebarEl.classList.add('hidden');
+            overlayEl.classList.remove('visible');
+            document.body.style.overflow = '';
+        }
     }
-}
 
-async function completeIncident(id) {
-    if (!confirm('Mark this incident as resolved and notify the user?')) return;
-    try {
-        const res = await authFetch(`/admin/incidents/${id}/complete`, { method: 'POST' });
-        if (res.ok) {
-            alert('Incident resolved successfully.');
-            loadIncidents();
-        } else alert('Failed to complete incident');
-    } catch (err) { alert('Error: ' + err.message); }
-}
+    function closeSidebarOnMobile() {
+        if (isMobile() && !sidebarEl.classList.contains('hidden')) {
+            setSidebarState(false);
+        }
+    }
 
-async function deleteIncident(id) {
-    if (!confirm('Are you sure you want to permanently delete this report?')) return;
-    try {
-        const res = await authFetch(`/admin/incidents/${id}`, { method: 'DELETE' });
-        if (res.ok) loadIncidents();
-        else alert('Delete failed');
-    } catch (err) { alert('Error: ' + err.message); }
-}
+    if (hamburgerBtn) {
+        hamburgerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isMobile()) {
+                const isHidden = sidebarEl.classList.contains('hidden');
+                setSidebarState(isHidden);
+            }
+        });
+    }
 
-let monthlyChartInstance = null;
-let areaChartInstance = null;
+    overlayEl.addEventListener('click', () => {
+        closeSidebarOnMobile();
+    });
 
-async function loadAnalytics() {
-    try {
-        const res = await authFetch('/admin/analytics');
-        if (!res.ok) throw new Error('Analytics fetch failed');
-        const data = await res.json();
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 1100) {
+            sidebarEl.classList.remove('hidden');
+            overlayEl.classList.remove('visible');
+            document.body.style.overflow = '';
+        } else {
+            if (!sidebarEl.classList.contains('hidden')) {
+                overlayEl.classList.add('visible');
+                document.body.style.overflow = 'hidden';
+            } else {
+                overlayEl.classList.remove('visible');
+                document.body.style.overflow = '';
+            }
+        }
+    });
+
+    // Initialize
+    if (window.innerWidth > 1100) {
+        sidebarEl.classList.remove('hidden');
+        overlayEl.classList.remove('visible');
+    } else {
+        sidebarEl.classList.add('hidden');
+        overlayEl.classList.remove('visible');
+        document.body.style.overflow = '';
+    }
+
+    // ---------- THEME TOGGLE - AFFECTS WHOLE PAGE (including all heading texts) ----------
+    function applyTheme(theme) {
+        if (theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+        localStorage.setItem('theme', theme);
         
+        // Force update any inline styled headings (just to be safe)
+        const allHeadings = document.querySelectorAll('.glass-card h3, .glass-card h2, h3');
+        allHeadings.forEach(heading => {
+            // Reapply color from CSS variable (no inline override)
+            heading.style.color = '';
+        });
+        
+        // Refresh charts to match new text colors
+        if (currentSection === 'analytics') {
+            refreshAnalyticsCharts();
+        }
+    }
+
+    const storedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(storedTheme);
+
+    themeToggle.addEventListener('click', () => {
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        const textColor = isDark ? '#e2e8f0' : '#1e293b';
-        const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        applyTheme(isDark ? 'light' : 'dark');
+    });
 
-        Chart.defaults.color = textColor;
-
-        if (monthlyChartInstance) monthlyChartInstance.destroy();
-        monthlyChartInstance = new Chart(document.getElementById('monthlyChart'), {
-            type: 'line',
-            data: {
-                labels: data.monthly_stats.map(m => m.month),
-                datasets: [{ label: 'Incidents Reported', data: data.monthly_stats.map(m => m.count), borderColor: '#1A73E8', tension: 0.3, fill: true, backgroundColor: 'rgba(26, 115, 232, 0.1)' }]
-            },
-            options: { scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor }, beginAtZero: true } } }
+    // ---------- NAVIGATION ----------
+    function switchSection(sectionId) {
+        currentSection = sectionId;
+        if (sectionId === 'incidents') {
+            incidentsPanel.style.display = 'block';
+            analyticsPanel.style.display = 'none';
+            loadIncidents();
+        } else {
+            incidentsPanel.style.display = 'none';
+            analyticsPanel.style.display = 'block';
+            refreshAnalyticsCharts();
+        }
+        document.querySelectorAll('.admin-nav-item[data-section]').forEach(item => {
+            if (item.getAttribute('data-section') === sectionId) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
         });
+        if (isMobile()) closeSidebarOnMobile();
+    }
 
-        if (areaChartInstance) areaChartInstance.destroy();
-        areaChartInstance = new Chart(document.getElementById('areaChart'), {
-            type: 'bar',
-            data: {
-                labels: data.area_stats.map(a => a.area),
-                datasets: [{ label: 'Incidents', data: data.area_stats.map(a => a.count), backgroundColor: '#8b5cf6', borderRadius: 6 }]
-            },
-            options: { scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor }, beginAtZero: true } } }
+    document.querySelectorAll('.admin-nav-item[data-section]').forEach(nav => {
+        nav.addEventListener('click', () => {
+            const section = nav.getAttribute('data-section');
+            switchSection(section);
         });
-    } catch (err) { console.error('Analytics error:', err); }
-}
+    });
 
-function logout() {
-    localStorage.removeItem('token');
-    window.location.href = '/';
-}
+    // ---------- INCIDENTS API ----------
+    async function loadIncidents() {
+        const tbody = document.getElementById('incidentsList');
+        tbody.innerHTML = '<tr><td colspan="8" class="loader-text">⏳ Loading reports...</td></tr>';
+        try {
+            const res = await authFetch('/admin/incidents');
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const incidents = await res.json();
+            if (!incidents.length) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: var(--text-muted);">No incidents found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            incidents.forEach(inc => {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = inc.id;
+                row.insertCell(1).innerHTML = `<span class="badge badge-${inc.type}">${inc.type.toUpperCase()}</span>`;
+                row.insertCell(2).textContent = inc.location_name || `${parseFloat(inc.lat).toFixed(3)}, ${parseFloat(inc.lng).toFixed(3)}`;
+                row.insertCell(3).textContent = inc.description?.substring(0, 70) || '—';
+                row.insertCell(4).textContent = inc.user_id;
+                const isCompleted = inc.status === 'completed';
+                row.insertCell(5).innerHTML = `<span class="${isCompleted ? 'status-completed' : 'status-pending'}">${isCompleted ? 'Resolved' : 'Pending'}</span>`;
+                row.insertCell(6).textContent = new Date(inc.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                
+                const actionsCell = row.insertCell(7);
+                if (!isCompleted) {
+                    const resolveBtn = document.createElement('button');
+                    resolveBtn.textContent = 'Resolve';
+                    resolveBtn.className = 'action-btn btn-success';
+                    resolveBtn.onclick = () => completeIncident(inc.id);
+                    actionsCell.appendChild(resolveBtn);
+                }
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.className = 'action-btn btn-danger';
+                deleteBtn.onclick = () => deleteIncident(inc.id);
+                actionsCell.appendChild(deleteBtn);
+            });
+        } catch (err) {
+            console.error(err);
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: #ef4444;">Failed to load incidents</td></tr>';
+        }
+    }
 
-showSection('incidents');
+    async function completeIncident(id) {
+        if (!confirm('Mark this incident as resolved and notify the user?')) return;
+        try {
+            const res = await authFetch(`/admin/incidents/${id}/complete`, { method: 'POST' });
+            if (res.ok) {
+                alert('Incident resolved successfully.');
+                loadIncidents();
+            } else alert('Failed to complete incident');
+        } catch (err) { alert('Error: ' + err.message); }
+    }
+
+    async function deleteIncident(id) {
+        if (!confirm('Are you sure you want to permanently delete this report?')) return;
+        try {
+            const res = await authFetch(`/admin/incidents/${id}`, { method: 'DELETE' });
+            if (res.ok) loadIncidents();
+            else alert('Delete failed');
+        } catch (err) { alert('Error: ' + err.message); }
+    }
+
+    // ---------- ANALYTICS ----------
+    async function refreshAnalyticsCharts() {
+        try {
+            const res = await authFetch('/admin/analytics');
+            if (!res.ok) throw new Error('Analytics fetch failed');
+            const data = await res.json();
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const textColor = isDark ? '#e2e8f0' : '#1e293b';
+            const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+            
+            Chart.defaults.color = textColor;
+            
+            const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+            if (monthlyChartInstance) monthlyChartInstance.destroy();
+            monthlyChartInstance = new Chart(monthlyCtx, {
+                type: 'line',
+                data: {
+                    labels: data.monthly_stats.map(m => m.month),
+                    datasets: [{ label: 'Incidents Reported', data: data.monthly_stats.map(m => m.count), borderColor: '#1A73E8', tension: 0.3, fill: true, backgroundColor: 'rgba(26, 115, 232, 0.1)' }]
+                },
+                options: { responsive: true, maintainAspectRatio: true, scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor }, beginAtZero: true } } }
+            });
+
+            const areaCtx = document.getElementById('areaChart').getContext('2d');
+            if (areaChartInstance) areaChartInstance.destroy();
+            areaChartInstance = new Chart(areaCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.area_stats.map(a => a.area),
+                    datasets: [{ label: 'Incidents', data: data.area_stats.map(a => a.count), backgroundColor: '#8b5cf6', borderRadius: 6 }]
+                },
+                options: { responsive: true, maintainAspectRatio: true, scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor }, beginAtZero: true } } }
+            });
+        } catch (err) { console.error('Analytics error:', err); }
+    }
+
+    logoutButton.addEventListener('click', () => {
+        localStorage.removeItem('token');
+        window.location.href = '/';
+    });
+
+    switchSection('incidents');
 </script>
 </body>
 </html>
