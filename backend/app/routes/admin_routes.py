@@ -7,6 +7,7 @@ from typing import List
 from . import models, schemas, auth, push_service
 from .database import SessionLocal
 
+
 router = APIRouter(prefix="/admin", tags=["admin"])
 templates = Jinja2Templates(directory="app/templates")
 
@@ -49,15 +50,18 @@ def complete_incident(incident_id: int, db: Session = Depends(get_db), admin: mo
     return {"message": "Completed & user notified"}
 
 @router.get("/analytics")
-def analytics(db: Session = Depends(get_db), admin: models.User = Depends(auth.get_current_admin)):
+def analytics(db: Session = Depends(get_db), admin: models.User = Depends(auth.get_current_user)):
+    # Use MySQL's DATE_FORMAT instead of SQLite's strftime
     monthly = db.query(
         func.date_format(models.Incident.created_at, '%Y-%m').label('month'),
         func.count(models.Incident.id).label('count')
     ).group_by('month').order_by('month').all()
+    
     area = db.query(
         models.Incident.location_name,
         func.count(models.Incident.id).label('count')
     ).filter(models.Incident.location_name.isnot(None)).group_by(models.Incident.location_name).order_by(func.count().desc()).limit(10).all()
+    
     return {
         "monthly_stats": [{"month": m[0], "count": m[1]} for m in monthly],
         "area_stats": [{"area": a[0], "count": a[1]} for a in area]

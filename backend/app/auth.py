@@ -1,5 +1,28 @@
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
+import re
+import random
+
+def check_password_strength(password: str) -> str:
+    """Return 'Weak', 'Strong', or 'Very Strong' based on password composition."""
+    if len(password) < 8:
+        return "Too Short"
+    has_upper = bool(re.search(r'[A-Z]', password))
+    has_lower = bool(re.search(r'[a-z]', password))
+    has_num = bool(re.search(r'\d', password))
+    has_special = bool(re.search(r'[^A-Za-z0-9]', password))
+    
+    if has_upper and has_lower and has_num and has_special:
+        return "Very Strong"
+    elif has_upper and has_lower and has_num:
+        return "Strong"
+    else:
+        return "Weak"
+
+def generate_otp() -> str:
+    """Generate a 4-digit OTP."""
+    return f"{random.randint(0, 9999):04d}"
+
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -77,5 +100,3 @@ def seed_admin(db: Session):
         db.add(admin_user)
         db.commit()
         print("Admin created: admin@saferoute.sp / admin123")
-
-        

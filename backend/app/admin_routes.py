@@ -19,15 +19,15 @@ def get_db():
         db.close()
 
 @router.get("/dashboard", response_class=HTMLResponse)
-async def admin_dashboard(request: Request, current_user: models.User = Depends(auth.get_current_admin)):
+async def admin_dashboard(request: Request, current_user: models.User = Depends(auth.get_current_user)):
     return templates.TemplateResponse("admin_dashboard.html", {"request": request, "user": current_user})
 
 @router.get("/incidents", response_model=List[schemas.IncidentOutWithStatus])
-def get_incidents(db: Session = Depends(get_db), admin: models.User = Depends(auth.get_current_admin)):
+def get_incidents(db: Session = Depends(get_db), admin: models.User = Depends(auth.get_current_user)):
     return db.query(models.Incident).order_by(models.Incident.created_at.desc()).all()
 
 @router.delete("/incidents/{incident_id}")
-def delete_incident(incident_id: int, db: Session = Depends(get_db), admin: models.User = Depends(auth.get_current_admin)):
+def delete_incident(incident_id: int, db: Session = Depends(get_db), admin: models.User = Depends(auth.get_current_user)):
     inc = db.query(models.Incident).filter(models.Incident.id == incident_id).first()
     if not inc:
         raise HTTPException(404, "Not found")
@@ -36,23 +36,26 @@ def delete_incident(incident_id: int, db: Session = Depends(get_db), admin: mode
     return {"message": "Deleted"}
 
 @router.post("/incidents/{incident_id}/complete")
-def complete_incident(incident_id: int, db: Session = Depends(get_db), admin: models.User = Depends(auth.get_current_admin)):
+def complete_incident(incident_id: int, db: Session = Depends(get_db), admin: models.User = Depends(auth.get_current_user)):
     inc = db.query(models.Incident).filter(models.Incident.id == incident_id).first()
     if not inc:
         raise HTTPException(404, "Not found")
-    inc.status = models.IncidentStatus.COMPLETED
+    inc.status = "completed"
     db.commit()
-    push_service.send_push_to_user(
+    db.refresh(inc)
+    # Send push notification to the specific user who reported the incident
+    sent = push_service.send_push_to_user(
         db, inc.user_id,
-        "Incident Resolved",
-        f"Your {inc.type} report at {inc.location_name or 'your location'} has been completed."
+        "✅ Incident Resolved",
+        f"Your {inc.type} report at {inc.location_name or 'your location'} has been marked as completed."
     )
-    return {"message": "Completed & user notified"}
+    return {"message": "Completed & user notified", "notification_sent": sent}
 
 @router.get("/analytics")
-def analytics(db: Session = Depends(get_db), admin: models.User = Depends(auth.get_current_admin)):
+def analytics(db: Session = Depends(get_db), admin: models.User = Depends(auth.get_current_user)):
+    # Use SQLite-compatible strftime instead of MySQL's date_format
     monthly = db.query(
-        func.date_format(models.Incident.created_at, '%Y-%m').label('month'),
+        func.strftime('%Y-%m', models.Incident.created_at).label('month'),
         func.count(models.Incident.id).label('count')
     ).group_by('month').order_by('month').all()
     area = db.query(

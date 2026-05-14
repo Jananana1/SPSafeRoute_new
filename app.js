@@ -29,8 +29,8 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
 const loginPanel = document.getElementById('loginPanel');
 const registerPanel = document.getElementById('registerPanel');
 const mainPanel = document.getElementById('mainPanel');
-const authMessage = document.getElementById('loginMessage');   // corrected ID
-const regMessage = document.getElementById('registerMessage'); // corrected ID
+const authMessage = document.getElementById('loginMessage');
+const regMessage = document.getElementById('registerMessage');
 
 // ========== USER LOAD ==========
 async function loadUser() {
@@ -39,11 +39,6 @@ async function loadUser() {
         document.getElementById('userName').innerText = user.full_name || user.email;
         const adminBtn = document.getElementById('adminBtn');
         if (adminBtn) adminBtn.style.display = user.is_admin ? 'flex' : 'none';
-        // After successful load, if push notifications are available, re‑enable button state
-        const pushStatusDiv = document.getElementById('pushStatus');
-        if (pushStatusDiv && pushStatusDiv.innerHTML.includes('✅')) {
-            // already enabled, do nothing
-        }
     } catch (e) { logout(); }
 }
 
@@ -62,10 +57,21 @@ async function login() {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.detail);
-        setToken(data.access_token);
-        loginPanel.classList.add('hidden');
-        mainPanel.classList.remove('hidden');
-        await loadUser();
+
+        if (data.mfa_required) {
+            window.tempMfaToken = data.access_token;
+            loginPanel.classList.add('hidden');
+            document.getElementById('mfaPanel')?.classList.remove('hidden');
+        } else {
+            setToken(data.access_token);
+            loginPanel.classList.add('hidden');
+            mainPanel.classList.remove('hidden');
+            await loadUser();
+            // Auto-register push token after login if permission already granted
+            if (typeof registerFCMToken === 'function') {
+                registerFCMToken();
+            }
+        }
     } catch (err) {
         authMessage.innerText = err.message;
         authMessage.classList.remove('hidden');
@@ -77,18 +83,33 @@ async function register() {
     const full_name = document.getElementById('regName').value;
     const email = document.getElementById('regEmail').value;
     const password = document.getElementById('regPassword').value;
+    const confirm_password = document.getElementById('regConfirmPassword')?.value || password;
+    const captcha_id = document.getElementById('captchaId')?.value || "";
+    const captcha_answer = document.getElementById('captchaAnswer')?.value || "";
+
     try {
         const res = await fetch('/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, full_name })
+            body: JSON.stringify({ email, password, confirm_password, full_name, captcha_id, captcha_answer })
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail);
-        setToken(data.access_token);
-        registerPanel.classList.add('hidden');
-        mainPanel.classList.remove('hidden');
-        await loadUser();
+
+        if (data.mfa_required) {
+            window.tempMfaToken = data.access_token;
+            registerPanel.classList.add('hidden');
+            document.getElementById('mfaPanel').classList.remove('hidden');
+            document.getElementById('mfaMessage').innerText = '';
+        } else {
+            setToken(data.access_token);
+            registerPanel.classList.add('hidden');
+            mainPanel.classList.remove('hidden');
+            await loadUser();
+            if (typeof registerFCMToken === 'function') {
+                registerFCMToken();
+            }
+        }
     } catch (err) {
         regMessage.innerText = err.message;
         regMessage.classList.remove('hidden');
@@ -101,55 +122,6 @@ function logout() {
     mainPanel.classList.add('hidden');
     loginPanel.classList.remove('hidden');
     registerPanel.classList.add('hidden');
-    // Reset push status text when logged out
-    const pushStatus = document.getElementById('pushStatus');
-    if (pushStatus) pushStatus.innerHTML = '🔔 Enable notifications to get updates';
-}
-
-// ========== PUSH NOTIFICATIONS (FIREBASE) ==========
-// (only if Firebase is already loaded from index.html)
-function initPushNotifications() {
-    const enableBtn = document.getElementById('enablePushBtn');
-    if (!enableBtn) return;
-
-    enableBtn.addEventListener('click', async () => {
-        if (!TOKEN) {
-            alert('Please login first');
-            return;
-        }
-        // Firebase is assumed to be already initialized in the global scope
-        if (typeof firebase === 'undefined') {
-            alert('Firebase not loaded. Please refresh the page.');
-            return;
-        }
-        try {
-            const messaging = firebase.messaging();
-            await messaging.requestPermission();
-            const fcmToken = await messaging.getToken({
-                vapidKey: "BKnT_hLfIL2DlonLwZrXY4kwjBEjlp6BaJIr6_ESnVT_K4R985hNmpftY7A9YA9HWSNjCNEeEcTuN8v6VBFDHeI"
-            });
-            if (fcmToken) {
-                const resp = await fetch('/user/fcm-token', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${TOKEN}`
-                    },
-                    body: JSON.stringify({ token: fcmToken })
-                });
-                if (resp.ok) {
-                    document.getElementById('pushStatus').innerHTML = '✅ Notifications enabled';
-                } else {
-                    document.getElementById('pushStatus').innerHTML = '⚠️ Failed to save token';
-                }
-            } else {
-                document.getElementById('pushStatus').innerHTML = '❌ Unable to get token';
-            }
-        } catch (err) {
-            console.error(err);
-            document.getElementById('pushStatus').innerHTML = '❌ Permission denied or error';
-        }
-    });
 }
 
 // ========== NAVIGATION ==========
@@ -176,7 +148,10 @@ if (getToken()) {
     loadUser().then(() => {
         loginPanel.classList.add('hidden');
         mainPanel.classList.remove('hidden');
-        initPushNotifications();  // enable push button only after login
+        // Auto-register push token if permission already granted (no prompt)
+        if (typeof registerFCMToken === 'function' && Notification.permission === 'granted') {
+            registerFCMToken();
+        }
     }).catch(() => logout());
 } else {
     loginPanel.classList.remove('hidden');

@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>SafeRoute | Admin Dashboard — Complete Dark Mode Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Firebase SDKs for FCM -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -748,8 +751,12 @@
             if (res.ok) {
                 alert('Incident resolved successfully.');
                 loadIncidents();
-            } else alert('Failed to complete incident');
-        } catch (err) { alert('Error: ' + err.message); }
+            } else {
+                alert('Failed to complete incident');
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
     }
 
     async function deleteIncident(id) {
@@ -758,7 +765,9 @@
             const res = await authFetch(`/admin/incidents/${id}`, { method: 'DELETE' });
             if (res.ok) loadIncidents();
             else alert('Delete failed');
-        } catch (err) { alert('Error: ' + err.message); }
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
     }
 
     // ---------- ANALYTICS ----------
@@ -803,6 +812,54 @@
     });
 
     switchSection('incidents');
+
+    // --- Firebase & Notifications ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyBv92XnzznnO-e7q-F7n8IqiyABvj2fhwU",
+        authDomain: "spsaferoute.firebaseapp.com",
+        projectId: "spsaferoute",
+        storageBucket: "spsaferoute.firebasestorage.app",
+        messagingSenderId: "328821048277",
+        appId: "1:328821048277:web:e5ea508b9b90180ec0b35c"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/firebase-messaging-sw.js')
+            .then(reg => console.log('Service Worker registered successfully:', reg))
+            .catch(err => console.error('Service Worker registration failed:', err));
+    }
+
+    async function enableAdminNotifications() {
+        if (!token) return;
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') return;
+            const fcmToken = await messaging.getToken({ 
+                vapidKey: "BKnT_hLfIL2DlonLwZrXY4kwjBEjlp6BaJIr6_ESnVT_K4R985hNmpftY7A9YA9HWSNjCNEeEcTuN8v6VBFDHeI" 
+            });
+            // CORRECTED: changed endpoint from /user/fcm-token to /users/fcm-token
+            await authFetch('/users/fcm-token', {
+                method: 'POST',
+                body: JSON.stringify({ token: fcmToken })
+            });
+            console.log('Admin notifications enabled.');
+        } catch (err) {
+            console.error("Admin FCM Error:", err);
+        }
+    }
+    
+    // Auto-enable notifications for admin when dashboard loads
+    enableAdminNotifications();
+
+    messaging.onMessage((payload) => {
+        console.log('Foreground message received: ', payload);
+        alert(`🔔 Admin Alert: ${payload.notification.title}\n${payload.notification.body}`);
+        if (currentSection === 'incidents') {
+            loadIncidents(); // Refresh the table
+        }
+    });
 </script>
 </body>
 </html>

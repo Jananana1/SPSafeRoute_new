@@ -1,352 +1,732 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>SP SafeRoute</title>
-    
+
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
+
     <!-- Main Stylesheet -->
     <link rel="stylesheet" href="style.css">
-    
+
     <!-- Firebase SDKs for FCM -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
-    
+
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0f172a">
     <link rel="apple-touch-icon" href="/static/icons/icon-152x152.png">
 </head>
+
 <body>
 
-<div id="appLayout">
-    <!-- Full Screen Map Background -->
-    <div id="map"></div>
+    <div id="appLayout">
+        <!-- Full Screen Map Background -->
+        <div id="map"></div>
 
-    <!-- Toggle Button for Sidebar (Visible when logged in and sidebar is collapsed) -->
-    <div id="sidebarToggle" class="sidebar-toggle hidden">
-        ☰
+        <!-- Toggle Button for Sidebar (Visible when logged in and sidebar is collapsed) -->
+        <div id="sidebarToggle" class="sidebar-toggle hidden">
+            ☰
+        </div>
+
+        <!-- Top Right Controls (Visible when logged in) -->
+        <div id="topRightControls" class="top-right-controls hidden">
+            <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌗</div>
+            <div id="bellIcon" class="control-btn" title="Enable Notifications">🔔</div>
+        </div>
+
+        <!-- Sidebar Menu (Visible when logged in) -->
+        <div id="sidebar" class="sidebar hidden">
+            <div class="sidebar-header">
+                <h2>SP SafeRoute</h2>
+                <button id="closeSidebarBtn" class="close-btn">×</button>
+            </div>
+
+            <div class="user-info">
+                <h3 id="userName">Welcome</h3>
+                <p id="userEmail">user@example.com</p>
+            </div>
+
+            <div class="nav-menu">
+                <a href="saferoute.html" class="nav-item">🛡️ Safe Route</a>
+                <a href="report.html" class="nav-item">⚠️ Report Incident</a>
+                <a href="activealerts.html" class="nav-item">📋 Active Alerts</a>
+                <!-- CORRECTED: admin link now uses the backend route -->
+                <a href="backend/app/templates/admin_dashboard.html" class="nav-item hidden" id="adminBtn">👑 Admin</a>
+                <a href="sos.html" class="nav-item danger">🆘 SOS Emergency</a>
+            </div>
+
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="logout-btn">Log Out</button>
+            </div>
+        </div>
+
+        <!-- Authentication Overlay (Visible when not logged in) -->
+        <div id="authOverlay" class="auth-container">
+            <!-- Login Panel -->
+            <div id="loginPanel" class="glass-card">
+                <h1 class="app-title">SP SafeRoute</h1>
+
+                <label class="input-label" for="email">Email Address</label>
+                <input type="email" id="email" placeholder="user@gmail.com" class="input">
+
+                <label class="input-label" for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" class="input">
+
+                <button id="loginBtn" class="btn btn-primary">Login</button>
+                <div class="link" id="showForgotPasswordBtn" style="font-size: 12px; margin-top: 12px;">Forgot Password?</div>
+                
+                <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--glass-border); text-align: center;">
+                    <span style="font-size: 13px; color: var(--text-muted);">Don't have an account?</span>
+                    <div class="link" id="showRegisterBtn" style="display: inline-block; margin-top: 0; margin-left: 5px; font-weight: 600;">Sign Up</div>
+                </div>
+                <div id="loginMessage" class="error"></div>
+            </div>
+
+            <!-- MFA Panel -->
+            <div id="mfaPanel" class="glass-card hidden">
+                <h1 class="app-title">Two-Factor Auth</h1>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:10px;">Enter the 4-digit OTP sent to
+                    your email.</p>
+
+                <label class="input-label" for="mfaOtp">OTP</label>
+                <input type="text" id="mfaOtp" placeholder="4-digit OTP" class="input" maxlength="4">
+
+                <button id="verifyMfaBtn" class="btn btn-primary">Verify</button>
+                <div class="link" id="cancelMfaBtn">Cancel</div>
+                <div id="mfaMessage" class="error"></div>
+            </div>
+
+            <!-- Forgot Password Panel -->
+            <div id="forgotPasswordPanel" class="glass-card hidden">
+                <h1 class="app-title">Forgot Password</h1>
+
+                <label class="input-label" for="forgotEmail">Registered Email Address</label>
+                <input type="email" id="forgotEmail" placeholder="user" class="input">
+
+                <button id="forgotPasswordBtn" class="btn btn-primary">Send Reset OTP</button>
+                <div class="link" id="backToLoginFromForgotBtn">Back to Login</div>
+                <div id="forgotMessage" class="error"></div>
+            </div>
+
+            <!-- Reset Password Panel -->
+            <div id="resetPasswordPanel" class="glass-card hidden">
+                <h1 class="app-title">Reset Password</h1>
+
+                <label class="input-label" for="resetOtpInput">OTP</label>
+                <input type="text" id="resetOtpInput" placeholder="4-digit OTP" class="input" maxlength="4">
+
+                <label class="input-label" for="resetPasswordInput">New Password</label>
+                <input type="password" id="resetPasswordInput" placeholder="Minimum of 8 characters" class="input">
+                <div id="resetPasswordStrength"
+                    style="font-size: 12px; margin-top: -10px; margin-bottom: 10px; text-align: left; width: 100%;">
+                </div>
+
+                <label class="input-label" for="resetConfirmPasswordInput">Confirm New Password</label>
+                <input type="password" id="resetConfirmPasswordInput" placeholder="Re-enter new password" class="input">
+                <div id="resetPasswordMatchStatus"
+                    style="font-size: 12px; margin-top: -10px; margin-bottom: 10px; text-align: left; width: 100%;">
+                </div>
+
+                <button id="resetPasswordBtn" class="btn btn-primary">Reset Password</button>
+                <div class="link" id="backToLoginFromResetBtn">Back to Login</div>
+                <div id="resetMessage" class="error"></div>
+            </div>
+
+            <!-- Register Panel -->
+            <div id="registerPanel" class="glass-card hidden">
+                <h1 class="app-title">Create Account</h1>
+
+                <label class="input-label" for="regName">Full Name</label>
+                <input type="text" id="regName" placeholder="Juan Dela Cruz" class="input">
+
+                <label class="input-label" for="regEmail">Email Address</label>
+                <input type="email" id="regEmail" placeholder="user@gmail.com" class="input">
+
+                <label class="input-label" for="regPassword">Password</label>
+                <input type="password" id="regPassword" placeholder="Minimum of 8 characters" class="input">
+                <div id="passwordStrength"
+                    style="font-size: 12px; margin-top: -10px; margin-bottom: 10px; text-align: left; width: 100%;">
+                </div>
+
+                <label class="input-label" for="regConfirmPassword">Confirm Password</label>
+                <input type="password" id="regConfirmPassword" placeholder="Re-enter password" class="input">
+                <div id="passwordMatchStatus"
+                    style="font-size: 12px; margin-top: -10px; margin-bottom: 10px; text-align: left; width: 100%;">
+                </div>
+
+                <div
+                    style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-bottom:12px; border:1px solid var(--glass-border);">
+                    <p style="margin:0 0 5px 0; font-size:12px; color:var(--text-muted);">Security Check: <span
+                            id="captchaQuestion">Loading...</span></p>
+                    <input type="hidden" id="captchaId">
+                    <input type="text" id="captchaAnswer" placeholder="Answer" class="input" style="margin-bottom:0;">
+                </div>
+
+                <button id="registerBtn" class="btn btn-primary">Sign Up</button>
+                <div class="link" id="showLoginBtn">Already have an account? Log In</div>
+                <div id="registerMessage" class="error"></div>
+            </div>
+        </div>
     </div>
 
-    <!-- Top Right Controls (Visible when logged in) -->
-    <div id="topRightControls" class="top-right-controls hidden">
-        <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌗</div>
-        <div id="bellIcon" class="control-btn" title="Enable Notifications">🔔</div>
-    </div>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Sidebar Menu (Visible when logged in) -->
-    <div id="sidebar" class="sidebar hidden">
-        <div class="sidebar-header">
-            <h2>SP SafeRoute</h2>
-            <button id="closeSidebarBtn" class="close-btn">×</button>
-        </div>
-        
-        <div class="user-info">
-            <h3 id="userName">Welcome</h3>
-            <p id="userEmail">user@example.com</p>
-        </div>
+    <script>
+        // --- Firebase and Map Initialization ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBv92XnzznnO-e7q-F7n8IqiyABvj2fhwU",
+            authDomain: "spsaferoute.firebaseapp.com",
+            projectId: "spsaferoute",
+            storageBucket: "spsaferoute.firebasestorage.app",
+            messagingSenderId: "328821048277",
+            appId: "1:328821048277:web:e5ea508b9b90180ec0b35c"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const messaging = firebase.messaging();
 
-        <div class="nav-menu">
-            <a href="saferoute.html" class="nav-item">🛡️ Safe Route</a>
-            <a href="report.html" class="nav-item">⚠️ Report Incident</a>
-            <a href="activealerts.html" class="nav-item">📋 Active Alerts</a>
-            <a href="backend/app/templates/admin_dashboard.html" class="nav-item hidden" id="adminBtn">👑 Admin</a>
-            <a href="sos.html" class="nav-item danger">🆘 SOS Emergency</a>
-        </div>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/firebase-messaging-sw.js')
+                .then(reg => console.log('Service Worker registered successfully:', reg))
+                .catch(err => console.error('Service Worker registration failed:', err));
+        }
 
-        <div class="sidebar-footer">
-            <button id="logoutBtn" class="logout-btn">Log Out</button>
-        </div>
-    </div>
+        let map;
+        let darkTileLayer;
+        let lightTileLayer;
+        let currentTileLayer;
 
-    <!-- Authentication Overlay (Visible when not logged in) -->
-    <div id="authOverlay" class="auth-container">
-        <!-- Login Panel -->
-        <div id="loginPanel" class="glass-card">
-            <h1 class="app-title">SP SafeRoute</h1>
-            <input type="email" id="email" placeholder="Email" class="input">
-            <input type="password" id="password" placeholder="Password" class="input">
-            <button id="loginBtn" class="btn btn-primary">Login</button>
-            <div class="link" id="showRegisterBtn">Don't have an account? Sign Up</div>
-            <div id="loginMessage" class="error"></div>
-        </div>
-
-        <!-- Register Panel -->
-        <div id="registerPanel" class="glass-card hidden">
-            <h1 class="app-title">Create Account</h1>
-            <input type="text" id="regName" placeholder="Full Name" class="input">
-            <input type="email" id="regEmail" placeholder="Email" class="input">
-            <input type="password" id="regPassword" placeholder="Password" class="input">
-            <button id="registerBtn" class="btn btn-primary">Sign Up</button>
-            <div class="link" id="showLoginBtn">Already have an account? Log In</div>
-            <div id="registerMessage" class="error"></div>
-        </div>
-    </div>
-</div>
-
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<script>
-    // --- Firebase and Map Initialization ---
-    const firebaseConfig = {
-        apiKey: "AIzaSyBv92XnzznnO-e7q-F7n8IqiyABvj2fhwU",
-        authDomain: "spsaferoute.firebaseapp.com",
-        projectId: "spsaferoute",
-        storageBucket: "spsaferoute.firebasestorage.app",
-        messagingSenderId: "328821048277",
-        appId: "1:328821048277:web:e5ea508b9b90180ec0b35c"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const messaging = firebase.messaging();
-
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/firebase-messaging-sw.js')
-            .catch(err => console.error('Service Worker registration failed:', err));
-    }
-
-    let map;
-    let darkTileLayer;
-    let lightTileLayer;
-    let currentTileLayer;
-
-    // Theme initialization (force light default unless specifically saved as dark)
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    if (savedTheme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-    }
-
-    document.getElementById('themeToggleBtn').addEventListener('click', () => {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        if (newTheme === 'dark') {
+        // Theme initialization (force light default unless specifically saved as dark)
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
             document.documentElement.setAttribute('data-theme', 'dark');
-        } else {
-            document.documentElement.removeAttribute('data-theme');
         }
-        localStorage.setItem('theme', newTheme);
-        updateMapTheme(newTheme);
-    });
 
-    function initMap() {
-        if (!map) {
-            map = L.map('map', { zoomControl: false }).setView([14.07, 121.3255], 13);
-            
-            darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-                subdomains: 'abcd',
-                maxZoom: 20
-            });
+        document.getElementById('themeToggleBtn').addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            if (newTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+            localStorage.setItem('theme', newTheme);
+            updateMapTheme(newTheme);
+        });
 
-            lightTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-                subdomains: 'abcd',
-                maxZoom: 20
-            });
+        function initMap() {
+            if (!map) {
+                map = L.map('map', { zoomControl: false }).setView([14.07, 121.3255], 13);
 
-            const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-            currentTileLayer = currentTheme === 'dark' ? darkTileLayer : lightTileLayer;
-            currentTileLayer.addTo(map);
-            
-            L.control.zoom({ position: 'bottomright' }).addTo(map);
-        }
-    }
-
-    function updateMapTheme(theme) {
-        if (!map) return;
-        map.removeLayer(currentTileLayer);
-        currentTileLayer = theme === 'dark' ? darkTileLayer : lightTileLayer;
-        currentTileLayer.addTo(map);
-    }
-
-    async function loadIncidentsOnMap() {
-        if (!map) return;
-        try {
-            const res = await fetch('/incidents/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
-            const incidents = await res.json();
-            if (res.ok) {
-                incidents.forEach(inc => {
-                    let color = inc.type === 'accident' ? '#ef4444' : inc.type === 'crime' ? '#a855f7' : '#f59e0b';
-                    L.circleMarker([inc.lat, inc.lng], {
-                        radius: 8,
-                        fillColor: color,
-                        color: '#ffffff',
-                        weight: 2,
-                        opacity: 1,
-                        fillOpacity: 0.8
-                    }).addTo(map).bindPopup(`<b>${inc.type.toUpperCase()}</b><br>${inc.description}`);
+                darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                    subdomains: 'abcd',
+                    maxZoom: 20
                 });
+
+                lightTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                    subdomains: 'abcd',
+                    maxZoom: 20
+                });
+
+                const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+                currentTileLayer = currentTheme === 'dark' ? darkTileLayer : lightTileLayer;
+                currentTileLayer.addTo(map);
+
+                L.control.zoom({ position: 'bottomright' }).addTo(map);
             }
-        } catch (e) { console.error('Failed to load incidents', e); }
-    }
-
-    // --- UI Interactions ---
-    const sidebar = document.getElementById('sidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const authOverlay = document.getElementById('authOverlay');
-    const loginPanel = document.getElementById('loginPanel');
-    const registerPanel = document.getElementById('registerPanel');
-
-    document.getElementById('sidebarToggle').addEventListener('click', () => {
-        sidebar.classList.remove('collapsed');
-        sidebarToggle.classList.add('hidden-toggle');
-    });
-
-    document.getElementById('closeSidebarBtn').addEventListener('click', () => {
-        sidebar.classList.add('collapsed');
-        sidebarToggle.classList.remove('hidden-toggle');
-    });
-
-    document.getElementById('showRegisterBtn').addEventListener('click', () => {
-        loginPanel.classList.add('hidden');
-        registerPanel.classList.remove('hidden');
-    });
-
-    document.getElementById('showLoginBtn').addEventListener('click', () => {
-        registerPanel.classList.add('hidden');
-        loginPanel.classList.remove('hidden');
-    });
-
-    // --- Auth Logic ---
-    let TOKEN = localStorage.getItem('token');
-
-    function setToken(token) {
-        TOKEN = token;
-        if (token) localStorage.setItem('token', token);
-        else localStorage.removeItem('token');
-    }
-
-    async function loadUser() {
-        try {
-            const response = await fetch('/users/me', {
-                headers: { 'Authorization': `Bearer ${TOKEN}` }
-            });
-            const user = await response.json();
-            if (!response.ok) throw new Error('Failed to load user');
-            
-            document.getElementById('userName').innerText = user.full_name || 'User';
-            document.getElementById('userEmail').innerText = user.email || '';
-            if (user.is_admin) {
-                document.getElementById('adminBtn').classList.remove('hidden');
-            }
-            return user;
-        } catch (e) { logout(); return null; }
-    }
-
-    function showMainApp() {
-        authOverlay.classList.add('hidden');
-        sidebar.classList.remove('hidden');
-        sidebarToggle.classList.remove('hidden');
-        document.getElementById('topRightControls').classList.remove('hidden');
-        sidebar.classList.remove('collapsed'); // Open sidebar by default on login
-        sidebarToggle.classList.add('hidden-toggle');
-        initMap();
-        setTimeout(() => map.invalidateSize(), 100);
-        loadIncidentsOnMap();
-    }
-
-    async function login() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        try {
-            const params = new URLSearchParams();
-            params.append('username', email);
-            params.append('password', password);
-            const response = await fetch('/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.detail);
-            setToken(data.access_token);
-            const user = await loadUser();
-            if (user && user.is_admin) {
-                window.location.href = 'backend/app/templates/admin_dashboard.html';
-            } else {
-                showMainApp();
-            }
-        } catch (err) {
-            document.getElementById('loginMessage').innerText = err.message;
         }
-    }
 
-    async function register() {
-        const full_name = document.getElementById('regName').value;
-        const email = document.getElementById('regEmail').value;
-        const password = document.getElementById('regPassword').value;
-        try {
-            const response = await fetch('/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password, full_name })
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.detail);
-            setToken(data.access_token);
-            const user = await loadUser();
-            if (user && user.is_admin) {
-                window.location.href = 'backend/app/templates/admin_dashboard.html';
-            } else {
-                showMainApp();
-            }
-        } catch (err) {
-            document.getElementById('registerMessage').innerText = err.message;
+        function updateMapTheme(theme) {
+            if (!map) return;
+            map.removeLayer(currentTileLayer);
+            currentTileLayer = theme === 'dark' ? darkTileLayer : lightTileLayer;
+            currentTileLayer.addTo(map);
         }
-    }
 
-    function logout() {
-        setToken(null);
-        sidebar.classList.add('hidden');
-        sidebarToggle.classList.add('hidden');
-        document.getElementById('topRightControls').classList.add('hidden');
-        authOverlay.classList.remove('hidden');
-        loginPanel.classList.remove('hidden');
-        registerPanel.classList.add('hidden');
-    }
-
-    document.getElementById('loginBtn').addEventListener('click', login);
-    document.getElementById('registerBtn').addEventListener('click', register);
-    document.getElementById('logoutBtn').addEventListener('click', logout);
-
-    // Initial state check
-    if (TOKEN) {
-        initMap();
-        loadUser().then((user) => {
-            if (user && user.is_admin) {
-                window.location.href = 'backend/app/templates/admin_dashboard.html';
-            } else {
-                showMainApp();
-            }
-        }).catch(() => logout());
-    } else {
-        // Initialize map in background for visual effect behind auth panel
-        initMap();
-    }
-
-    // --- Push Notifications ---
-    document.getElementById('bellIcon').addEventListener('click', async () => {
-        if (!TOKEN) return;
-        try {
-            await navigator.serviceWorker.ready;
-            const permission = await Notification.requestPermission();
-            if (permission !== 'granted') throw new Error('Permission denied');
-            const token = await messaging.getToken({ 
-                vapidKey: "BKnT_hLfIL2DlonLwZrXY4kwjBEjlp6BaJIr6_ESnVT_K4R985hNmpftY7A9YA9HWSNjCNEeEcTuN8v6VBFDHeI" 
-            });
-            const response = await fetch('/user/fcm-token', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
-                body: JSON.stringify({ token: token })
-            });
-            if (response.ok) alert("✅ Notifications enabled!");
-        } catch (err) {
-            alert("❌ Could not enable notifications.");
+        async function loadIncidentsOnMap() {
+            if (!map) return;
+            try {
+                // Use the global TOKEN variable
+                const res = await fetch('/incidents/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+                const incidents = await res.json();
+                if (res.ok) {
+                    incidents.forEach(inc => {
+                        let color = inc.type === 'accident' ? '#ef4444' : inc.type === 'crime' ? '#a855f7' : '#f59e0b';
+                        L.circleMarker([inc.lat, inc.lng], {
+                            radius: 8,
+                            fillColor: color,
+                            color: '#ffffff',
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.8
+                        }).addTo(map).bindPopup(`<b>${inc.type.toUpperCase()}</b><br>${inc.description}`);
+                    });
+                }
+            } catch (e) { console.error('Failed to load incidents', e); }
         }
-    });
 
-</script>
+        // --- UI Interactions ---
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const authOverlay = document.getElementById('authOverlay');
+        const loginPanel = document.getElementById('loginPanel');
+        const registerPanel = document.getElementById('registerPanel');
+
+        document.getElementById('sidebarToggle').addEventListener('click', () => {
+            sidebar.classList.remove('collapsed');
+            sidebarToggle.classList.add('hidden-toggle');
+        });
+
+        document.getElementById('closeSidebarBtn').addEventListener('click', () => {
+            sidebar.classList.add('collapsed');
+            sidebarToggle.classList.remove('hidden-toggle');
+        });
+
+        let tempMfaToken = null;
+
+        async function loadCaptcha() {
+            try {
+                const res = await fetch('/auth/captcha');
+                const data = await res.json();
+                document.getElementById('captchaQuestion').innerText = data.question;
+                document.getElementById('captchaId').value = data.captcha_id;
+            } catch (e) {
+                console.error('Captcha failed', e);
+            }
+        }
+
+        document.getElementById('showRegisterBtn').addEventListener('click', () => {
+            loginPanel.classList.add('hidden');
+            document.getElementById('forgotPasswordPanel').classList.add('hidden');
+            document.getElementById('resetPasswordPanel').classList.add('hidden');
+            document.getElementById('mfaPanel').classList.add('hidden');
+            registerPanel.classList.remove('hidden');
+            loadCaptcha();
+        });
+
+        document.getElementById('showLoginBtn').addEventListener('click', () => {
+            registerPanel.classList.add('hidden');
+            loginPanel.classList.remove('hidden');
+        });
+
+        document.getElementById('showForgotPasswordBtn').addEventListener('click', () => {
+            loginPanel.classList.add('hidden');
+            document.getElementById('forgotPasswordPanel').classList.remove('hidden');
+        });
+
+        document.getElementById('backToLoginFromForgotBtn').addEventListener('click', () => {
+            document.getElementById('forgotPasswordPanel').classList.add('hidden');
+            loginPanel.classList.remove('hidden');
+        });
+
+        document.getElementById('backToLoginFromResetBtn').addEventListener('click', () => {
+            document.getElementById('resetPasswordPanel').classList.add('hidden');
+            loginPanel.classList.remove('hidden');
+        });
+
+        document.getElementById('cancelMfaBtn').addEventListener('click', () => {
+            document.getElementById('mfaPanel').classList.add('hidden');
+            loginPanel.classList.remove('hidden');
+            tempMfaToken = null;
+        });
+
+        // Password strength logic
+        function checkStrength(pwd, elId) {
+            let has_upper = /[A-Z]/.test(pwd);
+            let has_lower = /[a-z]/.test(pwd);
+            let has_num = /[0-9]/.test(pwd);
+            let has_special = /[^A-Za-z0-9]/.test(pwd);
+
+            const el = document.getElementById(elId);
+            if (pwd.length < 8) {
+                el.innerText = 'Too short (Min 8)';
+                el.style.color = 'var(--danger)'; // Red
+            } else if (has_upper && has_lower && has_num && has_special) {
+                el.innerText = 'Very Strong';
+                el.style.color = 'var(--success)'; // Green
+            } else if (has_upper && has_lower && has_num) {
+                el.innerText = 'Strong';
+                el.style.color = 'var(--warning)'; // Yellow
+            } else {
+                el.innerText = 'Weak';
+                el.style.color = 'var(--danger)'; // Red
+            }
+        }
+
+        document.getElementById('regPassword').addEventListener('input', (e) => checkStrength(e.target.value, 'passwordStrength'));
+        document.getElementById('resetPasswordInput').addEventListener('input', (e) => checkStrength(e.target.value, 'resetPasswordStrength'));
+
+        // Password match logic
+        function checkMatch(pwdId, confirmId, statusId) {
+            const pwd = document.getElementById(pwdId).value;
+            const confirmPwd = document.getElementById(confirmId).value;
+            const el = document.getElementById(statusId);
+
+            if (!confirmPwd) {
+                el.innerText = '';
+                return;
+            }
+
+            if (pwd === confirmPwd) {
+                el.innerText = 'Passwords match';
+                el.style.color = 'var(--success)';
+            } else {
+                el.innerText = 'Passwords do not match';
+                el.style.color = 'var(--danger)';
+            }
+        }
+
+        document.getElementById('regPassword').addEventListener('input', () => checkMatch('regPassword', 'regConfirmPassword', 'passwordMatchStatus'));
+        document.getElementById('regConfirmPassword').addEventListener('input', () => checkMatch('regPassword', 'regConfirmPassword', 'passwordMatchStatus'));
+
+        document.getElementById('resetPasswordInput').addEventListener('input', () => checkMatch('resetPasswordInput', 'resetConfirmPasswordInput', 'resetPasswordMatchStatus'));
+        document.getElementById('resetConfirmPasswordInput').addEventListener('input', () => checkMatch('resetPasswordInput', 'resetConfirmPasswordInput', 'resetPasswordMatchStatus'));
+
+        // --- Auth Logic ---
+        let TOKEN = localStorage.getItem('token');
+
+        function setToken(token) {
+            TOKEN = token;
+            if (token) localStorage.setItem('token', token);
+            else localStorage.removeItem('token');
+        }
+
+        async function loadUser() {
+            try {
+                const response = await fetch('/users/me', {
+                    headers: { 'Authorization': `Bearer ${TOKEN}` }
+                });
+                const user = await response.json();
+                if (!response.ok) throw new Error('Failed to load user');
+
+                document.getElementById('userName').innerText = user.full_name || 'User';
+                document.getElementById('userEmail').innerText = user.email || '';
+                if (user.is_admin) {
+                    document.getElementById('adminBtn').classList.remove('hidden');
+                }
+                return user;
+            } catch (e) { logout(); return null; }
+        }
+
+        function showMainApp() {
+            authOverlay.classList.add('hidden');
+            sidebar.classList.remove('hidden');
+            sidebarToggle.classList.remove('hidden');
+            document.getElementById('topRightControls').classList.remove('hidden');
+            sidebar.classList.remove('collapsed');
+            sidebarToggle.classList.add('hidden-toggle');
+            initMap();
+            setTimeout(() => map.invalidateSize(), 100);
+            loadIncidentsOnMap();
+            // Auto‑register FCM token after showing main app (if user already granted permission)
+            setTimeout(() => registerFCMToken(), 1000);
+        }
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                const params = new URLSearchParams();
+                params.append('username', email);
+                params.append('password', password);
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail);
+
+                if (data.mfa_required) {
+                    tempMfaToken = data.access_token;
+                    loginPanel.classList.add('hidden');
+                    document.getElementById('mfaPanel').classList.remove('hidden');
+                    document.getElementById('mfaMessage').innerText = '';
+                } else {
+                    setToken(data.access_token);
+                    const user = await loadUser();
+                    if (user && user.is_admin) {
+                        window.location.href = 'backend/app/templates/admin_dashboard.html';
+                    } else {
+                        showMainApp();
+                    }
+                }
+            } catch (err) {
+                document.getElementById('loginMessage').innerText = err.message;
+            }
+        }
+
+        document.getElementById('verifyMfaBtn').addEventListener('click', async () => {
+            const otp = document.getElementById('mfaOtp').value;
+            try {
+                const response = await fetch('/auth/verify-mfa', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: tempMfaToken, otp: otp })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail);
+
+                setToken(data.access_token);
+                const user = await loadUser();
+                if (user && user.is_admin) {
+                    window.location.href = 'backend/app/templates/admin_dashboard.html';
+                } else {
+                    document.getElementById('mfaPanel').classList.add('hidden');
+                    showMainApp();
+                }
+            } catch (err) {
+                document.getElementById('mfaMessage').innerText = err.message;
+            }
+        });
+
+        async function register() {
+            const full_name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const confirm_password = document.getElementById('regConfirmPassword').value;
+            const captcha_id = document.getElementById('captchaId').value;
+            const captcha_answer = document.getElementById('captchaAnswer').value;
+
+            if (password !== confirm_password) {
+                document.getElementById('registerMessage').innerText = "Passwords do not match.";
+                return;
+            }
+
+            try {
+                const response = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, confirm_password, full_name, captcha_id, captcha_answer })
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    loadCaptcha();
+                    throw new Error(data.detail);
+                }
+
+                // ── FIXED: show MFA panel after successful registration ──
+                if (data.mfa_required) {
+                    tempMfaToken = data.access_token;
+                    registerPanel.classList.add('hidden');          // hide register
+                    document.getElementById('mfaPanel').classList.remove('hidden'); // show MFA
+                    document.getElementById('mfaOtp').value = '';   // clear any old OTP
+                    document.getElementById('mfaMessage').innerText = '';
+                } else {
+                    setToken(data.access_token);
+                    const user = await loadUser();
+                    if (user && user.is_admin) {
+                        window.location.href = 'backend/app/templates/admin_dashboard.html';
+                    } else {
+                        showMainApp();
+                    }
+                }
+            } catch (err) {
+                document.getElementById('registerMessage').innerText = err.message;
+            }
+        }
+
+        document.getElementById('forgotPasswordBtn').addEventListener('click', async () => {
+            const email = document.getElementById('forgotEmail').value;
+            try {
+                const response = await fetch('/auth/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail);
+                
+                // Hide forgot password, show reset password
+                document.getElementById('forgotPasswordPanel').classList.add('hidden');
+                document.getElementById('resetPasswordPanel').classList.remove('hidden');
+                document.getElementById('resetMessage').innerText = '';
+                
+            } catch (err) {
+                document.getElementById('forgotMessage').style.color = 'var(--danger)';
+                document.getElementById('forgotMessage').innerText = err.message;
+            }
+        });
+
+        document.getElementById('resetPasswordBtn').addEventListener('click', async () => {
+            const email = document.getElementById('forgotEmail').value;
+            const otp = document.getElementById('resetOtpInput').value;
+            const new_password = document.getElementById('resetPasswordInput').value;
+            const confirm_password = document.getElementById('resetConfirmPasswordInput').value;
+
+            try {
+                const response = await fetch('/auth/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, otp, new_password, confirm_password })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail);
+                alert("Password successfully reset! Please log in.");
+                window.location.href = '/';
+            } catch (err) {
+                document.getElementById('resetMessage').innerText = err.message;
+            }
+        });
+
+        function logout() {
+            setToken(null);
+            sidebar.classList.add('hidden');
+            sidebarToggle.classList.add('hidden');
+            document.getElementById('topRightControls').classList.add('hidden');
+            authOverlay.classList.remove('hidden');
+            loginPanel.classList.remove('hidden');
+            registerPanel.classList.add('hidden');
+        }
+
+        document.getElementById('loginBtn').addEventListener('click', login);
+        document.getElementById('registerBtn').addEventListener('click', register);
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+
+        // Initial state check
+        if (TOKEN) {
+            initMap();
+            loadUser().then((user) => {
+                if (user && user.is_admin) {
+                    window.location.href = 'backend/app/templates/admin_dashboard.html';
+                } else {
+                    showMainApp();
+                }
+            }).catch(() => logout());
+        } else {
+            // Initialize map in background for visual effect behind auth panel
+            initMap();
+        }
+
+        // --- Push Notification Toast Helper ---
+        function showToast(title, body, type = 'info') {
+            const toast = document.createElement('div');
+            const colors = { info: '#1e40af', success: '#15803d', warning: '#b45309', error: '#b91c1c' };
+            toast.style.cssText = `
+                position:fixed; bottom:24px; right:24px; z-index:99999;
+                background:${colors[type] || colors.info}; color:#fff;
+                padding:14px 18px; border-radius:12px; max-width:320px;
+                box-shadow:0 4px 20px rgba(0,0,0,0.4); font-size:14px;
+                display:flex; gap:10px; align-items:flex-start; cursor:pointer;
+                animation: slideIn 0.3s ease;
+            `;
+            if (!document.getElementById('toastStyle')) {
+                const s = document.createElement('style');
+                s.id = 'toastStyle';
+                s.textContent = '@keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}';
+                document.head.appendChild(s);
+            }
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : '🔔';
+            toast.innerHTML = `<span style="font-size:18px;flex-shrink:0">${icon}</span><div><strong style="display:block;margin-bottom:3px">${title}</strong>${body}</div>`;
+            toast.onclick = () => toast.remove();
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        // --- Auto-register FCM token after login (using the correct URL /users/fcm-token) ---
+        async function registerFCMToken() {
+            if (!TOKEN) return;
+            if (typeof firebase === 'undefined' || typeof messaging === 'undefined') {
+                console.warn('Firebase not loaded, skipping FCM token registration');
+                return;
+            }
+            try {
+                if (!('serviceWorker' in navigator)) return;
+                const permission = Notification.permission;
+                if (permission === 'denied') return; // user explicitly denied, don't prompt
+                // Only prompt if not yet granted
+                const granted = permission === 'granted'
+                    ? true
+                    : (await Notification.requestPermission()) === 'granted';
+                if (!granted) return;
+
+                await navigator.serviceWorker.ready;
+                const fcmToken = await messaging.getToken({
+                    vapidKey: "BKnT_hLfIL2DlonLwZrXY4kwjBEjlp6BaJIr6_ESnVT_K4R985hNmpftY7A9YA9HWSNjCNEeEcTuN8v6VBFDHeI"
+                });
+                if (!fcmToken) {
+                    console.warn('No FCM token returned');
+                    return;
+                }
+                // FIXED: changed endpoint from /user/fcm-token to /users/fcm-token
+                const response = await fetch('/users/fcm-token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+                    body: JSON.stringify({ token: fcmToken })
+                });
+                if (response.ok) {
+                    console.log('FCM token registered successfully');
+                    const bell = document.getElementById('bellIcon');
+                    if (bell) bell.title = 'Notifications Enabled ✅';
+                } else {
+                    console.error('Failed to save FCM token to server', await response.text());
+                }
+            } catch (err) {
+                console.error('FCM token registration error:', err);
+            }
+        }
+
+        // --- Bell icon: manual trigger (using the correct URL) ---
+        document.getElementById('bellIcon').addEventListener('click', async () => {
+            if (!TOKEN) { showToast('Not logged in', 'Please login first.', 'warning'); return; }
+            const bell = document.getElementById('bellIcon');
+            bell.style.opacity = '0.5';
+            bell.style.pointerEvents = 'none';
+            try {
+                if (Notification.permission === 'denied') {
+                    showToast('Permission Denied', 'Enable notifications in your browser settings.', 'error');
+                    return;
+                }
+                const perm = await Notification.requestPermission();
+                if (perm !== 'granted') {
+                    showToast('Permission Denied', 'Notifications were not allowed.', 'warning');
+                    return;
+                }
+                await navigator.serviceWorker.ready;
+                const fcmToken = await messaging.getToken({
+                    vapidKey: "BKnT_hLfIL2DlonLwZrXY4kwjBEjlp6BaJIr6_ESnVT_K4R985hNmpftY7A9YA9HWSNjCNEeEcTuN8v6VBFDHeI"
+                });
+                if (!fcmToken) { showToast('Token Error', 'Could not get notification token.', 'error'); return; }
+                // FIXED: changed endpoint from /user/fcm-token to /users/fcm-token
+                const response = await fetch('/users/fcm-token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+                    body: JSON.stringify({ token: fcmToken })
+                });
+                if (response.ok) {
+                    showToast('Notifications Enabled', 'You will now receive alerts!', 'success');
+                    bell.title = 'Notifications Enabled ✅';
+                } else {
+                    showToast('Server Error', 'Failed to save notification token.', 'error');
+                }
+            } catch (err) {
+                console.error('Push enable error:', err);
+                showToast('Error', err.message || 'Could not enable notifications.', 'error');
+            } finally {
+                bell.style.opacity = '';
+                bell.style.pointerEvents = '';
+            }
+        });
+
+        // --- Foreground message handler (app is open) ---
+        messaging.onMessage((payload) => {
+            console.log('Foreground message received:', payload);
+            const title = payload.notification?.title || 'SPSafeRoute Alert';
+            const body = payload.notification?.body || '';
+            showToast(title, body, 'info');
+            // Refresh incidents if map is visible
+            if (typeof loadIncidentsOnMap === 'function') {
+                loadIncidentsOnMap();
+            }
+        });
+
+    </script>
 </body>
+
 </html>

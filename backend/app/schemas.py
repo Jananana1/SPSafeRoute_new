@@ -7,7 +7,10 @@ from enum import Enum
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
+    confirm_password: str
     full_name: Optional[str] = None
+    captcha_id: str
+    captcha_answer: str
 
 class UserOut(BaseModel):
     id: int
@@ -19,6 +22,24 @@ class UserOut(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    mfa_required: Optional[bool] = False
+
+class MFAVerify(BaseModel):
+    token: str
+    otp: str
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class PasswordResetConfirm(BaseModel):
+    email: EmailStr
+    otp: str
+    new_password: str
+    confirm_password: str
+
+class CaptchaResponse(BaseModel):
+    captcha_id: str
+    question: str
 
 # ---------- Incident schemas ----------
 class IncidentCreate(BaseModel):

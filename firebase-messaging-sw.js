@@ -14,7 +14,16 @@ firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-    const title = payload.notification.title;
-    const options = { body: payload.notification.body, icon: '/static/icon.png' };
-    self.registration.showNotification(title, options);
+    console.log('[firebase-messaging-sw.js] Background message received:', payload);
+    const notificationTitle = payload.notification?.title || 'SPSafeRoute Alert';
+    const notificationBody = payload.notification?.body || '';
+    const notificationOptions = {
+        body: notificationBody,
+        icon: '/static/icons/android-chrome-192x192.png',
+        badge: '/static/icons/favicon-32x32.png',
+        vibrate: [200, 100, 200],
+        data: payload.data || {},
+        requireInteraction: false
+    };
+    self.registration.showNotification(notificationTitle, notificationOptions);
 });
