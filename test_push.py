@@ -1,6 +1,9 @@
-from backend.app.firebase_config import send_fcm_notification
+# test_push.py
+import firebase_admin
+from firebase_admin import credentials
 
-# Replace with your actual token from the database
-token = "da4vyEWsAgsI1EtWcufsJN:APA91bGX1IV9KIWlsC5LznIYHe1gu5BAMeKS0rD061liGv74cVUCwtPIxcw48_JukWDLIPTrzZgnaP-UHlGclfUm66_URPGRIsSaLO0MwFE2mArGTAVk6CY"
-send_fcm_notification(token, "Test Title", "Test body")
-print("Sent")
+# Use raw string (r"") with correct path
+cred_path = r"C:\Users\Personal Laptop\Downloads\SPSafeRoute_new\SPSafeRoute_new\firebase-adminsdk.json"
+cred = credentials.Certificate(cred_path)
+firebase_admin.initialize_app(cred)
+print("✅ Firebase initialized successfully!")

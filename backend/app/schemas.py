@@ -18,6 +18,7 @@ class UserOut(BaseModel):
     full_name: Optional[str]
     is_admin: bool
     created_at: datetime
+    profile_image_url: Optional[str] = None
 
 class Token(BaseModel):
     access_token: str

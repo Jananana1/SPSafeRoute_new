@@ -2,11 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, text
 from typing import List
 from . import models, schemas, auth, push_service
 from .database import SessionLocal
-
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 templates = Jinja2Templates(directory="app/templates")
@@ -50,19 +49,34 @@ def complete_incident(incident_id: int, db: Session = Depends(get_db), admin: mo
     return {"message": "Completed & user notified"}
 
 @router.get("/analytics")
-def analytics(db: Session = Depends(get_db), admin: models.User = Depends(auth.get_current_user)):
-    # Use MySQL's DATE_FORMAT instead of SQLite's strftime
-    monthly = db.query(
-        func.date_format(models.Incident.created_at, '%Y-%m').label('month'),
-        func.count(models.Incident.id).label('count')
-    ).group_by('month').order_by('month').all()
-    
-    area = db.query(
-        models.Incident.location_name,
-        func.count(models.Incident.id).label('count')
-    ).filter(models.Incident.location_name.isnot(None)).group_by(models.Incident.location_name).order_by(func.count().desc()).limit(10).all()
-    
-    return {
-        "monthly_stats": [{"month": m[0], "count": m[1]} for m in monthly],
-        "area_stats": [{"area": a[0], "count": a[1]} for a in area]
-    }
+def analytics(db: Session = Depends(get_db), admin: models.User = Depends(auth.get_current_admin)):
+    try:
+        from sqlalchemy import text
+        
+        # Monthly incident counts
+        monthly_sql = text("""
+            SELECT DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count
+            FROM incidents
+            GROUP BY month
+            ORDER BY month
+        """)
+        monthly_result = db.execute(monthly_sql).fetchall()
+        monthly_stats = [{"month": row[0], "count": row[1]} for row in monthly_result]
+        
+        # Most prone areas
+        area_sql = text("""
+            SELECT location_name, COUNT(*) as count
+            FROM incidents
+            WHERE location_name IS NOT NULL AND location_name != ''
+            GROUP BY location_name
+            ORDER BY count DESC
+            LIMIT 10
+        """)
+        area_result = db.execute(area_sql).fetchall()
+        area_stats = [{"area": row[0], "count": row[1]} for row in area_result]
+        
+        return {"monthly_stats": monthly_stats, "area_stats": area_stats}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return {"monthly_stats": [], "area_stats": []}

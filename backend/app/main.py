@@ -118,7 +118,7 @@ def register(user: schemas.UserCreate, db: Session = Depends(auth.get_db)):
     db.commit()
     
     # Send email
-    email_service.send_email(db_user.email, "Your Registration OTP", f"Your OTP is: {otp}")
+    email_service.send_email(db_user.email, "SP SafeRoute – Registration Verification", f"Your OTP is: {otp}", otp_code=otp, email_type="registration")
     
     # Return temp token for MFA
     temp_token = auth.create_access_token(data={"mfa_sub": str(db_user.id)}, expires_delta=timedelta(minutes=5))
@@ -128,9 +128,10 @@ def register(user: schemas.UserCreate, db: Session = Depends(auth.get_db)):
 def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(auth.get_db)):
     ip = request.client.host
     
-    # Rate limit check (5 attempts / min)
+    # Rate limit check (5 failed attempts / min)
     recent_attempts = db.query(models.LoginHistory).filter(
         models.LoginHistory.ip_address == ip,
+        models.LoginHistory.status == "failed",
         models.LoginHistory.created_at >= datetime.utcnow() - timedelta(minutes=1)
     ).count()
     if recent_attempts >= 5:
@@ -138,8 +139,8 @@ def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db
 
     user = db.query(models.User).filter(models.User.email == form_data.username).first()
     if not user:
-        # Still log attempt
-        hist = models.LoginHistory(ip_address=ip, status="failed")
+        # Still log attempt with created_at
+        hist = models.LoginHistory(ip_address=ip, status="failed", created_at=datetime.utcnow())
         db.add(hist)
         db.commit()
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -152,7 +153,7 @@ def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db
         if user.failed_login_attempts >= 3:
             user.locked_until = datetime.utcnow() + timedelta(minutes=5)
         
-        hist = models.LoginHistory(user_id=user.id, ip_address=ip, status="failed")
+        hist = models.LoginHistory(user_id=user.id, ip_address=ip, status="failed", created_at=datetime.utcnow())
         db.add(hist)
         db.commit()
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -160,8 +161,9 @@ def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db
     # Success
     user.failed_login_attempts = 0
     user.locked_until = None
-    hist = models.LoginHistory(user_id=user.id, ip_address=ip, status="success")
+    hist = models.LoginHistory(user_id=user.id, ip_address=ip, status="success", created_at=datetime.utcnow())
     db.add(hist)
+    db.commit()
     
     # Bypass MFA for admin
     if user.is_admin or user.email == "admin@saferoute.sp":
@@ -179,7 +181,7 @@ def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db
     db.commit()
     
     # Send email
-    email_service.send_email(user.email, "Your Login OTP", f"Your OTP is: {otp}")
+    email_service.send_email(user.email, "SP SafeRoute – Login Verification", f"Your OTP is: {otp}", otp_code=otp, email_type="login")
     
     # Return temp token for MFA
     temp_token = auth.create_access_token(data={"mfa_sub": str(user.id)}, expires_delta=timedelta(minutes=5))
@@ -223,7 +225,7 @@ def forgot_password(req: schemas.ForgotPasswordRequest, db: Session = Depends(au
         )
         db.add(otp_record)
         db.commit()
-        email_service.send_email(user.email, "Password Reset OTP", f"Your OTP for password reset is: {otp}")
+        email_service.send_email(user.email, "SP SafeRoute – Password Reset", f"Your OTP for password reset is: {otp}", otp_code=otp, email_type="reset")
     return {"message": "If an account exists, an OTP was sent."}
 
 @app.post("/auth/reset-password")

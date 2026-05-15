@@ -6,79 +6,306 @@
   <title>SP SafeRoute - Active Alerts</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    body { padding: 20px; max-width: 800px; margin: 0 auto; padding-top: 80px; }
+    /* Root theme variables - FIXED for better readability */
+    :root {
+      --primary: #dc2626;
+      --primary-dark: #b91c1c;
+      --danger: #ef4444;
+      --success: #10b981;
+      --glass-bg: rgba(255, 255, 255, 0.95);
+      --glass-border: rgba(0, 0, 0, 0.1);
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --nav-hover: rgba(0, 0, 0, 0.05);
+      --bg-main: #ffffff;
+      --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    [data-theme="dark"] {
+      --glass-bg: rgba(17, 24, 39, 0.95);
+      --glass-border: rgba(55, 65, 81, 0.5);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --nav-hover: rgba(255, 255, 255, 0.1);
+      --bg-main: #111827;
+      --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body { 
+      padding: 20px; 
+      max-width: 800px; 
+      margin: 0 auto; 
+      padding-top: 80px;
+      background: var(--bg-main);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
     
     .fixed-header {
-      position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
-      background: var(--glass-bg); backdrop-filter: blur(16px);
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      z-index: 100;
+      background: var(--glass-bg); 
+      backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--glass-border);
-      padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between;
+      box-sizing: border-box;
     }
     
-    .header-left { display: flex; align-items: center; gap: 16px; }
+    .header-left { 
+      display: flex; 
+      align-items: center; 
+      gap: 16px; 
+    }
     
     .btn-back {
-      background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border);
-      color: var(--text-main); width: 40px; height: 40px; border-radius: 50%;
-      font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.1); 
+      border: 1px solid var(--glass-border);
+      color: var(--text-main); 
+      width: 40px; 
+      height: 40px; 
+      border-radius: 50%;
+      font-size: 20px; 
+      cursor: pointer; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
       transition: all 0.2s;
     }
-    .btn-back:hover { background: var(--primary); color: white; }
+    .btn-back:hover { 
+      background: var(--primary); 
+      color: white; 
+    }
     
     .control-btn {
-      width: 44px; height: 44px; border-radius: 50%;
-      background: var(--glass-bg); backdrop-filter: blur(16px);
-      border: 1px solid var(--glass-border); display: flex;
-      align-items: center; justify-content: center; font-size: 20px;
-      cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      transition: transform 0.2s; color: var(--text-main);
+      width: 44px; 
+      height: 44px; 
+      border-radius: 50%;
+      background: var(--glass-bg); 
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border); 
+      display: flex;
+      align-items: center; 
+      justify-content: center; 
+      font-size: 20px;
+      cursor: pointer; 
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s; 
+      color: var(--text-main);
     }
-    .control-btn:hover { transform: scale(1.1); }
+    .control-btn:hover { 
+      transform: scale(1.1); 
+    }
     
-    .alerts-container { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; }
+    .alerts-container { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 16px; 
+      margin-top: 20px; 
+    }
     
     .alert-card {
-      background: var(--glass-bg); backdrop-filter: blur(16px);
-      border: 1px solid var(--glass-border); border-radius: 16px;
-      padding: 20px; cursor: pointer; transition: transform 0.2s;
+      background: var(--glass-bg); 
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border); 
+      border-radius: 16px;
+      padding: 20px; 
+      cursor: pointer; 
+      transition: all 0.2s;
       border-left: 6px solid var(--glass-border);
+      box-shadow: var(--card-shadow);
     }
-    .alert-card:hover { transform: translateY(-2px); background: var(--nav-hover); }
+    .alert-card:hover { 
+      transform: translateY(-2px); 
+      background: var(--nav-hover);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
     
-    .alert-card.type-accident { border-left-color: #ef4444; }
-    .alert-card.type-crime { border-left-color: #8b5cf6; }
-    .alert-card.type-hazard { border-left-color: #f59e0b; }
+    .alert-card.type-accident { 
+      border-left-color: #ef4444; 
+    }
+    .alert-card.type-crime { 
+      border-left-color: #8b5cf6; 
+    }
+    .alert-card.type-hazard { 
+      border-left-color: #f59e0b; 
+    }
     
-    .alert-type { font-weight: bold; font-size: 14px; margin-bottom: 8px; letter-spacing: 1px; }
-    .alert-desc { font-size: 16px; color: var(--text-main); margin-bottom: 12px; line-height: 1.5; }
-    .alert-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
+    .alert-type { 
+      font-weight: 700; 
+      font-size: 14px; 
+      margin-bottom: 8px; 
+      letter-spacing: 1px;
+    }
+    .alert-desc { 
+      font-size: 15px; 
+      color: var(--text-main); 
+      margin-bottom: 12px; 
+      line-height: 1.5;
+      font-weight: 500;
+    }
+    .alert-meta { 
+      display: flex; 
+      justify-content: space-between; 
+      font-size: 12px; 
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
     
-    /* Modal */
+    .alert-image {
+      margin-top: 12px;
+      border-radius: 12px;
+      overflow: hidden;
+      max-height: 150px;
+      background: rgba(0,0,0,0.05);
+    }
+    .alert-image img {
+      width: 100%;
+      height: auto;
+      max-height: 150px;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+    
+    /* Modal Styles */
     .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
-      display: flex; justify-content: center; align-items: center;
-      z-index: 1000; visibility: hidden; opacity: 0; transition: all 0.3s;
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%;
+      background: rgba(0,0,0,0.7); 
+      backdrop-filter: blur(8px);
+      display: flex; 
+      justify-content: center; 
+      align-items: center;
+      z-index: 1000; 
+      visibility: hidden; 
+      opacity: 0; 
+      transition: all 0.3s;
     }
-    .modal-overlay.active { visibility: visible; opacity: 1; }
+    .modal-overlay.active { 
+      visibility: visible; 
+      opacity: 1; 
+    }
     .modal-content {
-      background: var(--bg-main); border: 1px solid var(--glass-border);
-      width: 90%; max-width: 450px; border-radius: 24px; padding: 24px;
-      position: relative; color: var(--text-main); box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      background: var(--bg-main); 
+      border: 1px solid var(--glass-border);
+      width: 90%; 
+      max-width: 500px; 
+      max-height: 90vh;
+      overflow-y: auto;
+      border-radius: 24px; 
+      padding: 24px;
+      position: relative; 
+      color: var(--text-main); 
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     }
     .modal-close {
-      position: absolute; top: 16px; right: 20px; font-size: 28px; cursor: pointer;
-      background: none; border: none; color: var(--text-muted);
+      position: absolute; 
+      top: 16px; 
+      right: 20px; 
+      font-size: 28px; 
+      cursor: pointer;
+      background: none; 
+      border: none; 
+      color: var(--text-muted);
+      transition: color 0.2s;
     }
-    .modal-label { font-size: 12px; text-transform: uppercase; color: var(--text-muted); margin-top: 16px; margin-bottom: 4px; }
-    .modal-text { font-size: 16px; line-height: 1.5; }
+    .modal-close:hover {
+      color: var(--danger);
+    }
+    .modal-label { 
+      font-size: 11px; 
+      text-transform: uppercase; 
+      color: var(--text-muted); 
+      margin-top: 16px; 
+      margin-bottom: 4px; 
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+    .modal-text { 
+      font-size: 16px; 
+      line-height: 1.5; 
+      font-weight: 500;
+      word-wrap: break-word;
+    }
     
     .modal-button {
-      background: var(--primary); color: white; border: none; padding: 14px;
-      border-radius: 12px; font-size: 16px; font-weight: bold; width: 100%;
-      margin-top: 24px; cursor: pointer;
+      background: var(--primary); 
+      color: white; 
+      border: none; 
+      padding: 14px;
+      border-radius: 12px; 
+      font-size: 16px; 
+      font-weight: 600; 
+      width: 100%;
+      margin-top: 20px; 
+      cursor: pointer;
+      transition: opacity 0.2s;
     }
-    .modal-button.close { background: transparent; border: 1px solid var(--glass-border); color: var(--text-main); margin-top: 12px; }
+    .modal-button:hover {
+      opacity: 0.9;
+    }
+    .modal-button.close { 
+      background: transparent; 
+      border: 1px solid var(--glass-border); 
+      color: var(--text-main); 
+      margin-top: 12px;
+    }
+    .modal-button.close:hover {
+      background: var(--nav-hover);
+    }
+    
+    .modal-image {
+      margin: 16px 0;
+      border-radius: 16px;
+      overflow: hidden;
+      text-align: center;
+      background: rgba(0,0,0,0.05);
+    }
+    .modal-image img {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 16px;
+      object-fit: contain;
+    }
+    
+    /* Loading and empty states */
+    .loading-state, .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+    }
+    
+    .error-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--danger);
+    }
+    
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--glass-border);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--text-muted);
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
@@ -92,13 +319,15 @@
 </div>
 
 <div id="alertsList" class="alerts-container">
-  <div style="text-align:center; color: var(--text-muted); padding: 40px;">Loading alerts...</div>
+  <div class="loading-state">Loading alerts...</div>
 </div>
 
 <div id="incidentModal" class="modal-overlay">
   <div class="modal-content">
     <button class="modal-close" id="closeModalBtn">&times;</button>
-    <div id="modalType" style="font-weight: bold; font-size: 20px; margin-bottom: 8px;"></div>
+    <div id="modalType" style="font-weight: 700; font-size: 20px; margin-bottom: 8px;"></div>
+    
+    <div id="modalImage" class="modal-image" style="display: none;"></div>
     
     <div class="modal-label">Description</div>
     <div id="modalDesc" class="modal-text"></div>
@@ -107,7 +336,7 @@
     <div id="modalLocation" class="modal-text"></div>
     
     <div class="modal-label">Reported At</div>
-    <div id="modalDate" class="modal-text" style="color: var(--text-muted);"></div>
+    <div id="modalDate" class="modal-text" style="color: var(--text-muted); font-size: 14px;"></div>
     
     <button id="viewLocationBtn" class="modal-button">📍 View Live Location</button>
     <button id="closeModalBtn2" class="modal-button close">Close</button>
@@ -136,64 +365,174 @@
   });
 
   function formatDate(ts) {
-    return new Date(ts).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    if (!ts) return 'Unknown date';
+    try {
+      return new Date(ts).toLocaleString(undefined, { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    } catch(e) {
+      return 'Invalid date';
+    }
+  }
+
+  // Helper function to properly format image URL
+  // FIXED: Now looks for image_url from the database
+  function getImageUrl(imageData) {
+    if (!imageData) return null;
+    
+    // If it's already a data URL
+    if (imageData.startsWith('data:image')) {
+      return imageData;
+    }
+    
+    // If it's base64 without prefix
+    if (typeof imageData === 'string' && imageData.length > 100) {
+      // Try to detect if it's base64
+      try {
+        // Check if it looks like base64 (no spaces, alphanumeric +/+=)
+        if (/^[A-Za-z0-9+/=]+$/.test(imageData.substring(0, 100))) {
+          return `data:image/jpeg;base64,${imageData}`;
+        }
+      } catch(e) {}
+    }
+    
+    return null;
   }
 
   const modal = document.getElementById('incidentModal');
   let currentLocation = null;
 
-  function closeModal() { modal.classList.remove('active'); }
+  function closeModal() { 
+    modal.classList.remove('active'); 
+  }
+  
   function openModal(incident) {
-    const color = incident.type === 'accident' ? '#ef4444' : incident.type === 'crime' ? '#8b5cf6' : '#f59e0b';
+    const typeColors = {
+      accident: '#ef4444',
+      crime: '#8b5cf6',
+      hazard: '#f59e0b'
+    };
+    const color = typeColors[incident.type] || '#6b7280';
     document.getElementById('modalType').innerHTML = `<span style="color:${color}">${incident.type.toUpperCase()}</span>`;
-    document.getElementById('modalDesc').innerText = incident.description;
-    document.getElementById('modalLocation').innerText = incident.location_name || `${incident.lat.toFixed(4)}, ${incident.lng.toFixed(4)}`;
+    document.getElementById('modalDesc').innerText = incident.description || 'No description provided';
+    document.getElementById('modalLocation').innerText = incident.location_name || `${incident.lat?.toFixed(4) || 'Unknown'}, ${incident.lng?.toFixed(4) || 'Unknown'}`;
     document.getElementById('modalDate').innerText = formatDate(incident.created_at);
+    
+    // FIXED: Use image_url instead of image
+    const modalImageDiv = document.getElementById('modalImage');
+    const imageUrl = getImageUrl(incident.image_url);
+    
+    if (imageUrl) {
+      modalImageDiv.style.display = 'block';
+      modalImageDiv.innerHTML = `<img src="${imageUrl}" alt="Incident evidence" onerror="this.parentElement.style.display='none'">`;
+    } else {
+      modalImageDiv.style.display = 'none';
+      modalImageDiv.innerHTML = '';
+    }
+    
     currentLocation = { lat: incident.lat, lng: incident.lng };
     modal.classList.add('active');
   }
 
   document.getElementById('viewLocationBtn').addEventListener('click', () => {
-    if (currentLocation) window.open(`https://www.google.com/maps?q=${currentLocation.lat},${currentLocation.lng}`, '_blank');
+    if (currentLocation && currentLocation.lat && currentLocation.lng) {
+      window.open(`https://www.google.com/maps?q=${currentLocation.lat},${currentLocation.lng}`, '_blank');
+    } else {
+      alert('Location coordinates not available');
+    }
   });
+  
   document.getElementById('closeModalBtn').addEventListener('click', closeModal);
   document.getElementById('closeModalBtn2').addEventListener('click', closeModal);
-  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  modal.addEventListener('click', (e) => { 
+    if (e.target === modal) closeModal(); 
+  });
 
   async function loadAlerts() {
+    const container = document.getElementById('alertsList');
+    
     try {
-      const res = await fetch('/incidents/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
-      if (!res.ok) throw new Error();
+      const res = await fetch('/incidents/', { 
+        headers: { 'Authorization': `Bearer ${TOKEN}` } 
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      
       const incidents = await res.json();
       
-      const container = document.getElementById('alertsList');
-      container.innerHTML = '';
-      if (incidents.length === 0) {
-        container.innerHTML = '<div style="text-align:center; color: var(--text-muted); padding: 40px;">No active alerts. Stay safe!</div>';
+      if (!incidents || incidents.length === 0) {
+        container.innerHTML = '<div class="empty-state">✓ No active alerts. Stay safe!</div>';
         return;
       }
       
       // Sort newest first
-      incidents.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+      incidents.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      
+      container.innerHTML = '';
       
       incidents.forEach(inc => {
-        const color = inc.type === 'accident' ? '#ef4444' : inc.type === 'crime' ? '#8b5cf6' : '#f59e0b';
+        const typeColors = {
+          accident: '#ef4444',
+          crime: '#8b5cf6',
+          hazard: '#f59e0b'
+        };
+        const color = typeColors[inc.type] || '#6b7280';
+        
         const card = document.createElement('div');
         card.className = `alert-card type-${inc.type}`;
+        
+        // FIXED: Use image_url instead of image for thumbnail
+        let imageHtml = '';
+        const imageUrl = getImageUrl(inc.image_url);
+        if (imageUrl) {
+          imageHtml = `
+            <div class="alert-image">
+              <img src="${imageUrl}" alt="Incident evidence" onerror="this.parentElement.style.display='none'">
+            </div>
+          `;
+        }
+        
+        const description = inc.description || 'No description';
+        const truncatedDesc = description.length > 100 ? description.substring(0, 100) + '...' : description;
+        const locationText = inc.location_name ? 
+          (inc.location_name.length > 25 ? inc.location_name.substring(0, 25) + '...' : inc.location_name) : 
+          `${inc.lat?.toFixed(4) || 'Unknown'}, ${inc.lng?.toFixed(4) || 'Unknown'}`;
+        
         card.innerHTML = `
           <div class="alert-type" style="color:${color}">${inc.type.toUpperCase()}</div>
-          <div class="alert-desc">${inc.description.substring(0, 100)}${inc.description.length > 100 ? '...' : ''}</div>
+          <div class="alert-desc">${escapeHtml(truncatedDesc)}</div>
           <div class="alert-meta">
-            <span>📍 ${inc.location_name ? inc.location_name.substring(0,25) : `${inc.lat.toFixed(4)}, ${inc.lng.toFixed(4)}`}</span>
+            <span>📍 ${escapeHtml(locationText)}</span>
             <span>${formatDate(inc.created_at)}</span>
           </div>
+          ${imageHtml}
         `;
+        
         card.addEventListener('click', () => openModal(inc));
         container.appendChild(card);
       });
+      
     } catch (err) {
-      document.getElementById('alertsList').innerHTML = '<div style="text-align:center; color: var(--danger); padding: 40px;">Error loading alerts</div>';
+      console.error('Error loading alerts:', err);
+      container.innerHTML = '<div class="error-state">⚠️ Error loading alerts. Please try again later.</div>';
     }
+  }
+  
+  // Simple escape function to prevent XSS
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 </script>
 </body>

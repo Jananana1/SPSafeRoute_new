@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SP SafeRoute - My Profile</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #1A73E8;
+      --primary-dark: #0d5bbf;
+      --primary-glow: rgba(26, 115, 232, 0.25);
+      --glass-bg: rgba(255, 255, 255, 0.78);
+      --glass-bg-solid: rgba(255, 255, 255, 0.96);
+      --glass-border: rgba(0, 0, 0, 0.08);
+      --text-main: #0f172a;
+      --text-muted: #334155;
+      --nav-hover: rgba(0, 0, 0, 0.04);
+      --card-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.08);
+      --danger: #ef4444;
+      --danger-dark: #dc2626;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --bg-color: #f8fafc;
+    }
+
+    [data-theme="dark"] {
+      --glass-bg: rgba(18, 25, 35, 0.88);
+      --glass-bg-solid: rgba(15, 25, 35, 0.96);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --text-main: #f1f5f9;
+      --text-muted: #cbd5e6;
+      --nav-hover: rgba(255, 255, 255, 0.05);
+      --card-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.4);
+      --bg-color: #0a0f1a;
+    }
+
+    body {
+      background: var(--bg-color);
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      position: relative;
+      transition: background 0.3s ease;
+    }
+
+    .profile-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      max-width: 450px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: var(--card-shadow);
+      transition: background 0.2s;
+    }
+
+    .header-panel {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-back {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-back:hover {
+      background: var(--primary);
+      color: white;
+      transform: scale(0.95);
+    }
+
+    .profile-avatar-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .profile-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--primary);
+      background: var(--nav-hover);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      color: var(--text-muted);
+    }
+
+    .profile-avatar-overlay {
+      position: absolute;
+      bottom: 5px;
+      right: calc(50% - 60px);
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+
+    .profile-avatar-overlay:hover {
+      transform: scale(1.1);
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .input-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    .input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--glass-bg-solid);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      font-size: 14px;
+      color: var(--text-main);
+      transition: 0.2s;
+      margin-bottom: 16px;
+      font-family: inherit;
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--nav-hover);
+      color: var(--text-main);
+      border: 1px solid var(--glass-border);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .btn-group .btn {
+      flex: 1;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 20px 0 12px 0;
+      color: var(--primary);
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 6px;
+    }
+
+    .error-message {
+      color: var(--danger);
+      font-size: 12px;
+      margin-top: -12px;
+      margin-bottom: 12px;
+      padding-left: 8px;
+    }
+
+    .success-message {
+      color: var(--success);
+      font-size: 12px;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .top-right-controls {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1100;
+      display: flex;
+      gap: 12px;
+    }
+
+    .control-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      cursor: pointer;
+      color: var(--text-main);
+      transition: 0.2s;
+    }
+
+    .control-btn:hover {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.05);
+    }
+
+    h2, h3 {
+      color: var(--text-main);
+    }
+
+    p {
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 600px) {
+      .profile-container {
+        padding: 12px;
+      }
+      .glass-panel {
+        padding: 20px;
+      }
+      .profile-avatar {
+        width: 100px;
+        height: 100px;
+        font-size: 40px;
+      }
+      .profile-avatar-overlay {
+        right: calc(50% - 50px);
+        bottom: 0;
+        width: 32px;
+        height: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-right-controls">
+    <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌗</div>
+</div>
+
+<div class="profile-container">
+  <div class="glass-panel header-panel">
+    <button class="btn-back" onclick="window.location.href='/'">←</button>
+    <h2 style="margin:0;">My Profile</h2>
+  </div>
+
+  <!-- View Mode -->
+  <div class="glass-panel" id="viewMode">
+      <div class="profile-avatar-container">
+          <img id="viewAvatar" src="" alt="Profile" class="profile-avatar" style="display: none;">
+          <div id="viewAvatarPlaceholder" class="profile-avatar">👤</div>
+      </div>
+      <h3 id="viewName" style="text-align: center; margin-bottom: 6px;">Loading...</h3>
+      <p id="viewEmail" style="text-align: center; font-size: 14px; margin-bottom: 20px;">...</p>
+      
+      <button id="editProfileBtn" class="btn btn-primary">✏️ Edit Profile</button>
+  </div>
+
+  <!-- Edit Mode -->
+  <div class="glass-panel hidden" id="editMode">
+    <form id="profileForm" onsubmit="saveProfile(event);">
+        <div class="profile-avatar-container">
+            <img id="editAvatarPreview" src="" alt="Profile" class="profile-avatar" style="display: none;">
+            <div id="editAvatarPlaceholder" class="profile-avatar">👤</div>
+            <label for="profileImage" class="profile-avatar-overlay" title="Change Image">📷</label>
+            <input type="file" id="profileImage" class="file-input" accept="image/*" onchange="previewImage(event)">
+        </div>
+        
+        <label class="input-label" for="fullName">Full Name</label>
+        <input type="text" id="fullName" class="input" placeholder="Your Name">
+        
+        <div class="section-title">🔐 Security (Optional)</div>
+        <p style="font-size: 12px; margin-bottom: 12px;">Leave password fields blank if you don't want to change password.</p>
+        
+        <label class="input-label" for="currentPassword">Current Password (required for password change)</label>
+        <input type="password" id="currentPassword" class="input" placeholder="Enter current password">
+        
+        <label class="input-label" for="newPassword">New Password</label>
+        <input type="password" id="newPassword" class="input" placeholder="Min 8 characters with uppercase, lowercase, numbers">
+        <div id="passwordStrength" class="error-message"></div>
+        
+        <label class="input-label" for="confirmPassword">Confirm New Password</label>
+        <input type="password" id="confirmPassword" class="input" placeholder="Confirm new password">
+        <div id="passwordMatchMsg" class="error-message"></div>
+        
+        <div id="messageBox" class="error-message hidden"></div>
+
+        <div class="btn-group">
+            <button type="button" id="cancelEditBtn" class="btn btn-secondary">Cancel</button>
+            <button type="submit" id="saveProfileBtn" class="btn btn-primary">Save Changes</button>
+        </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Get token from localStorage
+  let TOKEN = localStorage.getItem('token');
+  if (!TOKEN) {
+    window.location.href = '/';
+  }
+
+  // Theme handling
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  if (savedTheme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+
+  document.getElementById('themeToggleBtn').addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    if (newTheme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    localStorage.setItem('theme', newTheme);
+  });
+
+  // Password strength checker
+  function checkPasswordStrength(password) {
+    const strengthDiv = document.getElementById('passwordStrength');
+    if (!password) {
+      strengthDiv.textContent = '';
+      return true;
+    }
+    
+    let hasUpper = /[A-Z]/.test(password);
+    let hasLower = /[a-z]/.test(password);
+    let hasNumber = /[0-9]/.test(password);
+    let hasSpecial = /[^A-Za-z0-9]/.test(password);
+    
+    if (password.length < 8) {
+      strengthDiv.textContent = '❌ Too short (minimum 8 characters)';
+      strengthDiv.style.color = 'var(--danger)';
+      return false;
+    } else if (hasUpper && hasLower && hasNumber && hasSpecial) {
+      strengthDiv.textContent = '✅ Very Strong';
+      strengthDiv.style.color = 'var(--success)';
+      return true;
+    } else if (hasUpper && hasLower && hasNumber) {
+      strengthDiv.textContent = '⚠️ Strong (add special characters for very strong)';
+      strengthDiv.style.color = 'var(--warning)';
+      return true;
+    } else {
+      strengthDiv.textContent = '❌ Weak (need uppercase, lowercase, and numbers)';
+      strengthDiv.style.color = 'var(--danger)';
+      return false;
+    }
+  }
+
+  // Password match checker
+  function checkPasswordMatch() {
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const matchDiv = document.getElementById('passwordMatchMsg');
+    
+    if (!confirmPassword) {
+      matchDiv.textContent = '';
+      return true;
+    }
+    
+    if (newPassword === confirmPassword) {
+      matchDiv.textContent = '✓ Passwords match';
+      matchDiv.style.color = 'var(--success)';
+      return true;
+    } else {
+      matchDiv.textContent = '✗ Passwords do not match';
+      matchDiv.style.color = 'var(--danger)';
+      return false;
+    }
+  }
+
+  document.getElementById('newPassword').addEventListener('input', () => {
+    checkPasswordStrength(document.getElementById('newPassword').value);
+    checkPasswordMatch();
+  });
+  
+  document.getElementById('confirmPassword').addEventListener('input', checkPasswordMatch);
+
+  // Preview image before upload
+  function previewImage(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = document.getElementById('editAvatarPreview');
+        preview.src = e.target.result;
+        preview.style.display = 'flex';
+        document.getElementById('editAvatarPlaceholder').style.display = 'none';
+      }
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // Load user profile data
+  async function loadUserProfile() {
+    try {
+      const res = await fetch('/users/me', { 
+        headers: { 'Authorization': `Bearer ${TOKEN}` } 
+      });
+      
+      if (res.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/';
+        return;
+      }
+      
+      if (!res.ok) throw new Error('Failed to load profile');
+      
+      const user = await res.json();
+      
+      // Populate view mode
+      document.getElementById('viewName').textContent = user.full_name || 'No Name Set';
+      document.getElementById('viewEmail').textContent = user.email;
+      
+      // Handle avatar
+      if (user.profile_image_url && user.profile_image_url !== 'null') {
+        const imgUrl = user.profile_image_url;
+        document.getElementById('viewAvatar').src = imgUrl;
+        document.getElementById('viewAvatar').style.display = 'flex';
+        document.getElementById('viewAvatarPlaceholder').style.display = 'none';
+        
+        document.getElementById('editAvatarPreview').src = imgUrl;
+        document.getElementById('editAvatarPreview').style.display = 'flex';
+        document.getElementById('editAvatarPlaceholder').style.display = 'none';
+      }
+      
+      // Populate edit form
+      document.getElementById('fullName').value = user.full_name || '';
+      
+    } catch (err) {
+      console.error('Error loading profile:', err);
+      document.getElementById('viewName').textContent = 'Error loading profile';
+    }
+  }
+
+  // Save profile changes
+  async function saveProfile(event) {
+    event.preventDefault();
+    
+    const fullName = document.getElementById('fullName').value;
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const imageFile = document.getElementById('profileImage').files[0];
+    const msgBox = document.getElementById('messageBox');
+    
+    // Validate passwords if trying to change
+    if (newPassword) {
+      if (!currentPassword) {
+        msgBox.textContent = "Current password is required to change password.";
+        msgBox.classList.remove('hidden');
+        return;
+      }
+      
+      if (newPassword !== confirmPassword) {
+        msgBox.textContent = "New passwords do not match!";
+        msgBox.classList.remove('hidden');
+        return;
+      }
+      
+      if (!checkPasswordStrength(newPassword)) {
+        msgBox.textContent = "Please choose a stronger password.";
+        msgBox.classList.remove('hidden');
+        return;
+      }
+    }
+    
+    // Prepare FormData
+    const formData = new FormData();
+    if (fullName) formData.append('full_name', fullName);
+    if (currentPassword) formData.append('current_password', currentPassword);
+    if (newPassword) formData.append('new_password', newPassword);
+    if (imageFile) formData.append('profile_image', imageFile);
+    
+    const saveBtn = document.getElementById('saveProfileBtn');
+    const originalText = saveBtn.textContent;
+    saveBtn.textContent = 'Saving...';
+    saveBtn.disabled = true;
+    msgBox.classList.add('hidden');
+    
+    try {
+      const res = await fetch('/users/profile', {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${TOKEN}` },
+        body: formData
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        msgBox.textContent = data.detail || 'Failed to update profile';
+        msgBox.classList.remove('hidden');
+      } else {
+        // Success - reload profile and switch back to view mode
+        await loadUserProfile();
+        
+        // Clear password fields
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+        document.getElementById('profileImage').value = '';
+        
+        // Reset avatar preview
+        const viewImg = document.getElementById('viewAvatar');
+        if (viewImg.style.display === 'flex' && viewImg.src) {
+          document.getElementById('editAvatarPreview').src = viewImg.src;
+          document.getElementById('editAvatarPreview').style.display = 'flex';
+          document.getElementById('editAvatarPlaceholder').style.display = 'none';
+        }
+        
+        // Switch back to view mode
+        document.getElementById('editMode').classList.add('hidden');
+        document.getElementById('viewMode').classList.remove('hidden');
+        
+        // Show success message
+        alert('Profile updated successfully!');
+      }
+    } catch (err) {
+      console.error('Save error:', err);
+      msgBox.textContent = "An error occurred. Please try again.";
+      msgBox.classList.remove('hidden');
+    } finally {
+      saveBtn.textContent = originalText;
+      saveBtn.disabled = false;
+    }
+  }
+
+  // Edit mode handlers
+  document.getElementById('editProfileBtn').addEventListener('click', () => {
+    // Sync current data to edit form before showing
+    const currentName = document.getElementById('viewName').textContent;
+    if (currentName && currentName !== 'Loading...') {
+      document.getElementById('fullName').value = currentName === 'No Name Set' ? '' : currentName;
+    }
+    
+    document.getElementById('viewMode').classList.add('hidden');
+    document.getElementById('editMode').classList.remove('hidden');
+    
+    // Clear any previous messages
+    document.getElementById('messageBox').classList.add('hidden');
+    document.getElementById('passwordStrength').textContent = '';
+    document.getElementById('passwordMatchMsg').textContent = '';
+  });
+
+  document.getElementById('cancelEditBtn').addEventListener('click', () => {
+    document.getElementById('editMode').classList.add('hidden');
+    document.getElementById('viewMode').classList.remove('hidden');
+    
+    // Clear form fields
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmPassword').value = '';
+    document.getElementById('profileImage').value = '';
+    document.getElementById('messageBox').classList.add('hidden');
+    document.getElementById('passwordStrength').textContent = '';
+    document.getElementById('passwordMatchMsg').textContent = '';
+  });
+
+  // Load profile on page load
+  loadUserProfile();
+</script>
+</body>
+</html>
