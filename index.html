@@ -177,6 +177,37 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
+        // --- Helper: disable button during async operation (prevents rate limit hit)
+        async function withButtonDisable(button, callback) {
+            if (!button || button.disabled) return;
+            button.disabled = true;
+            const originalText = button.innerText;
+            button.innerText = "Processing...";
+            try {
+                await callback();
+            } finally {
+                button.disabled = false;
+                button.innerText = originalText;
+            }
+        }
+
+        // --- Debounced captcha loader (prevents rapid reloads)
+        let captchaLoading = false;
+        async function loadCaptcha() {
+            if (captchaLoading) return;
+            captchaLoading = true;
+            try {
+                const res = await fetch('/auth/captcha');
+                const data = await res.json();
+                document.getElementById('captchaQuestion').innerText = data.question;
+                document.getElementById('captchaId').value = data.captcha_id;
+            } catch (e) {
+                console.error('Captcha failed', e);
+            } finally {
+                captchaLoading = false;
+            }
+        }
+
         // --- Firebase and Map Initialization ---
         const firebaseConfig = {
             apiKey: "AIzaSyBv92XnzznnO-e7q-F7n8IqiyABvj2fhwU",
@@ -289,17 +320,6 @@
         });
 
         let tempMfaToken = null;
-
-        async function loadCaptcha() {
-            try {
-                const res = await fetch('/auth/captcha');
-                const data = await res.json();
-                document.getElementById('captchaQuestion').innerText = data.question;
-                document.getElementById('captchaId').value = data.captcha_id;
-            } catch (e) {
-                console.error('Captcha failed', e);
-            }
-        }
 
         document.getElementById('showRegisterBtn').addEventListener('click', () => {
             loginPanel.classList.add('hidden');
@@ -462,28 +482,30 @@
             }
         }
 
-        document.getElementById('verifyMfaBtn').addEventListener('click', async () => {
-            const otp = document.getElementById('mfaOtp').value;
-            try {
-                const response = await fetch('/auth/verify-mfa', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: tempMfaToken, otp: otp })
-                });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.detail);
+        document.getElementById('verifyMfaBtn').addEventListener('click', (e) => {
+            withButtonDisable(e.target, async () => {
+                const otp = document.getElementById('mfaOtp').value;
+                try {
+                    const response = await fetch('/auth/verify-mfa', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: tempMfaToken, otp: otp })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.detail);
 
-                setToken(data.access_token);
-                const user = await loadUser();
-                if (user && user.is_admin) {
-                    window.location.href = 'backend/app/templates/admin_dashboard.html';
-                } else {
-                    document.getElementById('mfaPanel').classList.add('hidden');
-                    showMainApp();
+                    setToken(data.access_token);
+                    const user = await loadUser();
+                    if (user && user.is_admin) {
+                        window.location.href = 'backend/app/templates/admin_dashboard.html';
+                    } else {
+                        document.getElementById('mfaPanel').classList.add('hidden');
+                        showMainApp();
+                    }
+                } catch (err) {
+                    document.getElementById('mfaMessage').innerText = err.message;
                 }
-            } catch (err) {
-                document.getElementById('mfaMessage').innerText = err.message;
-            }
+            });
         });
 
         async function register() {
@@ -532,47 +554,51 @@
             }
         }
 
-        document.getElementById('forgotPasswordBtn').addEventListener('click', async () => {
-            const email = document.getElementById('forgotEmail').value;
-            try {
-                const response = await fetch('/auth/forgot-password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.detail);
-                
-                // Hide forgot password, show reset password
-                document.getElementById('forgotPasswordPanel').classList.add('hidden');
-                document.getElementById('resetPasswordPanel').classList.remove('hidden');
-                document.getElementById('resetMessage').innerText = '';
-                
-            } catch (err) {
-                document.getElementById('forgotMessage').style.color = 'var(--danger)';
-                document.getElementById('forgotMessage').innerText = err.message;
-            }
+        document.getElementById('forgotPasswordBtn').addEventListener('click', (e) => {
+            withButtonDisable(e.target, async () => {
+                const email = document.getElementById('forgotEmail').value;
+                try {
+                    const response = await fetch('/auth/forgot-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.detail);
+                    
+                    // Hide forgot password, show reset password
+                    document.getElementById('forgotPasswordPanel').classList.add('hidden');
+                    document.getElementById('resetPasswordPanel').classList.remove('hidden');
+                    document.getElementById('resetMessage').innerText = '';
+                    
+                } catch (err) {
+                    document.getElementById('forgotMessage').style.color = 'var(--danger)';
+                    document.getElementById('forgotMessage').innerText = err.message;
+                }
+            });
         });
 
-        document.getElementById('resetPasswordBtn').addEventListener('click', async () => {
-            const email = document.getElementById('forgotEmail').value;
-            const otp = document.getElementById('resetOtpInput').value;
-            const new_password = document.getElementById('resetPasswordInput').value;
-            const confirm_password = document.getElementById('resetConfirmPasswordInput').value;
+        document.getElementById('resetPasswordBtn').addEventListener('click', (e) => {
+            withButtonDisable(e.target, async () => {
+                const email = document.getElementById('forgotEmail').value;
+                const otp = document.getElementById('resetOtpInput').value;
+                const new_password = document.getElementById('resetPasswordInput').value;
+                const confirm_password = document.getElementById('resetConfirmPasswordInput').value;
 
-            try {
-                const response = await fetch('/auth/reset-password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, otp, new_password, confirm_password })
-                });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.detail);
-                alert("Password successfully reset! Please log in.");
-                window.location.href = '/';
-            } catch (err) {
-                document.getElementById('resetMessage').innerText = err.message;
-            }
+                try {
+                    const response = await fetch('/auth/reset-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, otp, new_password, confirm_password })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.detail);
+                    alert("Password successfully reset! Please log in.");
+                    window.location.href = '/';
+                } catch (err) {
+                    document.getElementById('resetMessage').innerText = err.message;
+                }
+            });
         });
 
         function logout() {
@@ -585,8 +611,13 @@
             registerPanel.classList.add('hidden');
         }
 
-        document.getElementById('loginBtn').addEventListener('click', login);
-        document.getElementById('registerBtn').addEventListener('click', register);
+        // Attach rate‑limit protection to login and register buttons
+        document.getElementById('loginBtn').addEventListener('click', (e) => {
+            withButtonDisable(e.target, login);
+        });
+        document.getElementById('registerBtn').addEventListener('click', (e) => {
+            withButtonDisable(e.target, register);
+        });
         document.getElementById('logoutBtn').addEventListener('click', logout);
 
         // Initial state check
@@ -630,8 +661,10 @@
         }
 
         // --- Auto-register FCM token after login (using the correct URL /users/fcm-token) ---
+        let fcmRegistered = false; // prevent duplicate registration attempts
         async function registerFCMToken() {
             if (!TOKEN) return;
+            if (fcmRegistered) return;
             if (typeof firebase === 'undefined' || typeof messaging === 'undefined') {
                 console.warn('Firebase not loaded, skipping FCM token registration');
                 return;
@@ -654,7 +687,6 @@
                     console.warn('No FCM token returned');
                     return;
                 }
-                // FIXED: changed endpoint from /user/fcm-token to /users/fcm-token
                 const response = await fetch('/users/fcm-token', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
@@ -664,6 +696,7 @@
                     console.log('FCM token registered successfully');
                     const bell = document.getElementById('bellIcon');
                     if (bell) bell.title = 'Notifications Enabled ✅';
+                    fcmRegistered = true;
                 } else {
                     console.error('Failed to save FCM token to server', await response.text());
                 }
@@ -693,7 +726,6 @@
                     vapidKey: "BKnT_hLfIL2DlonLwZrXY4kwjBEjlp6BaJIr6_ESnVT_K4R985hNmpftY7A9YA9HWSNjCNEeEcTuN8v6VBFDHeI"
                 });
                 if (!fcmToken) { showToast('Token Error', 'Could not get notification token.', 'error'); return; }
-                // FIXED: changed endpoint from /user/fcm-token to /users/fcm-token
                 const response = await fetch('/users/fcm-token', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
