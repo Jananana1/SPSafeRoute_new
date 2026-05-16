@@ -15,7 +15,9 @@
 </head>
 <body>
 <div class="header">
-  <button class="btn-back" onclick="location.href='index.html'">←</button>
+  <button class="btn-back" onclick="location.href='index.html'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+  </button>
   <h2>Map</h2>
 </div>
 <div id="map"></div>
@@ -56,10 +58,29 @@
   } else {
     loadIncidents().then(incidents => {
       incidents.forEach(inc => {
-        const color = inc.type === 'accident' ? 'red' : inc.type === 'crime' ? 'purple' : 'orange';
-        L.marker([inc.lat, inc.lng])
-          .addTo(map)
-          .bindPopup(`<b>${inc.type}</b><br>${inc.description}`);
+        const status = (inc.status || '').toLowerCase();
+        if (status === 'deleted') return;
+
+        let fillColor, borderColor, fillOpacity;
+        if (['completed', 'resolved', 'dismissed'].includes(status)) {
+            fillColor = '#aaaaaa';
+            borderColor = '#888888';
+            fillOpacity = 0.55;
+        } else {
+            fillColor = inc.type === 'accident' ? '#ef4444' : inc.type === 'crime' ? '#a855f7' : '#f59e0b';
+            borderColor = '#ffffff';
+            fillOpacity = 0.8;
+        }
+
+        L.circleMarker([inc.lat, inc.lng], {
+            radius: 8,
+            fillColor: fillColor,
+            color: borderColor,
+            weight: 2,
+            opacity: 1,
+            fillOpacity: fillOpacity
+        }).addTo(map)
+          .bindPopup(`<b>${inc.type.toUpperCase()}</b><br>${inc.description}${['completed', 'resolved', 'dismissed'].includes(status) ? '<br><i>(Resolved)</i>' : ''}`);
       });
     });
   }

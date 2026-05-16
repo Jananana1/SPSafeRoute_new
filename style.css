@@ -64,7 +64,10 @@ body {
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 2000;
   transition: background 0.3s;
   overflow-y: auto;
@@ -80,14 +83,21 @@ body {
   padding: 32px;
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   animation: fadeIn 0.4s ease-out;
   transition: background 0.3s, border-color 0.3s;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 h1.app-title {
@@ -213,11 +223,12 @@ h1.app-title {
   display: flex;
   flex-direction: column;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s, border-color 0.3s;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar.collapsed {
-  transform: translateX(-340px); /* Move offscreen */
+  transform: translateX(-340px);
+  /* Move offscreen */
 }
 
 /* Toggle Button */
@@ -225,7 +236,8 @@ h1.app-title {
   position: absolute;
   top: 20px;
   left: 20px;
-  z-index: 1001; /* Above map, below or equal to sidebar if we want it floating */
+  z-index: 1001;
+  /* Above map, below or equal to sidebar if we want it floating */
   background: var(--glass-bg);
   backdrop-filter: blur(10px);
   border: 1px solid var(--glass-border);
@@ -238,7 +250,7 @@ h1.app-title {
   cursor: pointer;
   color: var(--text-main);
   font-size: 24px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
   transition: opacity 0.3s, background 0.3s, color 0.3s;
 }
 
@@ -252,7 +264,8 @@ h1.app-title {
   position: absolute;
   top: 20px;
   right: 20px;
-  z-index: 1001; /* Above map */
+  z-index: 1001;
+  /* Above map */
   display: flex;
   gap: 12px;
   align-items: center;
@@ -271,7 +284,7 @@ h1.app-title {
   cursor: pointer;
   color: var(--text-main);
   font-size: 22px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
   transition: opacity 0.3s, background 0.3s, color 0.3s, transform 0.2s;
 }
 
@@ -360,6 +373,7 @@ h1.app-title {
   color: var(--danger);
   background: rgba(239, 68, 68, 0.05);
 }
+
 .nav-item.danger:hover {
   background: rgba(239, 68, 68, 0.15);
 }
@@ -387,10 +401,14 @@ h1.app-title {
 }
 
 /* Map Popup Overrides */
-.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
   background: var(--bg-color) !important;
   color: var(--text-main) !important;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
   border: 1px solid var(--glass-border) !important;
 }
-.leaflet-popup-content b { color: var(--primary) !important; }
+
+.leaflet-popup-content b {
+  color: var(--primary) !important;
+}

@@ -45,9 +45,15 @@
                 <button id="closeSidebarBtn" class="close-btn">×</button>
             </div>
 
-            <div class="user-info" style="cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; transition: background 0.2s;" onclick="location.href='profile.html'" onmouseover="this.style.background='var(--nav-hover)'" onmouseout="this.style.background='transparent'">
-                <img id="sidebarAvatar" src="" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; display: none; object-fit: cover; border: 1px solid var(--primary);">
-                <div id="sidebarAvatarPlaceholder" style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px;">👤</div>
+            <div class="user-info"
+                style="cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; transition: background 0.2s;"
+                onclick="location.href='profile.html'" onmouseover="this.style.background='var(--nav-hover)'"
+                onmouseout="this.style.background='transparent'">
+                <img id="sidebarAvatar" src="" alt="Profile"
+                    style="width: 40px; height: 40px; border-radius: 50%; display: none; object-fit: cover; border: 1px solid var(--primary);">
+                <div id="sidebarAvatarPlaceholder"
+                    style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                    👤</div>
                 <div>
                     <h3 id="userName" style="margin: 0;">Welcome</h3>
                     <p id="userEmail" style="margin: 0; font-size: 12px;">user@example.com</p>
@@ -87,11 +93,14 @@
                 <input type="password" id="password" placeholder="Enter your password" class="input">
 
                 <button id="loginBtn" class="btn btn-primary">Login</button>
-                <div class="link" id="showForgotPasswordBtn" style="font-size: 12px; margin-top: 12px;">Forgot Password?</div>
-                
-                <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--glass-border); text-align: center;">
+                <div class="link" id="showForgotPasswordBtn" style="font-size: 12px; margin-top: 12px;">Forgot Password?
+                </div>
+
+                <div
+                    style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--glass-border); text-align: center;">
                     <span style="font-size: 13px; color: var(--text-muted);">Don't have an account?</span>
-                    <div class="link" id="showRegisterBtn" style="display: inline-block; margin-top: 0; margin-left: 5px; font-weight: 600;">Sign Up</div>
+                    <div class="link" id="showRegisterBtn"
+                        style="display: inline-block; margin-top: 0; margin-left: 5px; font-weight: 600;">Sign Up</div>
                 </div>
                 <div id="loginMessage" class="error"></div>
             </div>
@@ -298,15 +307,28 @@
                 const incidents = await res.json();
                 if (res.ok) {
                     incidents.forEach(inc => {
-                        let color = inc.type === 'accident' ? '#ef4444' : inc.type === 'crime' ? '#a855f7' : '#f59e0b';
+                        const status = (inc.status || '').toLowerCase();
+                        if (status === 'deleted') return;
+
+                        let fillColor, borderColor, fillOpacity;
+                        if (['completed', 'resolved', 'dismissed'].includes(status)) {
+                            fillColor = '#aaaaaa';
+                            borderColor = '#888888';
+                            fillOpacity = 0.55;
+                        } else {
+                            fillColor = inc.type === 'accident' ? '#ef4444' : inc.type === 'crime' ? '#a855f7' : '#f59e0b';
+                            borderColor = '#ffffff';
+                            fillOpacity = 0.8;
+                        }
+
                         L.circleMarker([inc.lat, inc.lng], {
                             radius: 8,
-                            fillColor: color,
-                            color: '#ffffff',
+                            fillColor: fillColor,
+                            color: borderColor,
                             weight: 2,
                             opacity: 1,
-                            fillOpacity: 0.8
-                        }).addTo(map).bindPopup(`<b>${inc.type.toUpperCase()}</b><br>${inc.description}`);
+                            fillOpacity: fillOpacity
+                        }).addTo(map).bindPopup(`<b>${inc.type.toUpperCase()}</b><br>${inc.description}${['completed', 'resolved', 'dismissed'].includes(status) ? '<br><i>(Resolved)</i>' : ''}`);
                     });
                 }
             } catch (e) { console.error('Failed to load incidents', e); }
@@ -584,12 +606,12 @@
                     });
                     const data = await response.json();
                     if (!response.ok) throw new Error(data.detail);
-                    
+
                     // Hide forgot password, show reset password
                     document.getElementById('forgotPasswordPanel').classList.add('hidden');
                     document.getElementById('resetPasswordPanel').classList.remove('hidden');
                     document.getElementById('resetMessage').innerText = '';
-                    
+
                 } catch (err) {
                     document.getElementById('forgotMessage').style.color = 'var(--danger)';
                     document.getElementById('forgotMessage').innerText = err.message;

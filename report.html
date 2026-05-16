@@ -210,7 +210,9 @@
 
 <div class="report-overlay">
   <div class="glass-panel header-panel">
-    <button class="btn-back" onclick="location.href='index.html'">←</button>
+    <button class="btn-back" onclick="location.href='index.html'">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
     <h2 style="margin:0; font-size: 20px; color: var(--text-main);">Report Incident</h2>
   </div>
 
@@ -367,8 +369,21 @@
         const incidents = await res.json();
         if (res.ok) {
             incidents.forEach(inc => {
-                const color = inc.type === 'accident' ? '#ef4444' : inc.type === 'crime' ? '#8b5cf6' : '#f59e0b';
-                L.circleMarker([inc.lat, inc.lng], { radius: 6, color: '#fff', weight: 1, fillColor: color, fillOpacity: 0.8 }).addTo(map);
+                const status = (inc.status || '').toLowerCase();
+                if (status === 'deleted') return;
+
+                let fillColor, borderColor, fillOpacity;
+                if (['completed', 'resolved', 'dismissed'].includes(status)) {
+                    fillColor = '#aaaaaa';
+                    borderColor = '#888888';
+                    fillOpacity = 0.55;
+                } else {
+                    fillColor = inc.type === 'accident' ? '#ef4444' : inc.type === 'crime' ? '#8b5cf6' : '#f59e0b';
+                    borderColor = '#ffffff';
+                    fillOpacity = 0.8;
+                }
+                
+                L.circleMarker([inc.lat, inc.lng], { radius: 6, color: borderColor, weight: 1, fillColor: fillColor, fillOpacity: fillOpacity }).addTo(map);
             });
         }
     } catch(e){ console.warn("Could not load markers", e); }

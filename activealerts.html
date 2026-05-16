@@ -6,60 +6,74 @@
   <title>SP SafeRoute - Active Alerts</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* Root theme variables - FIXED for better readability */
+    /* Professional UI/UX Overhaul for Active Alerts */
     :root {
-      --primary: #dc2626;
-      --primary-dark: #b91c1c;
-      --danger: #ef4444;
-      --success: #10b981;
-      --glass-bg: rgba(255, 255, 255, 0.95);
-      --glass-border: rgba(0, 0, 0, 0.1);
-      --text-main: #1f2937;
-      --text-muted: #6b7280;
+      --glass-bg: rgba(255, 255, 255, 0.75);
+      --glass-border: rgba(255, 255, 255, 0.4);
+      --glass-hover: rgba(255, 255, 255, 0.9);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
       --nav-hover: rgba(0, 0, 0, 0.05);
-      --bg-main: #ffffff;
-      --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      --page-bg: #f8fafc;
+      --modal-bg: #ffffff;
+      --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+      --card-hover-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
+      
+      /* Colors */
+      --danger: #ef4444;
+      --crime: #8b5cf6;
+      --hazard: #f59e0b;
+      --primary: #3b82f6;
     }
     
     [data-theme="dark"] {
-      --glass-bg: rgba(17, 24, 39, 0.95);
-      --glass-border: rgba(55, 65, 81, 0.5);
-      --text-main: #f3f4f6;
-      --text-muted: #9ca3af;
+      --glass-bg: rgba(15, 23, 42, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-hover: rgba(30, 41, 59, 0.9);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
       --nav-hover: rgba(255, 255, 255, 0.1);
-      --bg-main: #111827;
-      --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      --page-bg: #0b0f19;
+      --modal-bg: #1e293b;
+      --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+      --card-hover-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
     }
     
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
     
-    body { 
-      padding: 20px; 
-      max-width: 800px; 
-      margin: 0 auto; 
-      padding-top: 80px;
-      background: var(--bg-main);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+    body {
+      background: radial-gradient(circle at top left, rgba(59,130,246,0.05), transparent 50%),
+                  radial-gradient(circle at bottom right, rgba(139,92,246,0.05), transparent 50%),
+                  var(--page-bg);
+      color: var(--text-main);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      /* CRITICAL FIX FOR SCROLLING */
+      overflow-y: auto !important; 
+      height: auto !important;
+      padding-top: 90px;
+      padding-bottom: 40px;
+      transition: background 0.3s ease;
     }
     
+    /* Header Container */
     .fixed-header {
       position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100%; 
+      top: 0; left: 0; width: 100%; 
       z-index: 100;
       background: var(--glass-bg); 
-      backdrop-filter: blur(16px);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--glass-border);
-      padding: 16px 20px; 
+      padding: 16px 24px; 
       display: flex; 
       align-items: center; 
       justify-content: space-between;
-      box-sizing: border-box;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
     }
     
     .header-left { 
@@ -69,242 +83,223 @@
     }
     
     .btn-back {
-      background: rgba(255,255,255,0.1); 
+      background: transparent; 
       border: 1px solid var(--glass-border);
       color: var(--text-main); 
-      width: 40px; 
-      height: 40px; 
+      width: 44px; height: 44px; 
       border-radius: 50%;
-      font-size: 20px; 
+      display: flex; align-items: center; justify-content: center;
       cursor: pointer; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center;
-      transition: all 0.2s;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .btn-back:hover { 
-      background: var(--primary); 
-      color: white; 
+      background: var(--nav-hover);
+      transform: translateX(-2px);
     }
     
     .control-btn {
-      width: 44px; 
-      height: 44px; 
+      width: 44px; height: 44px; 
       border-radius: 50%;
-      background: var(--glass-bg); 
-      backdrop-filter: blur(16px);
+      background: transparent; 
       border: 1px solid var(--glass-border); 
-      display: flex;
-      align-items: center; 
-      justify-content: center; 
-      font-size: 20px;
-      cursor: pointer; 
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      transition: transform 0.2s; 
+      display: flex; align-items: center; justify-content: center; 
+      font-size: 20px; cursor: pointer; 
       color: var(--text-main);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .control-btn:hover { 
-      transform: scale(1.1); 
+      background: var(--nav-hover);
+      transform: rotate(15deg); 
     }
     
+    /* Layout for Cards */
     .alerts-container { 
-      display: flex; 
-      flex-direction: column; 
-      gap: 16px; 
-      margin-top: 20px; 
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px; 
     }
     
+    /* Premium Alert Cards */
     .alert-card {
       background: var(--glass-bg); 
-      backdrop-filter: blur(16px);
+      backdrop-filter: blur(12px);
       border: 1px solid var(--glass-border); 
-      border-radius: 16px;
-      padding: 20px; 
+      border-radius: 20px;
+      padding: 24px; 
       cursor: pointer; 
-      transition: all 0.2s;
-      border-left: 6px solid var(--glass-border);
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
       box-shadow: var(--card-shadow);
-    }
-    .alert-card:hover { 
-      transform: translateY(-2px); 
-      background: var(--nav-hover);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
     }
     
-    .alert-card.type-accident { 
-      border-left-color: #ef4444; 
+    .alert-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 4px;
+      background: var(--card-color, #ccc);
     }
-    .alert-card.type-crime { 
-      border-left-color: #8b5cf6; 
+    
+    .alert-card:hover { 
+      transform: translateY(-6px); 
+      background: var(--glass-hover);
+      box-shadow: var(--card-hover-shadow);
+      border-color: rgba(255,255,255,0.2);
     }
-    .alert-card.type-hazard { 
-      border-left-color: #f59e0b; 
-    }
+    
+    /* Dynamic Color Mappings */
+    .alert-card.type-accident { --card-color: var(--danger); }
+    .alert-card.type-crime { --card-color: var(--crime); }
+    .alert-card.type-hazard { --card-color: var(--hazard); }
     
     .alert-type { 
       font-weight: 700; 
-      font-size: 14px; 
-      margin-bottom: 8px; 
-      letter-spacing: 1px;
-    }
-    .alert-desc { 
-      font-size: 15px; 
-      color: var(--text-main); 
+      font-size: 12px; 
       margin-bottom: 12px; 
-      line-height: 1.5;
-      font-weight: 500;
+      letter-spacing: 1.5px;
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(0,0,0,0.04);
     }
+    
+    [data-theme="dark"] .alert-type { background: rgba(255,255,255,0.05); }
+    
+    .alert-desc { 
+      font-size: 16px; 
+      color: var(--text-main); 
+      margin-bottom: 20px; 
+      line-height: 1.6;
+      font-weight: 500;
+      flex-grow: 1;
+    }
+    
     .alert-meta { 
       display: flex; 
       justify-content: space-between; 
-      font-size: 12px; 
+      align-items: center;
+      font-size: 13px; 
       color: var(--text-muted);
-      margin-bottom: 12px;
+      border-top: 1px solid var(--glass-border);
+      padding-top: 16px;
+      margin-top: auto;
+    }
+    
+    .alert-location {
+      display: flex; align-items: center; gap: 4px;
+      max-width: 65%;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     
     .alert-image {
-      margin-top: 12px;
+      margin-top: 16px;
+      margin-bottom: 8px;
       border-radius: 12px;
       overflow: hidden;
-      max-height: 150px;
-      background: rgba(0,0,0,0.05);
-    }
-    .alert-image img {
-      width: 100%;
-      height: auto;
-      max-height: 150px;
-      object-fit: cover;
-      border-radius: 12px;
+      height: 140px;
+      background: rgba(0,0,0,0.02);
     }
     
-    /* Modal Styles */
+    .alert-image img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    .alert-card:hover .alert-image img { transform: scale(1.05); }
+    
+    /* Glassmorphic Modal */
     .modal-overlay {
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100%; 
-      height: 100%;
-      background: rgba(0,0,0,0.7); 
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); 
       backdrop-filter: blur(8px);
-      display: flex; 
-      justify-content: center; 
-      align-items: center;
-      z-index: 1000; 
-      visibility: hidden; 
-      opacity: 0; 
-      transition: all 0.3s;
+      -webkit-backdrop-filter: blur(8px);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 1000; visibility: hidden; opacity: 0; 
+      transition: all 0.3s ease;
+      padding: 20px;
     }
-    .modal-overlay.active { 
-      visibility: visible; 
-      opacity: 1; 
-    }
+    .modal-overlay.active { visibility: visible; opacity: 1; }
+    
     .modal-content {
-      background: var(--bg-main); 
+      background: var(--modal-bg); 
       border: 1px solid var(--glass-border);
-      width: 90%; 
-      max-width: 500px; 
-      max-height: 90vh;
-      overflow-y: auto;
-      border-radius: 24px; 
-      padding: 24px;
+      width: 100%; max-width: 480px; 
+      max-height: 85vh; overflow-y: auto;
+      border-radius: 28px; 
+      padding: 32px;
       position: relative; 
       color: var(--text-main); 
-      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+      transform: scale(0.95) translateY(20px);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
+    .modal-overlay.active .modal-content {
+      transform: scale(1) translateY(0);
+    }
+    
     .modal-close {
-      position: absolute; 
-      top: 16px; 
-      right: 20px; 
-      font-size: 28px; 
-      cursor: pointer;
-      background: none; 
-      border: none; 
-      color: var(--text-muted);
-      transition: color 0.2s;
+      position: absolute; top: 24px; right: 24px; 
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--nav-hover); border: none; 
+      color: var(--text-muted); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
     }
-    .modal-close:hover {
-      color: var(--danger);
-    }
+    .modal-close:hover { background: var(--danger); color: white; }
+    
     .modal-label { 
-      font-size: 11px; 
-      text-transform: uppercase; 
-      color: var(--text-muted); 
-      margin-top: 16px; 
-      margin-bottom: 4px; 
-      letter-spacing: 0.5px;
-      font-weight: 600;
+      font-size: 11px; text-transform: uppercase; 
+      color: var(--text-muted); margin-top: 24px; margin-bottom: 8px; 
+      letter-spacing: 1px; font-weight: 700;
     }
+    
     .modal-text { 
-      font-size: 16px; 
-      line-height: 1.5; 
-      font-weight: 500;
-      word-wrap: break-word;
+      font-size: 16px; line-height: 1.6; font-weight: 500;
     }
     
     .modal-button {
-      background: var(--primary); 
-      color: white; 
-      border: none; 
-      padding: 14px;
-      border-radius: 12px; 
-      font-size: 16px; 
-      font-weight: 600; 
-      width: 100%;
-      margin-top: 20px; 
-      cursor: pointer;
-      transition: opacity 0.2s;
+      background: var(--primary); color: white; 
+      border: none; padding: 16px; border-radius: 16px; 
+      font-size: 16px; font-weight: 600; width: 100%;
+      margin-top: 32px; cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 8px 16px rgba(59,130,246,0.3);
     }
-    .modal-button:hover {
-      opacity: 0.9;
-    }
+    .modal-button:hover { transform: translateY(-2px); box-shadow: 0 12px 20px rgba(59,130,246,0.4); }
+    
     .modal-button.close { 
-      background: transparent; 
-      border: 1px solid var(--glass-border); 
-      color: var(--text-main); 
-      margin-top: 12px;
+      background: transparent; border: 1px solid var(--glass-border); 
+      color: var(--text-main); margin-top: 12px; box-shadow: none;
     }
-    .modal-button.close:hover {
-      background: var(--nav-hover);
-    }
+    .modal-button.close:hover { background: var(--nav-hover); }
     
     .modal-image {
-      margin: 16px 0;
-      border-radius: 16px;
-      overflow: hidden;
-      text-align: center;
-      background: rgba(0,0,0,0.05);
+      margin: 20px 0; border-radius: 20px; overflow: hidden;
+      background: rgba(0,0,0,0.03); max-height: 300px;
     }
     .modal-image img {
-      max-width: 100%;
-      max-height: 300px;
-      border-radius: 16px;
-      object-fit: contain;
+      width: 100%; height: 100%; object-fit: contain; border-radius: 20px;
     }
     
-    /* Loading and empty states */
-    .loading-state, .empty-state {
-      text-align: center;
-      padding: 40px;
-      color: var(--text-muted);
-    }
+    /* Loading/Empty States */
+    .loading-state, .empty-state { text-align: center; padding: 80px 20px; color: var(--text-muted); font-size: 18px; font-weight: 500; grid-column: 1 / -1; }
+    .error-state { text-align: center; padding: 80px 20px; color: var(--danger); font-size: 18px; font-weight: 500; grid-column: 1 / -1; }
     
-    .error-state {
-      text-align: center;
-      padding: 40px;
-      color: var(--danger);
-    }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
     
-    /* Scrollbar styling */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: var(--glass-border);
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: var(--text-muted);
-      border-radius: 4px;
+    @media (max-width: 600px) {
+      .alerts-container { padding: 0 16px; grid-template-columns: 1fr; }
+      .alert-card { padding: 20px; }
+      .modal-content { padding: 24px; margin-top: 20px; }
     }
   </style>
 </head>
@@ -312,7 +307,9 @@
 
 <div class="fixed-header">
   <div class="header-left">
-    <button class="btn-back" onclick="location.href='index.html'">←</button>
+    <button class="btn-back" onclick="location.href='index.html'">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
     <h2 style="margin:0; font-size: 20px; color: var(--text-main);">Active Alerts</h2>
   </div>
   <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌗</div>
@@ -417,7 +414,9 @@
       hazard: '#f59e0b'
     };
     const color = typeColors[incident.type] || '#6b7280';
-    document.getElementById('modalType').innerHTML = `<span style="color:${color}">${incident.type.toUpperCase()}</span>`;
+    const status = (incident.status || '').toLowerCase();
+    const isResolved = ['completed', 'resolved', 'dismissed'].includes(status);
+    document.getElementById('modalType').innerHTML = `<span style="color:${isResolved ? '#888888' : color}">${incident.type.toUpperCase()}${isResolved ? ' (RESOLVED)' : ''}</span>`;
     document.getElementById('modalDesc').innerText = incident.description || 'No description provided';
     document.getElementById('modalLocation').innerText = incident.location_name || `${incident.lat?.toFixed(4) || 'Unknown'}, ${incident.lng?.toFixed(4) || 'Unknown'}`;
     document.getElementById('modalDate').innerText = formatDate(incident.created_at);
@@ -466,26 +465,35 @@
       
       const incidents = await res.json();
       
-      if (!incidents || incidents.length === 0) {
+      const visibleIncidents = (incidents || []).filter(inc => (inc.status || '').toLowerCase() !== 'deleted');
+
+      if (visibleIncidents.length === 0) {
         container.innerHTML = '<div class="empty-state">✓ No active alerts. Stay safe!</div>';
         return;
       }
       
       // Sort newest first
-      incidents.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      visibleIncidents.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       
       container.innerHTML = '';
       
-      incidents.forEach(inc => {
+      visibleIncidents.forEach(inc => {
+        const status = (inc.status || '').toLowerCase();
+        let isResolved = ['completed', 'resolved', 'dismissed'].includes(status);
+
         const typeColors = {
           accident: '#ef4444',
           crime: '#8b5cf6',
           hazard: '#f59e0b'
         };
-        const color = typeColors[inc.type] || '#6b7280';
+        const color = isResolved ? '#888888' : (typeColors[inc.type] || '#6b7280');
         
         const card = document.createElement('div');
         card.className = `alert-card type-${inc.type}`;
+        if (isResolved) {
+          card.style.setProperty('--card-color', '#888888');
+          card.style.opacity = '0.8';
+        }
         
         // FIXED: Use image_url instead of image for thumbnail
         let imageHtml = '';
@@ -505,7 +513,7 @@
           `${inc.lat?.toFixed(4) || 'Unknown'}, ${inc.lng?.toFixed(4) || 'Unknown'}`;
         
         card.innerHTML = `
-          <div class="alert-type" style="color:${color}">${inc.type.toUpperCase()}</div>
+          <div class="alert-type" style="color:${color}">${inc.type.toUpperCase()}${isResolved ? ' (RESOLVED)' : ''}</div>
           <div class="alert-desc">${escapeHtml(truncatedDesc)}</div>
           <div class="alert-meta">
             <span>📍 ${escapeHtml(locationText)}</span>

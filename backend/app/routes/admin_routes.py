@@ -30,7 +30,7 @@ def delete_incident(incident_id: int, db: Session = Depends(get_db), admin: mode
     inc = db.query(models.Incident).filter(models.Incident.id == incident_id).first()
     if not inc:
         raise HTTPException(404, "Not found")
-    db.delete(inc)
+    inc.status = 'deleted'
     db.commit()
     return {"message": "Deleted"}
 

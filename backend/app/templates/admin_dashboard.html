@@ -303,7 +303,8 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
-            min-width: 800px;
+            min-width: 100%;
+            table-layout: fixed;
         }
 
         th, td {
@@ -320,26 +321,28 @@
             letter-spacing: 0.4px;
             text-align: left;
         }
+        th:nth-child(1) { width: 5%; }
+        th:nth-child(2) { width: 10%; }
+        th:nth-child(3) { width: 16%; }
+        th:nth-child(4) { width: 24%; }
+        th:nth-child(5) { width: 8%; }
+        th:nth-child(6) { width: 10%; }
+        th:nth-child(7) { width: 12%; }
+        th:nth-child(8) { width: 15%; }
 
-        /* Description column wrap */
-        td:nth-child(4) {
+        /* General text wrap for table cells */
+        td {
             white-space: normal;
-            min-width: 200px;
-            max-width: 280px;
-            word-break: break-word;
-        }
-
-        td:nth-child(5) {
-            white-space: normal;
-            min-width: 100px;
-            max-width: 150px;
             word-break: break-word;
         }
 
         /* Actions column */
-        td:last-child {
-            white-space: nowrap;
-            min-width: 160px;
+        .actions-wrapper {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+            min-height: 28px;
         }
 
         .badge {
@@ -358,22 +361,18 @@
 
         /* Fixed button sizing */
         .action-btn {
-            padding: 7px 16px;
+            width: 76px;
+            padding: 7px 0;
             border-radius: 40px;
             border: none;
             font-size: 12px;
             font-weight: 600;
-            margin-right: 8px;
             cursor: pointer;
             transition: 0.15s;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 70px;
             letter-spacing: 0.3px;
-        }
-        .action-btn:last-child {
-            margin-right: 0;
         }
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
@@ -471,6 +470,53 @@
             background: none;
             border: none;
         }
+
+        /* Status Tabs Styling */
+        .status-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--glass-bg-solid);
+            padding: 4px;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            overflow-x: auto;
+        }
+        .status-tab {
+            padding: 8px 18px;
+            border-radius: 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition-default);
+            white-space: nowrap;
+        }
+        .status-tab[data-filter="all"].active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+        .status-tab[data-filter="pending"].active {
+            background: var(--warning);
+            color: white;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+        .status-tab[data-filter="completed"].active {
+            background: var(--success);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        .status-tab[data-filter="deleted"].active {
+            background: var(--danger);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        .status-tab:hover:not(.active) {
+            background: var(--nav-hover);
+            color: var(--text-main);
+        }
     </style>
 </head>
 <body>
@@ -506,7 +552,25 @@
     <!-- Incidents Section -->
     <div id="incidentsSection">
         <div class="glass-card">
-            <h3 style="margin-top:0; margin-bottom: 20px; display: flex; gap: 8px;">All Reports</h3>
+            <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
+                <!-- Top Row: Title & Search -->
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <h3 style="margin: 0; font-size: 20px; display: flex; align-items: center; gap: 8px;">All Reports</h3>
+                    <div style="position: relative; width: 100%; max-width: 320px;">
+                        <input type="text" id="incidentSearch" placeholder="Search reports..." style="width: 100%; padding: 10px 16px; border-radius: 24px; border: 1px solid var(--glass-border); background: var(--glass-bg-solid); color: var(--text-main); font-size: 14px; outline: none; transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                    </div>
+                </div>
+
+                <!-- Bottom Row: Status Tabs -->
+                <div style="display: flex;">
+                    <div class="status-tabs" style="display: inline-flex;">
+                        <button class="status-tab active" data-filter="all">All</button>
+                        <button class="status-tab" data-filter="pending">Pending</button>
+                        <button class="status-tab" data-filter="completed">Resolved</button>
+                        <button class="status-tab" data-filter="deleted">Deleted</button>
+                    </div>
+                </div>
+            </div>
             <div class="table-responsive">
                 <table id="incidentsTable">
                     <thead>
@@ -521,6 +585,8 @@
             </div>
         </div>
     </div>
+
+
 
     <!-- Analytics Section -->
     <div id="analyticsSection" style="display: none;">
@@ -563,6 +629,8 @@
     let currentSection = 'incidents';
     let monthlyChartInstance = null;
     let areaChartInstance = null;
+    let allActiveIncidents = [];
+    let allDeletedIncidents = [];
 
     const sidebarEl = document.getElementById('adminSidebar');
     const overlayEl = document.getElementById('sidebarOverlay');
@@ -674,12 +742,13 @@
     // ---------- NAVIGATION ----------
     function switchSection(sectionId) {
         currentSection = sectionId;
+        incidentsPanel.style.display = 'none';
+        analyticsPanel.style.display = 'none';
+
         if (sectionId === 'incidents') {
             incidentsPanel.style.display = 'block';
-            analyticsPanel.style.display = 'none';
             loadIncidents();
         } else {
-            incidentsPanel.style.display = 'none';
             analyticsPanel.style.display = 'block';
             refreshAnalyticsCharts();
         }
@@ -701,46 +770,112 @@
     });
 
     // ---------- INCIDENTS API ----------
-    async function loadIncidents() {
+    function renderIncidentsTable(incidents) {
         const tbody = document.getElementById('incidentsList');
-        tbody.innerHTML = '<tr><td colspan="8" class="loader-text">⏳ Loading reports...</td></tr>';
-        try {
-            const res = await authFetch('/admin/incidents');
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const incidents = await res.json();
-            if (!incidents.length) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: var(--text-muted);">No incidents found</td></tr>';
-                return;
-            }
-            tbody.innerHTML = '';
-            incidents.forEach(inc => {
-                const row = tbody.insertRow();
-                row.insertCell(0).textContent = inc.id;
-                row.insertCell(1).innerHTML = `<span class="badge badge-${inc.type}">${inc.type.toUpperCase()}</span>`;
-                row.insertCell(2).textContent = inc.location_name || `${parseFloat(inc.lat).toFixed(3)}, ${parseFloat(inc.lng).toFixed(3)}`;
-                row.insertCell(3).textContent = inc.description?.substring(0, 70) || '—';
-                row.insertCell(4).textContent = inc.user_id;
-                const isCompleted = inc.status === 'completed';
-                row.insertCell(5).innerHTML = `<span class="${isCompleted ? 'status-completed' : 'status-pending'}">${isCompleted ? 'Resolved' : 'Pending'}</span>`;
-                row.insertCell(6).textContent = new Date(inc.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-                
-                const actionsCell = row.insertCell(7);
+        if (!incidents.length) {
+            tbody.innerHTML = '<tr><td colspan="8" class="loader-text">No incidents found</td></tr>';
+            return;
+        }
+        tbody.innerHTML = '';
+        incidents.forEach(inc => {
+            const row = tbody.insertRow();
+            row.insertCell(0).textContent = inc.id;
+            row.insertCell(1).innerHTML = `<span class="badge badge-${inc.type}">${inc.type.toUpperCase()}</span>`;
+            row.insertCell(2).textContent = inc.location_name || `${parseFloat(inc.lat).toFixed(3)}, ${parseFloat(inc.lng).toFixed(3)}`;
+            row.insertCell(3).textContent = inc.description?.substring(0, 70) || '—';
+            row.insertCell(4).textContent = inc.user_id;
+            const isCompleted = inc.status === 'completed';
+            const isDeleted = inc.status === 'deleted';
+            
+            let statusHtml = '';
+            if (isDeleted) statusHtml = `<span style="color:var(--text-muted); font-weight:700;">Deleted</span>`;
+            else if (isCompleted) statusHtml = `<span class="status-completed">Resolved</span>`;
+            else statusHtml = `<span class="status-pending">Pending</span>`;
+            
+            row.insertCell(5).innerHTML = statusHtml;
+            row.insertCell(6).textContent = new Date(inc.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            
+            const actionsCell = row.insertCell(7);
+            const wrapper = document.createElement('div');
+            wrapper.className = 'actions-wrapper';
+
+            if (!isDeleted) {
                 if (!isCompleted) {
                     const resolveBtn = document.createElement('button');
                     resolveBtn.textContent = 'Resolve';
                     resolveBtn.className = 'action-btn btn-success';
                     resolveBtn.onclick = () => completeIncident(inc.id);
-                    actionsCell.appendChild(resolveBtn);
+                    wrapper.appendChild(resolveBtn);
                 }
                 const deleteBtn = document.createElement('button');
                 deleteBtn.textContent = 'Delete';
                 deleteBtn.className = 'action-btn btn-danger';
                 deleteBtn.onclick = () => deleteIncident(inc.id);
-                actionsCell.appendChild(deleteBtn);
-            });
+                wrapper.appendChild(deleteBtn);
+            } else {
+                wrapper.innerHTML = '<span style="color:var(--text-muted); font-style:italic; font-size:12px;">No Actions</span>';
+            }
+            actionsCell.appendChild(wrapper);
+        });
+    }
+
+    let currentStatusFilter = 'all';
+
+    document.querySelectorAll('.status-tab').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+            currentStatusFilter = e.target.getAttribute('data-filter');
+            applyFilters();
+        });
+    });
+
+    function applyFilters() {
+        const term = document.getElementById('incidentSearch') ? document.getElementById('incidentSearch').value.toLowerCase() : '';
+        const statusFilter = currentStatusFilter;
+
+        const filtered = allActiveIncidents.filter(inc => {
+            const incStatus = (inc.status || '').toLowerCase();
+            let statusMatch = false;
+            
+            if (statusFilter === 'all') statusMatch = true;
+            else if (statusFilter === 'deleted') statusMatch = incStatus === 'deleted';
+            else if (statusFilter === 'completed') statusMatch = incStatus === 'completed';
+            else if (statusFilter === 'pending') statusMatch = incStatus !== 'completed' && incStatus !== 'deleted';
+            
+            if (!statusMatch) return false;
+
+            if (term) {
+                return (
+                    (inc.type || '').toLowerCase().includes(term) ||
+                    (inc.location_name || '').toLowerCase().includes(term) ||
+                    (inc.description || '').toLowerCase().includes(term) ||
+                    String(inc.id).includes(term) ||
+                    String(inc.user_id).includes(term) ||
+                    incStatus.includes(term)
+                );
+            }
+            return true;
+        });
+        
+        renderIncidentsTable(filtered);
+    }
+
+    if (document.getElementById('incidentSearch')) document.getElementById('incidentSearch').addEventListener('input', applyFilters);
+
+    async function loadIncidents() {
+        const tbodyActive = document.getElementById('incidentsList');
+        tbodyActive.innerHTML = '<tr><td colspan="8" class="loader-text">⏳ Loading reports...</td></tr>';
+        try {
+            const res = await authFetch('/admin/incidents');
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const incidents = await res.json();
+            
+            allActiveIncidents = incidents; // Store ALL incidents here now
+            applyFilters();
         } catch (err) {
             console.error(err);
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: #ef4444;">Failed to load incidents</td></tr>';
+            tbodyActive.innerHTML = '<tr><td colspan="8" style="text-align:center; color: #ef4444;">Failed to load incidents</td></tr>';
         }
     }
 
@@ -760,11 +895,15 @@
     }
 
     async function deleteIncident(id) {
-        if (!confirm('Are you sure you want to permanently delete this report?')) return;
+        if (!confirm('Are you sure you want to remove this report from the map? It will still be safely stored in the database.')) return;
         try {
             const res = await authFetch(`/admin/incidents/${id}`, { method: 'DELETE' });
-            if (res.ok) loadIncidents();
-            else alert('Delete failed');
+            if (res.ok) {
+                alert('Report successfully marked as deleted and removed from the map.');
+                loadIncidents();
+            } else {
+                alert('Delete failed');
+            }
         } catch (err) {
             alert('Error: ' + err.message);
         }

@@ -26,6 +26,9 @@ class IncidentStatus(str, enum.Enum):
     REPORTED = "reported"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
+    DELETED = "deleted"
+    RESOLVED = "resolved"
+    DISMISSED = "dismissed"
 
 class Incident(Base):
     __tablename__ = "incidents"

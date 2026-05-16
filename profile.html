@@ -6,360 +6,439 @@
   <title>SP SafeRoute - My Profile</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
       --primary: #1A73E8;
       --primary-dark: #0d5bbf;
-      --primary-glow: rgba(26, 115, 232, 0.25);
+      --primary-glow: rgba(26, 115, 232, 0.18);
       --glass-bg: rgba(255, 255, 255, 0.78);
-      --glass-bg-solid: rgba(255, 255, 255, 0.96);
       --glass-border: rgba(0, 0, 0, 0.08);
       --text-main: #0f172a;
-      --text-muted: #334155;
+      --text-muted: #64748b;
       --nav-hover: rgba(0, 0, 0, 0.04);
-      --card-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.08);
+      --card-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.08);
+      --input-bg: rgba(248, 250, 252, 1);
       --danger: #ef4444;
       --danger-dark: #dc2626;
       --success: #10b981;
       --warning: #f59e0b;
-      --bg-color: #f8fafc;
+      --page-bg: #f1f5f9;
     }
 
     [data-theme="dark"] {
-      --glass-bg: rgba(18, 25, 35, 0.88);
-      --glass-bg-solid: rgba(15, 25, 35, 0.96);
-      --glass-border: rgba(255, 255, 255, 0.12);
+      --glass-bg: rgba(18, 25, 38, 0.85);
+      --glass-border: rgba(255, 255, 255, 0.1);
       --text-main: #f1f5f9;
-      --text-muted: #cbd5e6;
+      --text-muted: #94a3b8;
       --nav-hover: rgba(255, 255, 255, 0.05);
-      --card-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.4);
-      --bg-color: #0a0f1a;
+      --card-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.5);
+      --input-bg: rgba(15, 23, 42, 0.8);
+      --page-bg: #090e1a;
     }
 
     body {
-      background: var(--bg-color);
-      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: var(--page-bg);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
       min-height: 100vh;
-      position: relative;
-      transition: background 0.3s ease;
-    }
-
-    .profile-container {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 100%;
-      max-width: 450px;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      max-height: 90vh;
+      color: var(--text-main);
+      /* FIX: normal page flow, not absolute positioned */
       overflow-y: auto;
-      padding: 20px;
+      transition: background 0.3s ease, color 0.3s ease;
     }
 
-    .glass-panel {
+    /* ---- STICKY HEADER ---- */
+    .profile-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
       background: var(--glass-bg);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--glass-border);
-      border-radius: 24px;
-      padding: 24px;
-      box-shadow: var(--card-shadow);
-      transition: background 0.2s;
-    }
-
-    .header-panel {
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 14px 24px;
       display: flex;
       align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    }
+
+    .header-left { display: flex; align-items: center; gap: 16px; }
+
+    .btn-back {
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .btn-back:hover {
+      background: var(--nav-hover);
+      transform: translateX(-2px);
+    }
+
+    .profile-title { font-size: 18px; font-weight: 700; color: var(--text-main); }
+
+    .control-btn {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; cursor: pointer;
+      color: var(--text-main);
+      transition: all 0.2s;
+    }
+    .control-btn:hover { background: var(--nav-hover); transform: rotate(15deg); }
+
+    /* ---- PAGE CONTENT ---- */
+    .page-content {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+      display: flex;
+      flex-direction: column;
       gap: 16px;
     }
 
-    .btn-back {
-      background: rgba(255,255,255,0.1);
+    /* ---- GLASS CARD ---- */
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--glass-border);
-      color: var(--text-main);
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      font-size: 24px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-      text-decoration: none;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: var(--card-shadow);
+      transition: background 0.3s;
     }
 
-    .btn-back:hover {
-      background: var(--primary);
-      color: white;
-      transform: scale(0.95);
-    }
-
+    /* ---- AVATAR ---- */
     .profile-avatar-container {
       display: flex;
       justify-content: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       position: relative;
     }
 
     .profile-avatar {
-      width: 120px;
-      height: 120px;
+      width: 100px; height: 100px;
       border-radius: 50%;
       object-fit: cover;
       border: 3px solid var(--primary);
       background: var(--nav-hover);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 48px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 40px;
       color: var(--text-muted);
+      box-shadow: 0 8px 24px rgba(26, 115, 232, 0.2);
     }
 
     .profile-avatar-overlay {
       position: absolute;
-      bottom: 5px;
-      right: calc(50% - 60px);
+      bottom: 4px;
+      right: calc(50% - 50px);
       background: var(--primary);
       color: white;
       border-radius: 50%;
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      transition: transform 0.2s;
+      font-size: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .profile-avatar-overlay:hover { transform: scale(1.1); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+
+    .file-input { display: none; }
+
+    /* ---- VIEW MODE ---- */
+    .view-name {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--text-main);
+    }
+    .view-email {
+      text-align: center;
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
     }
 
-    .profile-avatar-overlay:hover {
-      transform: scale(1.1);
-    }
-
-    .file-input {
-      display: none;
-    }
-
+    /* ---- FORM ---- */
     .input-label {
       display: block;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
-      margin-bottom: 6px;
-      color: var(--text-main);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      color: var(--text-muted);
     }
 
     .input {
       width: 100%;
-      padding: 12px 16px;
-      background: var(--glass-bg-solid);
+      padding: 13px 16px;
+      background: var(--input-bg);
       border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      font-size: 14px;
+      border-radius: 14px;
+      font-size: 15px;
       color: var(--text-main);
-      transition: 0.2s;
-      margin-bottom: 16px;
+      transition: border 0.2s, box-shadow 0.2s;
+      margin-bottom: 18px;
       font-family: inherit;
     }
-
+    [data-theme="dark"] .input { background: rgba(255,255,255,0.05); }
     .input:focus {
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 3px var(--primary-glow);
     }
 
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0 16px;
+    }
+    .section-divider span {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .section-divider::before,
+    .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--glass-border);
+    }
+
+    /* ---- BUTTONS ---- */
     .btn {
-      padding: 12px 24px;
-      border-radius: 12px;
+      padding: 13px 24px;
+      border-radius: 14px;
       font-weight: 600;
       border: none;
       cursor: pointer;
-      transition: 0.2s;
-      font-size: 14px;
+      font-size: 15px;
       font-family: inherit;
+      transition: all 0.2s;
     }
-
     .btn-primary {
       background: var(--primary);
       color: white;
       width: 100%;
+      box-shadow: 0 6px 16px rgba(26, 115, 232, 0.3);
     }
-
     .btn-primary:hover {
       background: var(--primary-dark);
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(26, 115, 232, 0.4);
     }
-
     .btn-secondary {
-      background: var(--nav-hover);
-      color: var(--text-main);
+      background: transparent;
+      color: var(--text-muted);
       border: 1px solid var(--glass-border);
     }
+    .btn-secondary:hover { background: var(--nav-hover); color: var(--text-main); }
 
     .btn-group {
       display: flex;
       gap: 12px;
-      margin-top: 20px;
+      margin-top: 4px;
     }
+    .btn-group .btn { flex: 1; }
 
-    .btn-group .btn {
-      flex: 1;
-    }
-
-    .section-title {
-      font-size: 16px;
-      font-weight: 700;
-      margin: 20px 0 12px 0;
-      color: var(--primary);
-      border-bottom: 1px solid var(--glass-border);
-      padding-bottom: 6px;
-    }
-
+    /* ---- MESSAGES ---- */
     .error-message {
       color: var(--danger);
       font-size: 12px;
-      margin-top: -12px;
-      margin-bottom: 12px;
-      padding-left: 8px;
+      margin-top: -14px;
+      margin-bottom: 14px;
+      padding-left: 4px;
+      min-height: 16px;
     }
 
-    .success-message {
-      color: var(--success);
-      font-size: 12px;
-      margin-top: 8px;
-      text-align: center;
-    }
+    .hidden { display: none !important; }
 
-    .hidden {
-      display: none;
-    }
-
-    .top-right-controls {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 1100;
-      display: flex;
-      gap: 12px;
-    }
-
-    .control-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: var(--glass-bg);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--glass-border);
+    /* Remove photo button */
+    .btn-remove-photo {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
+      gap: 6px;
+      margin: -8px auto 16px;
+      background: transparent;
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 20px;
       cursor: pointer;
-      color: var(--text-main);
-      transition: 0.2s;
+      transition: all 0.2s;
+      font-family: inherit;
     }
-
-    .control-btn:hover {
-      background: var(--primary);
+    .btn-remove-photo:hover {
+      background: var(--danger);
       color: white;
-      transform: scale(1.05);
     }
 
-    h2, h3 {
-      color: var(--text-main);
+    /* Success Modal */
+    .success-modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 9999;
+      visibility: hidden; opacity: 0;
+      transition: all 0.3s ease;
+      padding: 20px;
     }
-
-    p {
-      color: var(--text-muted);
+    .success-modal-overlay.active { visibility: visible; opacity: 1; }
+    .success-modal {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 28px;
+      padding: 40px 32px 32px;
+      width: 100%; max-width: 360px;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);
+      transform: scale(0.9) translateY(20px);
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .success-modal-overlay.active .success-modal {
+      transform: scale(1) translateY(0);
+    }
+    .success-icon {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 32px;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+      animation: successPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+    }
+    @keyframes successPop {
+      from { transform: scale(0); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .success-modal h3 {
+      font-size: 22px; font-weight: 700;
+      color: var(--text-main); margin-bottom: 8px;
+    }
+    .success-modal p {
+      font-size: 14px; color: var(--text-muted);
+      line-height: 1.6; margin-bottom: 28px;
+    }
+    .success-modal .btn-ok {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white; border: none;
+      padding: 14px 40px; border-radius: 14px;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+      transition: all 0.2s;
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+      width: 100%;
+    }
+    .success-modal .btn-ok:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(16, 185, 129, 0.45);
     }
 
     @media (max-width: 600px) {
-      .profile-container {
-        padding: 12px;
-      }
-      .glass-panel {
-        padding: 20px;
-      }
-      .profile-avatar {
-        width: 100px;
-        height: 100px;
-        font-size: 40px;
-      }
-      .profile-avatar-overlay {
-        right: calc(50% - 50px);
-        bottom: 0;
-        width: 32px;
-        height: 32px;
-      }
+      .page-content { padding: 20px 16px 48px; }
+      .glass-panel { padding: 20px; }
     }
   </style>
 </head>
 <body>
 
-<div class="top-right-controls">
-    <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌗</div>
+<!-- Sticky Header -->
+<div class="profile-header">
+  <div class="header-left">
+    <button class="btn-back" onclick="window.location.href='/'" aria-label="Go back">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <span class="profile-title">My Profile</span>
+  </div>
+  <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌗</div>
 </div>
 
-<div class="profile-container">
-  <div class="glass-panel header-panel">
-    <button class="btn-back" onclick="window.location.href='/'">←</button>
-    <h2 style="margin:0;">My Profile</h2>
-  </div>
-
+<div class="page-content">
   <!-- View Mode -->
   <div class="glass-panel" id="viewMode">
-      <div class="profile-avatar-container">
-          <img id="viewAvatar" src="" alt="Profile" class="profile-avatar" style="display: none;">
-          <div id="viewAvatarPlaceholder" class="profile-avatar">👤</div>
-      </div>
-      <h3 id="viewName" style="text-align: center; margin-bottom: 6px;">Loading...</h3>
-      <p id="viewEmail" style="text-align: center; font-size: 14px; margin-bottom: 20px;">...</p>
-      
-      <button id="editProfileBtn" class="btn btn-primary">✏️ Edit Profile</button>
+    <div class="profile-avatar-container">
+      <img id="viewAvatar" src="" alt="Profile" class="profile-avatar" style="display: none;">
+      <div id="viewAvatarPlaceholder" class="profile-avatar">👤</div>
+    </div>
+    <div class="view-name" id="viewName">Loading...</div>
+    <div class="view-email" id="viewEmail">...</div>
+    <button id="editProfileBtn" class="btn btn-primary">✏️ Edit Profile</button>
   </div>
 
   <!-- Edit Mode -->
   <div class="glass-panel hidden" id="editMode">
     <form id="profileForm" onsubmit="saveProfile(event);">
-        <div class="profile-avatar-container">
-            <img id="editAvatarPreview" src="" alt="Profile" class="profile-avatar" style="display: none;">
-            <div id="editAvatarPlaceholder" class="profile-avatar">👤</div>
-            <label for="profileImage" class="profile-avatar-overlay" title="Change Image">📷</label>
-            <input type="file" id="profileImage" class="file-input" accept="image/*" onchange="previewImage(event)">
-        </div>
-        
-        <label class="input-label" for="fullName">Full Name</label>
-        <input type="text" id="fullName" class="input" placeholder="Your Name">
-        
-        <div class="section-title">🔐 Security (Optional)</div>
-        <p style="font-size: 12px; margin-bottom: 12px;">Leave password fields blank if you don't want to change password.</p>
-        
-        <label class="input-label" for="currentPassword">Current Password (required for password change)</label>
-        <input type="password" id="currentPassword" class="input" placeholder="Enter current password">
-        
-        <label class="input-label" for="newPassword">New Password</label>
-        <input type="password" id="newPassword" class="input" placeholder="Min 8 characters with uppercase, lowercase, numbers">
-        <div id="passwordStrength" class="error-message"></div>
-        
-        <label class="input-label" for="confirmPassword">Confirm New Password</label>
-        <input type="password" id="confirmPassword" class="input" placeholder="Confirm new password">
-        <div id="passwordMatchMsg" class="error-message"></div>
-        
-        <div id="messageBox" class="error-message hidden"></div>
+      <div class="profile-avatar-container">
+        <img id="editAvatarPreview" src="" alt="Profile" class="profile-avatar" style="display: none;">
+        <div id="editAvatarPlaceholder" class="profile-avatar">👤</div>
+        <label for="profileImage" class="profile-avatar-overlay" title="Change photo">📷</label>
+        <input type="file" id="profileImage" class="file-input" accept="image/*" onchange="previewImage(event)">
+      </div>
+      <button type="button" id="removePhotoBtn" class="btn-remove-photo hidden">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+        Remove Photo
+      </button>
 
-        <div class="btn-group">
-            <button type="button" id="cancelEditBtn" class="btn btn-secondary">Cancel</button>
-            <button type="submit" id="saveProfileBtn" class="btn btn-primary">Save Changes</button>
-        </div>
+      <label class="input-label" for="fullName">Full Name</label>
+      <input type="text" id="fullName" class="input" placeholder="Your name">
+
+      <div class="section-divider"><span>🔐 Change Password</span></div>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Leave blank if you don't want to change your password.</p>
+
+      <label class="input-label" for="currentPassword">Current Password</label>
+      <input type="password" id="currentPassword" class="input" placeholder="Required to change password">
+
+      <label class="input-label" for="newPassword">New Password</label>
+      <input type="password" id="newPassword" class="input" placeholder="Min 8 chars, uppercase, lowercase, numbers">
+      <div id="passwordStrength" class="error-message"></div>
+
+      <label class="input-label" for="confirmPassword">Confirm New Password</label>
+      <input type="password" id="confirmPassword" class="input" placeholder="Confirm new password">
+      <div id="passwordMatchMsg" class="error-message"></div>
+
+      <div id="messageBox" class="error-message hidden"></div>
+
+      <div class="btn-group">
+        <button type="button" id="cancelEditBtn" class="btn btn-secondary">Cancel</button>
+        <button type="submit" id="saveProfileBtn" class="btn btn-primary">Save Changes</button>
+      </div>
     </form>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div id="successModal" class="success-modal-overlay">
+  <div class="success-modal">
+    <div class="success-icon">✓</div>
+    <h3>Profile Updated!</h3>
+    <p id="successModalMsg">Your profile has been saved successfully.</p>
+    <button class="btn-ok" id="successModalOk">Done</button>
   </div>
 </div>
 
@@ -448,20 +527,43 @@
   
   document.getElementById('confirmPassword').addEventListener('input', checkPasswordMatch);
 
+  // Remove photo state
+  let removePhoto = false;
+
   // Preview image before upload
   function previewImage(event) {
     const file = event.target.files[0];
     if (file) {
+      removePhoto = false;
       const reader = new FileReader();
       reader.onload = function(e) {
         const preview = document.getElementById('editAvatarPreview');
         preview.src = e.target.result;
-        preview.style.display = 'flex';
+        preview.style.display = 'block';
         document.getElementById('editAvatarPlaceholder').style.display = 'none';
+        document.getElementById('removePhotoBtn').classList.remove('hidden');
       }
       reader.readAsDataURL(file);
     }
   }
+
+  document.getElementById('removePhotoBtn').addEventListener('click', () => {
+    removePhoto = true;
+    document.getElementById('profileImage').value = '';
+    document.getElementById('editAvatarPreview').style.display = 'none';
+    document.getElementById('editAvatarPreview').src = '';
+    document.getElementById('editAvatarPlaceholder').style.display = 'flex';
+    document.getElementById('removePhotoBtn').classList.add('hidden');
+  });
+
+  // Success modal
+  function showSuccessModal(message) {
+    document.getElementById('successModalMsg').textContent = message || 'Your profile has been saved successfully.';
+    document.getElementById('successModal').classList.add('active');
+  }
+  document.getElementById('successModalOk').addEventListener('click', () => {
+    document.getElementById('successModal').classList.remove('active');
+  });
 
   // Load user profile data
   async function loadUserProfile() {
@@ -488,12 +590,20 @@
       if (user.profile_image_url && user.profile_image_url !== 'null') {
         const imgUrl = user.profile_image_url;
         document.getElementById('viewAvatar').src = imgUrl;
-        document.getElementById('viewAvatar').style.display = 'flex';
+        document.getElementById('viewAvatar').style.display = 'block';
         document.getElementById('viewAvatarPlaceholder').style.display = 'none';
         
         document.getElementById('editAvatarPreview').src = imgUrl;
-        document.getElementById('editAvatarPreview').style.display = 'flex';
+        document.getElementById('editAvatarPreview').style.display = 'block';
         document.getElementById('editAvatarPlaceholder').style.display = 'none';
+        // Show remove button since there is an existing photo
+        document.getElementById('removePhotoBtn').classList.remove('hidden');
+      } else {
+        document.getElementById('viewAvatar').style.display = 'none';
+        document.getElementById('viewAvatarPlaceholder').style.display = 'flex';
+        document.getElementById('editAvatarPreview').style.display = 'none';
+        document.getElementById('editAvatarPlaceholder').style.display = 'flex';
+        document.getElementById('removePhotoBtn').classList.add('hidden');
       }
       
       // Populate edit form
@@ -543,6 +653,7 @@
     if (currentPassword) formData.append('current_password', currentPassword);
     if (newPassword) formData.append('new_password', newPassword);
     if (imageFile) formData.append('profile_image', imageFile);
+    if (removePhoto) formData.append('remove_profile_image', 'true');
     
     const saveBtn = document.getElementById('saveProfileBtn');
     const originalText = saveBtn.textContent;
@@ -563,29 +674,54 @@
         msgBox.textContent = data.detail || 'Failed to update profile';
         msgBox.classList.remove('hidden');
       } else {
-        // Success - reload profile and switch back to view mode
-        await loadUserProfile();
-        
-        // Clear password fields
+        // FIX: Update avatar directly from response data
+        const newImageUrl = data.profile_image_url;
+        const viewAvatar = document.getElementById('viewAvatar');
+        const viewPlaceholder = document.getElementById('viewAvatarPlaceholder');
+        const editPreview = document.getElementById('editAvatarPreview');
+        const editPlaceholder = document.getElementById('editAvatarPlaceholder');
+
+        if (newImageUrl && newImageUrl !== 'null') {
+          // Cache bust to force browser to reload the new image
+          const bustUrl = newImageUrl + '?t=' + Date.now();
+          viewAvatar.src = bustUrl;
+          viewAvatar.style.display = 'block';
+          viewPlaceholder.style.display = 'none';
+          editPreview.src = bustUrl;
+          editPreview.style.display = 'block';
+          editPlaceholder.style.display = 'none';
+        } else {
+          // Photo was removed or no photo
+          viewAvatar.src = '';
+          viewAvatar.style.display = 'none';
+          viewPlaceholder.style.display = 'flex';
+          editPreview.src = '';
+          editPreview.style.display = 'none';
+          editPlaceholder.style.display = 'flex';
+        }
+
+        // Update name/email from response
+        if (data.full_name !== undefined) {
+          document.getElementById('viewName').textContent = data.full_name || 'No Name Set';
+          document.getElementById('fullName').value = data.full_name || '';
+        }
+
+        // Clear sensitive fields & state
         document.getElementById('currentPassword').value = '';
         document.getElementById('newPassword').value = '';
         document.getElementById('confirmPassword').value = '';
         document.getElementById('profileImage').value = '';
-        
-        // Reset avatar preview
-        const viewImg = document.getElementById('viewAvatar');
-        if (viewImg.style.display === 'flex' && viewImg.src) {
-          document.getElementById('editAvatarPreview').src = viewImg.src;
-          document.getElementById('editAvatarPreview').style.display = 'flex';
-          document.getElementById('editAvatarPlaceholder').style.display = 'none';
-        }
-        
+        document.getElementById('passwordStrength').textContent = '';
+        document.getElementById('passwordMatchMsg').textContent = '';
+        document.getElementById('removePhotoBtn').classList.add('hidden');
+        removePhoto = false;
+
         // Switch back to view mode
         document.getElementById('editMode').classList.add('hidden');
         document.getElementById('viewMode').classList.remove('hidden');
-        
-        // Show success message
-        alert('Profile updated successfully!');
+
+        // Show beautiful success modal instead of alert()
+        showSuccessModal('Your profile has been updated successfully.');
       }
     } catch (err) {
       console.error('Save error:', err);
@@ -599,15 +735,37 @@
 
   // Edit mode handlers
   document.getElementById('editProfileBtn').addEventListener('click', () => {
-    // Sync current data to edit form before showing
+    // Sync name to edit form
     const currentName = document.getElementById('viewName').textContent;
     if (currentName && currentName !== 'Loading...') {
       document.getElementById('fullName').value = currentName === 'No Name Set' ? '' : currentName;
     }
-    
+
+    // Sync avatar state: if viewAvatar is visible, show it in edit preview + show Remove button
+    const viewAvatar = document.getElementById('viewAvatar');
+    const hasPhoto = viewAvatar.src && viewAvatar.style.display !== 'none' && viewAvatar.src !== window.location.href;
+    const editPreview = document.getElementById('editAvatarPreview');
+    const editPlaceholder = document.getElementById('editAvatarPlaceholder');
+
+    if (hasPhoto) {
+      editPreview.src = viewAvatar.src;
+      editPreview.style.display = 'block';
+      editPlaceholder.style.display = 'none';
+      document.getElementById('removePhotoBtn').classList.remove('hidden');
+    } else {
+      editPreview.src = '';
+      editPreview.style.display = 'none';
+      editPlaceholder.style.display = 'flex';
+      document.getElementById('removePhotoBtn').classList.add('hidden');
+    }
+
+    // Reset remove state and file input
+    removePhoto = false;
+    document.getElementById('profileImage').value = '';
+
     document.getElementById('viewMode').classList.add('hidden');
     document.getElementById('editMode').classList.remove('hidden');
-    
+
     // Clear any previous messages
     document.getElementById('messageBox').classList.add('hidden');
     document.getElementById('passwordStrength').textContent = '';
@@ -617,8 +775,26 @@
   document.getElementById('cancelEditBtn').addEventListener('click', () => {
     document.getElementById('editMode').classList.add('hidden');
     document.getElementById('viewMode').classList.remove('hidden');
-    
-    // Clear form fields
+
+    // Restore avatar preview to match current view state
+    const viewAvatar = document.getElementById('viewAvatar');
+    const hasPhoto = viewAvatar.src && viewAvatar.style.display !== 'none' && viewAvatar.src !== window.location.href;
+    const editPreview = document.getElementById('editAvatarPreview');
+    const editPlaceholder = document.getElementById('editAvatarPlaceholder');
+
+    if (hasPhoto) {
+      editPreview.src = viewAvatar.src;
+      editPreview.style.display = 'block';
+      editPlaceholder.style.display = 'none';
+      document.getElementById('removePhotoBtn').classList.remove('hidden');
+    } else {
+      editPreview.src = '';
+      editPreview.style.display = 'none';
+      editPlaceholder.style.display = 'flex';
+      document.getElementById('removePhotoBtn').classList.add('hidden');
+    }
+
+    // Clear form fields and state
     document.getElementById('currentPassword').value = '';
     document.getElementById('newPassword').value = '';
     document.getElementById('confirmPassword').value = '';
@@ -626,6 +802,7 @@
     document.getElementById('messageBox').classList.add('hidden');
     document.getElementById('passwordStrength').textContent = '';
     document.getElementById('passwordMatchMsg').textContent = '';
+    removePhoto = false;
   });
 
   // Load profile on page load

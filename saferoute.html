@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -19,36 +20,42 @@
       flex-direction: column;
       gap: 12px;
     }
-    
+
     .glass-panel {
       background: var(--glass-bg);
       backdrop-filter: blur(16px);
       border: 1px solid var(--glass-border);
       border-radius: 20px;
       padding: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     }
-    
+
     .header-panel {
       display: flex;
       align-items: center;
       gap: 16px;
     }
-    
+
     .btn-back {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       border: 1px solid var(--glass-border);
       color: var(--text-main);
-      width: 40px; height: 40px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       font-size: 20px;
       cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: all 0.2s;
     }
-    
-    .btn-back:hover { background: var(--primary); color: white; }
-    
+
+    .btn-back:hover {
+      background: var(--primary);
+      color: white;
+    }
+
     .suggestions-list {
       background: var(--glass-bg);
       border: 1px solid var(--glass-border);
@@ -59,17 +66,24 @@
       overflow-y: auto;
       backdrop-filter: blur(10px);
     }
-    
+
     .suggestion-item {
       padding: 12px;
       border-bottom: 1px solid var(--glass-border);
       cursor: pointer;
       color: var(--text-main);
     }
-    
-    .suggestion-item:hover { background: var(--nav-hover); }
-    
-    .route-buttons { display: flex; gap: 10px; margin-top: 10px; }
+
+    .suggestion-item:hover {
+      background: var(--nav-hover);
+    }
+
+    .route-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
     .route-buttons button {
       flex: 1;
       padding: 12px;
@@ -78,543 +92,642 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
-      background: rgba(0,0,0,0.2);
+      background: rgba(0, 0, 0, 0.2);
       color: var(--text-main);
     }
-    
-    .route-buttons button.safest { border-left: 4px solid var(--success); }
-    .route-buttons button.dangerous { border-left: 4px solid var(--danger); }
-    
-    .route-buttons button.active.safest { background: var(--success); color: white; }
-    .route-buttons button.active.dangerous { background: var(--danger); color: white; }
-    .route-buttons button:disabled { opacity: 0.4; cursor: not-allowed; }
-    
-    .nav-buttons { display: flex; gap: 10px; margin-top: 10px; }
-    .nav-buttons button.start { background: var(--success); color: white; }
-    .nav-buttons button.stop { background: var(--danger); color: white; }
-    
-    .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; font-size: 12px; color: var(--text-muted); }
-    .legend-item { display: flex; align-items: center; gap: 6px; }
-    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
-    
-    .debug-console { font-size: 11px; color: var(--text-muted); margin-top: 8px; text-align: center; }
+
+    .route-buttons button.safest {
+      border-left: 4px solid var(--success);
+    }
+
+    .route-buttons button.dangerous {
+      border-left: 4px solid var(--danger);
+    }
+
+    .route-buttons button.active.safest {
+      background: var(--success);
+      color: white;
+    }
+
+    .route-buttons button.active.dangerous {
+      background: var(--danger);
+      color: white;
+    }
+
+    .route-buttons button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .nav-buttons button.start {
+      background: var(--success);
+      color: white;
+    }
+
+    .nav-buttons button.stop {
+      background: var(--danger);
+      color: white;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .debug-console {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 8px;
+      text-align: center;
+    }
   </style>
 </head>
+
 <body>
 
-<!-- Full Screen Map -->
-<div id="routeMap" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;"></div>
+  <!-- Full Screen Map -->
+  <div id="routeMap" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;"></div>
 
-<div class="saferoute-overlay">
-  <!-- Header -->
-  <div class="glass-panel header-panel">
-    <button class="btn-back" onclick="location.href='index.html'">←</button>
-    <h2 style="margin:0; font-size: 20px; color: var(--text-main);">Find Safe Route</h2>
+  <div class="saferoute-overlay">
+    <!-- Header -->
+    <div class="glass-panel header-panel">
+      <button class="btn-back" onclick="location.href='index.html'">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+      </button>
+      <h2 style="margin:0; font-size: 20px; color: var(--text-main);">Find Safe Route</h2>
+    </div>
+
+    <!-- Search & Controls -->
+    <div class="glass-panel">
+
+      <!-- Start Location Input -->
+      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <input type="text" id="startSearch" placeholder="Start Location" class="input" style="margin-bottom:0;"
+          value="Current Location">
+        <button id="currentLocBtn" class="btn-back" title="Use Current Location"
+          style="width: 50px; height: 50px; border-radius: 12px;">📍</button>
+      </div>
+      <div id="startSuggestions" class="suggestions-list"></div>
+
+      <!-- Destination Input -->
+      <input type="text" id="destinationSearch" placeholder="Destination in San Pablo City" class="input">
+      <div id="destSuggestions" class="suggestions-list"></div>
+
+      <button id="findRouteBtn" class="btn btn-primary">Calculate Routes</button>
+
+      <div id="locationStatus" class="message error" style="margin-top: 8px;"></div>
+
+      <!-- Route Selection Options (Only Safe and Dangerous) -->
+      <div id="routeButtonsContainer" class="route-buttons" style="display: none;">
+        <button id="safestBtn" class="safest">🛡️ Safe</button>
+        <button id="dangerousBtn" class="dangerous">⚠️ Dangerous</button>
+      </div>
+
+      <!-- Navigation Options -->
+      <div id="navButtonsContainer" class="nav-buttons" style="display: none;">
+        <button id="startNavBtn" class="btn start">▶ Start Nav</button>
+        <button id="stopNavBtn" class="btn stop" disabled>⏹ Stop</button>
+      </div>
+
+      <div id="infoMsg" class="debug-console"></div>
+
+      <div class="legend" id="legend" style="display:none;">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--success);"></div> Safe Route
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--danger);"></div> Dangerous Route
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#dc2626; border-radius:2px;"></div> Incident nearby
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- Search & Controls -->
-  <div class="glass-panel">
-    
-    <!-- Start Location Input -->
-    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-        <input type="text" id="startSearch" placeholder="Start Location" class="input" style="margin-bottom:0;" value="Current Location">
-        <button id="currentLocBtn" class="btn-back" title="Use Current Location" style="width: 50px; height: 50px; border-radius: 12px;">📍</button>
-    </div>
-    <div id="startSuggestions" class="suggestions-list"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    let TOKEN = localStorage.getItem('token');
+    if (!TOKEN) location.href = 'index.html';
 
-    <!-- Destination Input -->
-    <input type="text" id="destinationSearch" placeholder="Destination in San Pablo City" class="input">
-    <div id="destSuggestions" class="suggestions-list"></div>
-    
-    <button id="findRouteBtn" class="btn btn-primary">Calculate Routes</button>
+    const CITY_BOUNDS = { south: 14.0400, west: 121.2000, north: 14.1100, east: 121.3800 };
+    const CITY_CENTER = { lat: 14.0700, lng: 121.3255 };
+    const ROUTE_INCIDENT_RADIUS = 75; // 75m strictly blocks the immediate street, allowing adjacent parallel streets to be safe
+    const SAMPLE_STEP = 50;
 
-    <div id="locationStatus" class="message error" style="margin-top: 8px;"></div>
-    
-    <!-- Route Selection Options (Only Safe and Dangerous) -->
-    <div id="routeButtonsContainer" class="route-buttons" style="display: none;">
-      <button id="safestBtn" class="safest">🛡️ Safe</button>
-      <button id="dangerousBtn" class="dangerous">⚠️ Dangerous</button>
-    </div>
+    let routeMap, selectedDest = null, selectedStart = null, allRoutes = [], startLocation;
+    let incidentsData = [], activeIncidents = [], resolvedIncidents = [], incidentMarkers = [], currentRoutePolyline, userMarker, locationWatcher, isNavigating = false;
+    let startDraggableMarker = null, destDraggableMarker = null;
 
-    <!-- Navigation Options -->
-    <div id="navButtonsContainer" class="nav-buttons" style="display: none;">
-      <button id="startNavBtn" class="btn start">▶ Start Nav</button>
-      <button id="stopNavBtn" class="btn stop" disabled>⏹ Stop</button>
-    </div>
-
-    <div id="infoMsg" class="debug-console"></div>
-
-    <div class="legend" id="legend" style="display:none;">
-      <div class="legend-item"><div class="legend-dot" style="background:var(--success);"></div> Safe Route</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--danger);"></div> Dangerous Route</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#dc2626; border-radius:2px;"></div> Incident nearby</div>
-    </div>
-  </div>
-</div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-  let TOKEN = localStorage.getItem('token');
-  if (!TOKEN) location.href = 'index.html';
-
-  const CITY_BOUNDS = { south: 14.0400, west: 121.2000, north: 14.1100, east: 121.3800 };
-  const CITY_CENTER = { lat: 14.0700, lng: 121.3255 };
-  const ROUTE_INCIDENT_RADIUS = 75; // 75m strictly blocks the immediate street, allowing adjacent parallel streets to be safe
-  const SAMPLE_STEP = 50;
-
-  let routeMap, selectedDest = null, selectedStart = null, allRoutes = [], startLocation;
-  let incidentsData = [], incidentMarkers = [], currentRoutePolyline, userMarker, locationWatcher, isNavigating = false;
-  let startDraggableMarker = null, destDraggableMarker = null;
-
-  function updateMarkerCoordinate(type, latlng) {
+    function updateMarkerCoordinate(type, latlng) {
       if (type === 'start') {
-          selectedStart = { lat: latlng.lat, lng: latlng.lng, name: 'Pinned Start Location' };
-          document.getElementById('startSearch').value = `${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`;
+        selectedStart = { lat: latlng.lat, lng: latlng.lng, name: 'Pinned Start Location' };
+        document.getElementById('startSearch').value = `${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`;
       } else {
-          selectedDest = { lat: latlng.lat, lng: latlng.lng, name: 'Pinned Destination' };
-          document.getElementById('destinationSearch').value = `${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`;
+        selectedDest = { lat: latlng.lat, lng: latlng.lng, name: 'Pinned Destination' };
+        document.getElementById('destinationSearch').value = `${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`;
       }
-  }
+    }
 
-  function setDraggableMarker(type, lat, lng, name) {
+    function setDraggableMarker(type, lat, lng, name) {
       const latlng = [lat, lng];
       if (type === 'start') {
-          if (startDraggableMarker) {
-              startDraggableMarker.setLatLng(latlng);
-          } else {
-              startDraggableMarker = L.marker(latlng, { draggable: true, title: 'Start Location' }).addTo(routeMap);
-              startDraggableMarker.bindTooltip("Start (Drag to move)", { permanent: true, direction: 'top' });
-              startDraggableMarker.on('dragend', e => updateMarkerCoordinate('start', e.target.getLatLng()));
-          }
-          updateMarkerCoordinate('start', { lat, lng });
-          document.getElementById('startSearch').value = name; 
-          routeMap.setView(latlng, 15);
-      } else {
-          if (destDraggableMarker) {
-              destDraggableMarker.setLatLng(latlng);
-          } else {
-              destDraggableMarker = L.marker(latlng, { draggable: true, title: 'Destination' }).addTo(routeMap);
-              destDraggableMarker.bindTooltip("Destination (Drag to move)", { permanent: true, direction: 'top' });
-              destDraggableMarker.on('dragend', e => updateMarkerCoordinate('dest', e.target.getLatLng()));
-          }
-          updateMarkerCoordinate('dest', { lat, lng });
-          document.getElementById('destinationSearch').value = name;
-          routeMap.setView(latlng, 15);
-      }
-  }
-
-  function getDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371000;
-    const dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
-    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  }
-
-  function getIncidentCoords(inc) {
-    return (inc && inc.lat != null && inc.lng != null) ? { lat: parseFloat(inc.lat), lng: parseFloat(inc.lng) } : null;
-  }
-
-  function sampleRoutePoints(coords, stepMeters = SAMPLE_STEP) {
-    const points = [];
-    for (let i = 1; i < coords.length; i++) {
-      const p1 = coords[i-1], p2 = coords[i];
-      const segLen = getDistance(p1.lat, p1.lng, p2.lat, p2.lng);
-      const steps = Math.max(1, Math.ceil(segLen / stepMeters));
-      for (let s = 0; s <= steps; s++) {
-        const t = s / steps;
-        points.push({ lat: p1.lat + (p2.lat-p1.lat)*t, lng: p1.lng + (p2.lng-p1.lng)*t });
-      }
-    }
-    return points;
-  }
-
-  function scoreRoute(coords, startLat, startLng, destLat, destLng) {
-    const incidents = incidentsData.map(getIncidentCoords).filter(Boolean);
-    if (incidents.length === 0) return { totalIncidents: 0, routeLengthKm: 0 };
-    
-    const alongRoute = new Set();
-    const samples = sampleRoutePoints(coords);
-    for (const pt of samples) {
-      incidents.forEach((ic, idx) => {
-        // If an incident is placed directly on the Start or Destination, it is physically unavoidable.
-        // We ignore it so the routing engine doesn't panic, allowing it to focus on avoiding incidents "along the way".
-        const isAtStart = getDistance(startLat, startLng, ic.lat, ic.lng) < 100;
-        const isAtDest = getDistance(destLat, destLng, ic.lat, ic.lng) < 100;
-        
-        if (!isAtStart && !isAtDest && !alongRoute.has(idx) && getDistance(pt.lat, pt.lng, ic.lat, ic.lng) <= ROUTE_INCIDENT_RADIUS) {
-            alongRoute.add(idx);
+        if (startDraggableMarker) {
+          startDraggableMarker.setLatLng(latlng);
+        } else {
+          startDraggableMarker = L.marker(latlng, { draggable: true, title: 'Start Location' }).addTo(routeMap);
+          startDraggableMarker.bindTooltip("Start (Drag to move)", { permanent: true, direction: 'top' });
+          startDraggableMarker.on('dragend', e => updateMarkerCoordinate('start', e.target.getLatLng()));
         }
-      });
+        updateMarkerCoordinate('start', { lat, lng });
+        document.getElementById('startSearch').value = name;
+        routeMap.setView(latlng, 15);
+      } else {
+        if (destDraggableMarker) {
+          destDraggableMarker.setLatLng(latlng);
+        } else {
+          destDraggableMarker = L.marker(latlng, { draggable: true, title: 'Destination' }).addTo(routeMap);
+          destDraggableMarker.bindTooltip("Destination (Drag to move)", { permanent: true, direction: 'top' });
+          destDraggableMarker.on('dragend', e => updateMarkerCoordinate('dest', e.target.getLatLng()));
+        }
+        updateMarkerCoordinate('dest', { lat, lng });
+        document.getElementById('destinationSearch').value = name;
+        routeMap.setView(latlng, 15);
+      }
     }
-    
-    let len = 0;
-    for (let i=1; i<coords.length; i++) len += getDistance(coords[i-1].lat, coords[i-1].lng, coords[i].lat, coords[i].lng);
-    return { totalIncidents: alongRoute.size, routeLengthKm: len/1000 };
-  }
 
-  async function fetchIncidents() {
-    try {
-      const res = await fetch('/incidents/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
-      if (!res.ok) throw new Error();
-      incidentsData = await res.json();
-    } catch(e) { incidentsData = []; }
-  }
+    function getDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
 
-  async function fetchRouteAlternatives(start, dest) {
-    const baseUrl = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${dest.lng},${dest.lat}?alternatives=3&overview=full&geometries=geojson`;
-    try {
-      const res = await fetch(baseUrl);
-      const data = await res.json();
-      if (data.code !== 'Ok' || !data.routes?.length) return null;
-      
-      let routes = data.routes.map((r, idx) => {
-        const coords = r.geometry.coordinates.map(c => ({ lat: c[1], lng: c[0] }));
-        const metrics = scoreRoute(coords, start.lat, start.lng, dest.lat, dest.lng);
-        return { id: `osrm${idx}`, coords, duration: r.duration, distance: r.distance, ...metrics };
-      });
-      
-      // Natively generated routes are sometimes identical. We force perfectly clean parallel arcs to guarantee options.
-      const arcRoutes = await generateArcAlternatives(start, dest);
-      routes = [...routes, ...arcRoutes];
-      
-      return routes;
-    } catch(e) { console.error(e); return null; }
-  }
+    function getIncidentCoords(inc) {
+      return (inc && inc.lat != null && inc.lng != null) ? { lat: parseFloat(inc.lat), lng: parseFloat(inc.lng) } : null;
+    }
 
-  async function generateArcAlternatives(start, dest) {
+    function sampleRoutePoints(coords, stepMeters = SAMPLE_STEP) {
+      const points = [];
+      for (let i = 1; i < coords.length; i++) {
+        const p1 = coords[i - 1], p2 = coords[i];
+        const segLen = getDistance(p1.lat, p1.lng, p2.lat, p2.lng);
+        const steps = Math.max(1, Math.ceil(segLen / stepMeters));
+        for (let s = 0; s <= steps; s++) {
+          const t = s / steps;
+          points.push({ lat: p1.lat + (p2.lat - p1.lat) * t, lng: p1.lng + (p2.lng - p1.lng) * t });
+        }
+      }
+      return points;
+    }
+
+    function scoreRoute(coords, startLat, startLng, destLat, destLng) {
+      // Only ACTIVE incidents affect routing — resolved/completed are display-only
+      const incidents = activeIncidents.map(getIncidentCoords).filter(Boolean);
+      if (incidents.length === 0) return { totalIncidents: 0, routeLengthKm: 0 };
+
+      const alongRoute = new Set();
+      const samples = sampleRoutePoints(coords);
+      for (const pt of samples) {
+        incidents.forEach((ic, idx) => {
+          const isAtStart = getDistance(startLat, startLng, ic.lat, ic.lng) < 100;
+          const isAtDest = getDistance(destLat, destLng, ic.lat, ic.lng) < 100;
+
+          if (!isAtStart && !isAtDest && !alongRoute.has(idx) && getDistance(pt.lat, pt.lng, ic.lat, ic.lng) <= ROUTE_INCIDENT_RADIUS) {
+            alongRoute.add(idx);
+          }
+        });
+      }
+
+      let len = 0;
+      for (let i = 1; i < coords.length; i++) len += getDistance(coords[i - 1].lat, coords[i - 1].lng, coords[i].lat, coords[i].lng);
+      return { totalIncidents: alongRoute.size, routeLengthKm: len / 1000 };
+    }
+
+    async function fetchIncidents() {
+      try {
+        const res = await fetch('/incidents/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+        if (!res.ok) throw new Error();
+        const all = await res.json();
+        incidentsData = all;
+        // Split: active statuses affect routing; resolved/completed are display-only gray dots; deleted are ignored
+        const RESOLVED_STATUSES = ['completed', 'resolved', 'dismissed'];
+        const visibleIncidents = all.filter(inc => (inc.status || '').toLowerCase() !== 'deleted');
+        activeIncidents = visibleIncidents.filter(inc => !RESOLVED_STATUSES.includes((inc.status || '').toLowerCase()));
+        resolvedIncidents = visibleIncidents.filter(inc => RESOLVED_STATUSES.includes((inc.status || '').toLowerCase()));
+      } catch (e) { incidentsData = []; activeIncidents = []; resolvedIncidents = []; }
+    }
+
+    async function fetchRouteAlternatives(start, dest) {
+      const baseUrl = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${dest.lng},${dest.lat}?alternatives=3&overview=full&geometries=geojson`;
+      try {
+        const res = await fetch(baseUrl);
+        const data = await res.json();
+        if (data.code !== 'Ok' || !data.routes?.length) return null;
+
+        let routes = data.routes.map((r, idx) => {
+          const coords = r.geometry.coordinates.map(c => ({ lat: c[1], lng: c[0] }));
+          const metrics = scoreRoute(coords, start.lat, start.lng, dest.lat, dest.lng);
+          return { id: `osrm${idx}`, coords, duration: r.duration, distance: r.distance, ...metrics };
+        });
+
+        // Natively generated routes are sometimes identical. We force perfectly clean parallel arcs to guarantee options.
+        const arcRoutes = await generateArcAlternatives(start, dest);
+        routes = [...routes, ...arcRoutes];
+
+        return routes;
+      } catch (e) { console.error(e); return null; }
+    }
+
+    async function generateArcAlternatives(start, dest) {
       const dx = dest.lng - start.lng;
       const dy = dest.lat - start.lat;
-      const length = Math.sqrt(dx*dx + dy*dy);
+      const length = Math.sqrt(dx * dx + dy * dy);
       if (length === 0) return [];
-      
+
       // Normalized perpendicular vector
       const nx = -dy / length;
       const ny = dx / length;
-      
+
       const midLat = (start.lat + dest.lat) / 2;
       const midLng = (start.lng + dest.lng) / 2;
-      
+
       // Create clean, perpendicular waypoints exactly at the halfway mark.
       // We use granular, tight fractions so the algorithm can find the absolute MINIMUM detour 
       // required to avoid the incident, preventing "excess path" (unnecessarily massive loops).
       // We add wider fallback fractions (0.6, 1.0) just in case the incident spans a massive area
       const fractions = [0.05, 0.1, 0.15, 0.2, 0.35, 0.6, 1.0];
       const waypoints = [];
-      
+
       fractions.forEach(f => {
-          const offset = length * f;
-          waypoints.push({ lat: midLat + ny * offset, lng: midLng + nx * offset });
-          waypoints.push({ lat: midLat - ny * offset, lng: midLng - nx * offset });
+        const offset = length * f;
+        waypoints.push({ lat: midLat + ny * offset, lng: midLng + nx * offset });
+        waypoints.push({ lat: midLat - ny * offset, lng: midLng - nx * offset });
       });
 
       const fetchPromises = waypoints.map(async (via, i) => {
-          // continue_straight=true FORCES the routing engine to smoothly pass through the 
-          // waypoint without making weird U-turns or dead-end loops.
-          const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${via.lng},${via.lat};${dest.lng},${dest.lat}?overview=full&geometries=geojson&continue_straight=true`;
-          try {
-              const res = await fetch(url);
-              const data = await res.json();
-              if (data.code === 'Ok' && data.routes.length) {
-                const r = data.routes[0];
-                const coords = r.geometry.coordinates.map(c => ({ lat: c[1], lng: c[0] }));
-                const metrics = scoreRoute(coords, start.lat, start.lng, dest.lat, dest.lng);
-                
-                // Filter out absolute routing errors where OSRM generates a 3x massive U-turn loop
-                // just to hit a dead-end waypoint.
-                const drivingDistance = r.distance; 
-                const straightLineDist = length * 111000; 
-                if (drivingDistance > straightLineDist * 3.0) return null;
+        // continue_straight=true FORCES the routing engine to smoothly pass through the 
+        // waypoint without making weird U-turns or dead-end loops.
+        const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${via.lng},${via.lat};${dest.lng},${dest.lat}?overview=full&geometries=geojson&continue_straight=true`;
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data.code === 'Ok' && data.routes.length) {
+            const r = data.routes[0];
+            const coords = r.geometry.coordinates.map(c => ({ lat: c[1], lng: c[0] }));
+            const metrics = scoreRoute(coords, start.lat, start.lng, dest.lat, dest.lng);
 
-                return { id: `arc${i}`, coords, duration: r.duration, distance: r.distance, ...metrics };
-              }
-          } catch(e) {}
-          return null;
+            // Filter out absolute routing errors where OSRM generates a 3x massive U-turn loop
+            // just to hit a dead-end waypoint.
+            const drivingDistance = r.distance;
+            const straightLineDist = length * 111000;
+            if (drivingDistance > straightLineDist * 3.0) return null;
+
+            return { id: `arc${i}`, coords, duration: r.duration, distance: r.distance, ...metrics };
+          }
+        } catch (e) { }
+        return null;
       });
 
       const results = await Promise.all(fetchPromises);
       return results.filter(Boolean);
-  }
+    }
 
-  function classifyRoutes(routes) {
-    if (!routes.length) return { safest: null, dangerous: null };
-    
-    const hour = new Date().getHours();
-    const isNight = hour >= 18 || hour < 6; // Night time penalty
-    
-    // Calculate Risk Score
-    routes.forEach(r => {
+    function classifyRoutes(routes) {
+      if (!routes.length) return { safest: null, dangerous: null };
+
+      const hour = new Date().getHours();
+      const isNight = hour >= 18 || hour < 6; // Night time penalty
+
+      // Calculate Risk Score
+      routes.forEach(r => {
         // Astronomical penalty for incidents to guarantee they are avoided at all costs
         let risk = r.totalIncidents * 1000000;
-        
+
         // Environmental: At night, long distances are slightly more risky (poor lighting mock)
         // We use duration as a proxy for exposure time
         let distancePenalty = isNight ? (r.duration * 0.05) : (r.duration * 0.01);
         r.riskScore = risk + distancePenalty;
-    });
+      });
 
-    // Sort all routes by duration (fastest first)
-    routes.sort((a, b) => a.duration - b.duration);
-    
-    // The dangerous route is ALWAYS the absolute fastest route.
-    let dangerous = routes[0];
-    
-    // The safest route is the one with the lowest risk score (prioritizing 0 incidents)
-    let safest = routes.reduce((min, curr) => curr.riskScore < min.riskScore ? curr : min, routes[0]);
-    
-    // Ensure the routes are visually different if possible
-    if (safest.id === dangerous.id && routes.length > 1) {
+      // Sort all routes by duration (fastest first)
+      routes.sort((a, b) => a.duration - b.duration);
+
+      // The dangerous route is ALWAYS the absolute fastest route.
+      let dangerous = routes[0];
+
+      // The safest route is the one with the lowest risk score (prioritizing 0 incidents)
+      let safest = routes.reduce((min, curr) => curr.riskScore < min.riskScore ? curr : min, routes[0]);
+
+      // Ensure the routes are visually different if possible
+      if (safest.id === dangerous.id && routes.length > 1) {
         // If the fastest route happens to have 0 incidents, force the Safe route to be the next best
         // alternative so the user has two distinct paths to choose from.
         const alternatives = routes.filter(r => r.id !== dangerous.id);
         if (alternatives.length > 0) {
-            safest = alternatives.reduce((min, curr) => curr.riskScore < min.riskScore ? curr : min, alternatives[0]);
+          safest = alternatives.reduce((min, curr) => curr.riskScore < min.riskScore ? curr : min, alternatives[0]);
         }
-    }
-    
-    return { safest, dangerous };
-  }
+      }
 
-  function initRouteMap() {
-    if (routeMap) routeMap.remove();
-    routeMap = L.map('routeMap', { zoomControl: false }).setView([CITY_CENTER.lat, CITY_CENTER.lng], 13);
-    
-    const theme = document.documentElement.getAttribute('data-theme') || localStorage.getItem('theme') || 'light';
-    const tileUrl = theme === 'dark' 
-        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' 
+      return { safest, dangerous };
+    }
+
+    function initRouteMap() {
+      if (routeMap) routeMap.remove();
+      routeMap = L.map('routeMap', { zoomControl: false }).setView([CITY_CENTER.lat, CITY_CENTER.lng], 13);
+
+      const theme = document.documentElement.getAttribute('data-theme') || localStorage.getItem('theme') || 'light';
+      const tileUrl = theme === 'dark'
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
         : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
-    L.tileLayer(tileUrl, { attribution: '© OpenStreetMap CARTO', maxZoom: 20 }).addTo(routeMap);
-    L.control.zoom({ position: 'bottomright' }).addTo(routeMap);
-  }
+      L.tileLayer(tileUrl, { attribution: '© OpenStreetMap CARTO', maxZoom: 20 }).addTo(routeMap);
+      L.control.zoom({ position: 'bottomright' }).addTo(routeMap);
+    }
 
-  function clearIncidentMarkers() { incidentMarkers.forEach(m => routeMap.removeLayer(m)); incidentMarkers = []; }
-  
-  function drawIncidentMarkers(route, destLat, destLng) {
-    clearIncidentMarkers();
-    const incidents = incidentsData.map(getIncidentCoords).filter(Boolean);
-    incidents.forEach((ic, idx) => {
-      const inc = incidentsData[idx];
-      const m = L.circleMarker([ic.lat, ic.lng], { radius:8, color:'#fff', weight:2, fillColor:'#ef4444', fillOpacity:0.9 })
-          .addTo(routeMap).bindPopup(`<b>${inc.type || 'Incident'}</b>`);
-      incidentMarkers.push(m);
-    });
-  }
+    function clearIncidentMarkers() { incidentMarkers.forEach(m => routeMap.removeLayer(m)); incidentMarkers = []; }
 
-  function displayRoute(route, startLat, startLng, destLat, destLng, color) {
-    if (currentRoutePolyline) routeMap.removeLayer(currentRoutePolyline);
-    routeMap.eachLayer(layer => { if (layer instanceof L.Marker && layer !== userMarker) routeMap.removeLayer(layer); });
-    
-    currentRoutePolyline = L.polyline(route.coords.map(c=>[c.lat,c.lng]), { color, weight:6, opacity:0.85 }).addTo(routeMap);
-    
-    L.marker([startLat, startLng]).addTo(routeMap).bindPopup('Start');
-    L.marker([destLat, destLng]).addTo(routeMap).bindPopup('Destination');
-    drawIncidentMarkers(route, destLat, destLng);
-    
-    if (isNavigating && userMarker) userMarker.addTo(routeMap);
-    if (currentRoutePolyline.getBounds().isValid()) routeMap.fitBounds(currentRoutePolyline.getBounds(), { padding: [50,50] });
-  }
+    function drawIncidentMarkers(route, destLat, destLng) {
+      clearIncidentMarkers();
 
-  function setupRouteButtons(routes, startLoc, destLoc) {
-    const safestBtn = document.getElementById('safestBtn');
-    const dangerousBtn = document.getElementById('dangerousBtn');
-    const routeDiv = document.getElementById('routeButtonsContainer');
-    const infoDiv = document.getElementById('infoMsg');
-    
-    if (!routes?.length) { routeDiv.style.display = 'none'; infoDiv.innerText = 'No routes found.'; return; }
-    
-    const { safest, dangerous } = classifyRoutes(routes);
-    allRoutes = [safest, dangerous];
-    
-    safestBtn.disabled = !safest; 
-    dangerousBtn.disabled = !dangerous;
+      // --- RESOLVED/COMPLETED: gray dots, no routing impact ---
+      resolvedIncidents.forEach(inc => {
+        const ic = getIncidentCoords(inc);
+        if (!ic) return;
+        const typeLabel = (inc.type || 'Incident').charAt(0).toUpperCase() + (inc.type || '').slice(1);
+        const m = L.circleMarker([ic.lat, ic.lng], {
+          radius: 7,
+          color: '#888',
+          weight: 1.5,
+          fillColor: '#aaaaaa',
+          fillOpacity: 0.55
+        }).addTo(routeMap).bindPopup(
+          `<b style="color:#666">🗂 ${typeLabel} (Resolved)</b><br><small style="color:#999">This incident has been resolved and does not affect routing.</small>`
+        );
+        incidentMarkers.push(m);
+      });
 
-    if (safest) {
+      // --- ACTIVE: colored dots, affect routing ---
+      const typeColors = { accident: '#ef4444', crime: '#8b5cf6', hazard: '#f59e0b' };
+      activeIncidents.forEach(inc => {
+        const ic = getIncidentCoords(inc);
+        if (!ic) return;
+        const color = typeColors[(inc.type || '').toLowerCase()] || '#ef4444';
+        const typeLabel = (inc.type || 'Incident').charAt(0).toUpperCase() + (inc.type || '').slice(1);
+        const m = L.circleMarker([ic.lat, ic.lng], {
+          radius: 9,
+          color: '#fff',
+          weight: 2,
+          fillColor: color,
+          fillOpacity: 0.9
+        }).addTo(routeMap).bindPopup(
+          `<b style="color:${color}">⚠️ ${typeLabel}</b><br><small>${inc.description || ''}</small>`
+        );
+        incidentMarkers.push(m);
+      });
+    }
+
+    function displayRoute(route, startLat, startLng, destLat, destLng, color) {
+      if (currentRoutePolyline) routeMap.removeLayer(currentRoutePolyline);
+      routeMap.eachLayer(layer => { if (layer instanceof L.Marker && layer !== userMarker) routeMap.removeLayer(layer); });
+
+      currentRoutePolyline = L.polyline(route.coords.map(c => [c.lat, c.lng]), { color, weight: 6, opacity: 0.85 }).addTo(routeMap);
+
+      L.marker([startLat, startLng]).addTo(routeMap).bindPopup('Start');
+      L.marker([destLat, destLng]).addTo(routeMap).bindPopup('Destination');
+      drawIncidentMarkers(route, destLat, destLng);
+
+      if (isNavigating && userMarker) userMarker.addTo(routeMap);
+      if (currentRoutePolyline.getBounds().isValid()) routeMap.fitBounds(currentRoutePolyline.getBounds(), { padding: [50, 50] });
+    }
+
+    function setupRouteButtons(routes, startLoc, destLoc) {
+      const safestBtn = document.getElementById('safestBtn');
+      const dangerousBtn = document.getElementById('dangerousBtn');
+      const routeDiv = document.getElementById('routeButtonsContainer');
+      const infoDiv = document.getElementById('infoMsg');
+
+      if (!routes?.length) { routeDiv.style.display = 'none'; infoDiv.innerText = 'No routes found.'; return; }
+
+      const { safest, dangerous } = classifyRoutes(routes);
+      allRoutes = [safest, dangerous];
+
+      safestBtn.disabled = !safest;
+      dangerousBtn.disabled = !dangerous;
+
+      if (safest) {
         const mins = Math.round(safest.duration / 60);
         safestBtn.innerHTML = `🛡️ Safe<br><small>${mins}m (${safest.totalIncidents} alerts)</small>`;
-    }
-    if (dangerous) {
+      }
+      if (dangerous) {
         const mins = Math.round(dangerous.duration / 60);
         dangerousBtn.innerHTML = `⚠️ Dangerous<br><small>${mins}m (${dangerous.totalIncidents} alerts)</small>`;
-    }
+      }
 
-    [safestBtn, dangerousBtn].forEach(btn => btn.classList.remove('active'));
-    
-    // Default to Safest
-    if (safest) { 
-        displayRoute(safest, startLoc.lat, startLoc.lng, destLoc.lat, destLoc.lng, '#10b981'); 
-        safestBtn.classList.add('active'); 
-    }
+      [safestBtn, dangerousBtn].forEach(btn => btn.classList.remove('active'));
 
-    const hour = new Date().getHours();
-    const envMsg = (hour >= 18 || hour < 6) ? "🌙 Night time detected. Lighting considered." : "☀️ Day time detected.";
-    infoDiv.innerText = `Found ${routes.length} paths. ${envMsg}`;
-    
-    routeDiv.style.display = 'flex';
-    document.getElementById('legend').style.display = 'flex';
+      // Default to Safest
+      if (safest) {
+        displayRoute(safest, startLoc.lat, startLoc.lng, destLoc.lat, destLoc.lng, '#10b981');
+        safestBtn.classList.add('active');
+      }
 
-    safestBtn.onclick = () => { 
+      const hour = new Date().getHours();
+      const envMsg = (hour >= 18 || hour < 6) ? "🌙 Night time detected. Lighting considered." : "☀️ Day time detected.";
+      infoDiv.innerText = `Found ${routes.length} paths. ${envMsg}`;
+
+      routeDiv.style.display = 'flex';
+      document.getElementById('legend').style.display = 'flex';
+
+      safestBtn.onclick = () => {
         if (!safestBtn.disabled) {
-            safestBtn.classList.add('active'); dangerousBtn.classList.remove('active');
-            displayRoute(safest, startLoc.lat, startLoc.lng, destLoc.lat, destLoc.lng, '#10b981');
-        } 
-    };
-    dangerousBtn.onclick = () => { 
+          safestBtn.classList.add('active'); dangerousBtn.classList.remove('active');
+          displayRoute(safest, startLoc.lat, startLoc.lng, destLoc.lat, destLoc.lng, '#10b981');
+        }
+      };
+      dangerousBtn.onclick = () => {
         if (!dangerousBtn.disabled) {
-            dangerousBtn.classList.add('active'); safestBtn.classList.remove('active');
-            displayRoute(dangerous, startLoc.lat, startLoc.lng, destLoc.lat, destLoc.lng, '#ef4444');
-        } 
-    };
-  }
+          dangerousBtn.classList.add('active'); safestBtn.classList.remove('active');
+          displayRoute(dangerous, startLoc.lat, startLoc.lng, destLoc.lat, destLoc.lng, '#ef4444');
+        }
+      };
+    }
 
-  async function searchLocation(query) {
-    const vb = `${CITY_BOUNDS.west},${CITY_BOUNDS.south},${CITY_BOUNDS.east},${CITY_BOUNDS.north}`;
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&viewbox=${vb}&bounded=1`;
-    try {
-      const res = await fetch(url, { headers: { 'User-Agent': 'SP-SafeRoute/1.0' } });
-      const data = await res.json();
-      return data.filter(i => { const lat=parseFloat(i.lat), lng=parseFloat(i.lon); return lat>=CITY_BOUNDS.south && lat<=CITY_BOUNDS.north && lng>=CITY_BOUNDS.west && lng<=CITY_BOUNDS.east; });
-    } catch(e) { return []; }
-  }
+    async function searchLocation(query) {
+      const vb = `${CITY_BOUNDS.west},${CITY_BOUNDS.south},${CITY_BOUNDS.east},${CITY_BOUNDS.north}`;
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&viewbox=${vb}&bounded=1`;
+      try {
+        const res = await fetch(url, { headers: { 'User-Agent': 'SP-SafeRoute/1.0' } });
+        const data = await res.json();
+        return data.filter(i => { const lat = parseFloat(i.lat), lng = parseFloat(i.lon); return lat >= CITY_BOUNDS.south && lat <= CITY_BOUNDS.north && lng >= CITY_BOUNDS.west && lng <= CITY_BOUNDS.east; });
+      } catch (e) { return []; }
+    }
 
-  function startNavigation() {
-    if (!navigator.geolocation || isNavigating) return;
-    
-    const infoDiv = document.getElementById('infoMsg');
-    
-    isNavigating = true;
-    
-    // Standard blue navigation dot
-    userMarker = L.circleMarker([startLocation.lat, startLocation.lng], { 
-        radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, opacity: 1, fillOpacity: 1 
-    }).addTo(routeMap);
-    
-    locationWatcher = navigator.geolocation.watchPosition(
-        pos => { 
-            startLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude }; 
-            if (userMarker) userMarker.setLatLng([startLocation.lat, startLocation.lng]); 
-            if (routeMap) routeMap.panTo([startLocation.lat, startLocation.lng]); 
-            infoDiv.innerText = "Navigation active. Tracking position...";
-        }, 
+    function startNavigation() {
+      if (!navigator.geolocation || isNavigating) return;
+
+      const infoDiv = document.getElementById('infoMsg');
+
+      isNavigating = true;
+
+      // Standard blue navigation dot
+      userMarker = L.circleMarker([startLocation.lat, startLocation.lng], {
+        radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, opacity: 1, fillOpacity: 1
+      }).addTo(routeMap);
+
+      locationWatcher = navigator.geolocation.watchPosition(
+        pos => {
+          startLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          if (userMarker) userMarker.setLatLng([startLocation.lat, startLocation.lng]);
+          if (routeMap) routeMap.panTo([startLocation.lat, startLocation.lng]);
+          infoDiv.innerText = "Navigation active. Tracking position...";
+        },
         err => {
-            console.error("Navigation error:", err);
-            infoDiv.innerText = "Navigation lost: Please check location permissions.";
-            stopNavigation();
-        }, 
-        { enableHighAccuracy:true, maximumAge:2000, timeout:10000 }
-    );
-    
-    document.getElementById('startNavBtn').disabled = true; 
-    document.getElementById('stopNavBtn').disabled = false;
-  }
+          console.error("Navigation error:", err);
+          infoDiv.innerText = "Navigation lost: Please check location permissions.";
+          stopNavigation();
+        },
+        { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
+      );
 
-  function stopNavigation() {
-    if (locationWatcher) { navigator.geolocation.clearWatch(locationWatcher); locationWatcher = null; }
-    isNavigating = false; 
-    
-    if (userMarker) { routeMap.removeLayer(userMarker); userMarker = null; }
-    if (currentRoutePolyline && routeMap) routeMap.fitBounds(currentRoutePolyline.getBounds(), { padding: [50,50] });
-    
-    document.getElementById('startNavBtn').disabled = false; 
-    document.getElementById('stopNavBtn').disabled = true;
-    document.getElementById('infoMsg').innerText = "Navigation stopped.";
-  }
+      document.getElementById('startNavBtn').disabled = true;
+      document.getElementById('stopNavBtn').disabled = false;
+    }
 
-  async function findRoute() {
-    if (!selectedDest) { document.getElementById('locationStatus').innerText = 'Select a destination first'; return; }
-    
-    // Reset navigation if currently running
-    if (isNavigating) stopNavigation();
+    function stopNavigation() {
+      if (locationWatcher) { navigator.geolocation.clearWatch(locationWatcher); locationWatcher = null; }
+      isNavigating = false;
 
-    const statusDiv = document.getElementById('locationStatus');
-    statusDiv.innerText = 'Getting start location...';
-    document.getElementById('routeButtonsContainer').style.display = 'none';
-    document.getElementById('navButtonsContainer').style.display = 'none';
-    document.getElementById('legend').style.display = 'none';
-    
-    const performRouting = async (startLoc) => {
-      startLocation = startLoc;
-      statusDiv.innerText = 'Calculating safe and fast routes...';
-      
-      // Cleanup draggable markers so they don't clutter the route result
-      if (startDraggableMarker) { routeMap.removeLayer(startDraggableMarker); startDraggableMarker = null; }
-      if (destDraggableMarker) { routeMap.removeLayer(destDraggableMarker); destDraggableMarker = null; }
+      if (userMarker) { routeMap.removeLayer(userMarker); userMarker = null; }
+      if (currentRoutePolyline && routeMap) routeMap.fitBounds(currentRoutePolyline.getBounds(), { padding: [50, 50] });
 
-      await fetchIncidents();
-      const routes = await fetchRouteAlternatives(startLocation, selectedDest);
-      if (routes?.length) {
-        statusDiv.innerText = '';
-        setupRouteButtons(routes, startLocation, selectedDest);
-        document.getElementById('navButtonsContainer').style.display = 'flex';
-        document.getElementById('startNavBtn').disabled = false;
-        document.getElementById('stopNavBtn').disabled = true;
-        document.getElementById('startNavBtn').onclick = startNavigation;
-        document.getElementById('stopNavBtn').onclick = stopNavigation;
-      } else { statusDiv.innerText = 'No routes found. Try different locations.'; }
-    };
+      document.getElementById('startNavBtn').disabled = false;
+      document.getElementById('stopNavBtn').disabled = true;
+      document.getElementById('infoMsg').innerText = "Navigation stopped.";
+    }
 
-    if (selectedStart) {
+    async function findRoute() {
+      if (!selectedDest) { document.getElementById('locationStatus').innerText = 'Select a destination first'; return; }
+
+      // Reset navigation if currently running
+      if (isNavigating) stopNavigation();
+
+      const statusDiv = document.getElementById('locationStatus');
+      statusDiv.innerText = 'Getting start location...';
+      document.getElementById('routeButtonsContainer').style.display = 'none';
+      document.getElementById('navButtonsContainer').style.display = 'none';
+      document.getElementById('legend').style.display = 'none';
+
+      const performRouting = async (startLoc) => {
+        startLocation = startLoc;
+        statusDiv.innerText = 'Calculating safe and fast routes...';
+
+        // Cleanup draggable markers so they don't clutter the route result
+        if (startDraggableMarker) { routeMap.removeLayer(startDraggableMarker); startDraggableMarker = null; }
+        if (destDraggableMarker) { routeMap.removeLayer(destDraggableMarker); destDraggableMarker = null; }
+
+        await fetchIncidents();
+        const routes = await fetchRouteAlternatives(startLocation, selectedDest);
+        if (routes?.length) {
+          statusDiv.innerText = '';
+          setupRouteButtons(routes, startLocation, selectedDest);
+          document.getElementById('navButtonsContainer').style.display = 'flex';
+          document.getElementById('startNavBtn').disabled = false;
+          document.getElementById('stopNavBtn').disabled = true;
+          document.getElementById('startNavBtn').onclick = startNavigation;
+          document.getElementById('stopNavBtn').onclick = stopNavigation;
+        } else { statusDiv.innerText = 'No routes found. Try different locations.'; }
+      };
+
+      if (selectedStart) {
         performRouting(selectedStart);
-    } else {
+      } else {
         if (!navigator.geolocation) { statusDiv.innerText = 'Geolocation not supported. Please search for a start location.'; return; }
         navigator.geolocation.getCurrentPosition(
-            pos => { performRouting({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
-            err => { statusDiv.innerText = 'Could not get your location. Please type a Start Location.'; }
+          pos => { performRouting({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
+          err => { statusDiv.innerText = 'Could not get your location. Please type a Start Location.'; }
         );
+      }
     }
-  }
 
-  function setupAutocomplete(inputId, suggestionsId, type) {
-    const input = document.getElementById(inputId);
-    const suggestionsDiv = document.getElementById(suggestionsId);
-    let searchTimeout;
-    
-    input.addEventListener('input', e => {
-      clearTimeout(searchTimeout);
-      if (e.target.value.length < 3) { suggestionsDiv.innerHTML = ''; return; }
-      searchTimeout = setTimeout(async () => {
-        const list = await searchLocation(e.target.value);
-        suggestionsDiv.innerHTML = '';
-        if (!list.length) { suggestionsDiv.innerHTML = '<div class="suggestion-item">No locations found</div>'; return; }
-        list.forEach(s => {
-          const d = document.createElement('div'); d.className = 'suggestion-item'; d.textContent = s.display_name;
-          d.onclick = () => { 
-            suggestionsDiv.innerHTML = ''; 
-            setDraggableMarker(type, parseFloat(s.lat), parseFloat(s.lon), s.display_name);
-          };
-          suggestionsDiv.appendChild(d);
-        });
-      }, 500);
-    });
-  }
+    function setupAutocomplete(inputId, suggestionsId, type) {
+      const input = document.getElementById(inputId);
+      const suggestionsDiv = document.getElementById(suggestionsId);
+      let searchTimeout;
 
-  document.addEventListener('DOMContentLoaded', () => {
-    // Apply OS Theme initialization
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
-    
-    initRouteMap();
-    
-    setupAutocomplete('startSearch', 'startSuggestions', 'start');
-    setupAutocomplete('destinationSearch', 'destSuggestions', 'dest');
-    
-    document.getElementById('currentLocBtn').addEventListener('click', () => {
+      input.addEventListener('input', e => {
+        clearTimeout(searchTimeout);
+        if (e.target.value.length < 3) { suggestionsDiv.innerHTML = ''; return; }
+        searchTimeout = setTimeout(async () => {
+          const list = await searchLocation(e.target.value);
+          suggestionsDiv.innerHTML = '';
+          if (!list.length) { suggestionsDiv.innerHTML = '<div class="suggestion-item">No locations found</div>'; return; }
+          list.forEach(s => {
+            const d = document.createElement('div'); d.className = 'suggestion-item'; d.textContent = s.display_name;
+            d.onclick = () => {
+              suggestionsDiv.innerHTML = '';
+              setDraggableMarker(type, parseFloat(s.lat), parseFloat(s.lon), s.display_name);
+            };
+            suggestionsDiv.appendChild(d);
+          });
+        }, 500);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Apply OS Theme initialization
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+      initRouteMap();
+
+      setupAutocomplete('startSearch', 'startSuggestions', 'start');
+      setupAutocomplete('destinationSearch', 'destSuggestions', 'dest');
+
+      document.getElementById('currentLocBtn').addEventListener('click', () => {
         if (!navigator.geolocation) { document.getElementById('locationStatus').innerText = 'Geolocation not supported'; return; }
         document.getElementById('startSearch').value = 'Locating...';
         navigator.geolocation.getCurrentPosition(
-            pos => { setDraggableMarker('start', pos.coords.latitude, pos.coords.longitude, 'Current Location'); },
-            err => { document.getElementById('startSearch').value = 'Location error'; }
+          pos => { setDraggableMarker('start', pos.coords.latitude, pos.coords.longitude, 'Current Location'); },
+          err => { document.getElementById('startSearch').value = 'Location error'; }
         );
-    });
-    
-    // Auto-locate start on load if allowed
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-            if (!selectedStart) setDraggableMarker('start', pos.coords.latitude, pos.coords.longitude, 'Current Location');
-        }, () => {});
-    }
+      });
 
-    document.getElementById('findRouteBtn').addEventListener('click', findRoute);
-  });
-</script>
+      // Auto-locate start on load if allowed
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          if (!selectedStart) setDraggableMarker('start', pos.coords.latitude, pos.coords.longitude, 'Current Location');
+        }, () => { });
+      }
+
+      document.getElementById('findRouteBtn').addEventListener('click', findRoute);
+    });
+  </script>
 </body>
+
 </html>
