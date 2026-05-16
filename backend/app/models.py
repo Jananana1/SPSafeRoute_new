@@ -15,6 +15,7 @@ class User(Base):
     failed_login_attempts = Column(Integer, default=0)
     locked_until = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    profile_image_url = Column(String(500), nullable=True)
 
     @validates('email')
     def validate_email(self, key, address):
@@ -83,6 +84,21 @@ class PasswordResetToken(Base):
     token = Column(String(255), unique=True, index=True, nullable=False)
     expires_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class IncidentHistory(Base):
+    __tablename__ = "incident_history"
+    id = Column(Integer, primary_key=True, index=True)
+    incident_id = Column(Integer, nullable=False)   # original incident ID
+    action = Column(String(20), nullable=False)     # 'resolved' or 'deleted'
+    inc_type = Column(String(50), nullable=False)
+    description = Column(Text, nullable=True)
+    location_name = Column(String(255), nullable=True)
+    lat = Column(Float, nullable=True)
+    lng = Column(Float, nullable=True)
+    user_id = Column(Integer, nullable=True)
+    image_url = Column(String(500), nullable=True)
+    reported_at = Column(DateTime(timezone=True), nullable=True)
+    actioned_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class CaptchaChallenge(Base):
     __tablename__ = "captcha_challenges"

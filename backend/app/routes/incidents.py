@@ -19,7 +19,9 @@ def get_incidents(
     current_user: models.User = Depends(auth.get_current_user)
 ):
     try:
-        incidents = db.query(models.Incident).order_by(models.Incident.created_at.desc()).all()
+        incidents = db.query(models.Incident).filter(
+            models.Incident.status != 'completed'
+        ).order_by(models.Incident.created_at.desc()).all()
         return incidents
     except Exception as e:
         print("GET /incidents error:", e)
