@@ -391,6 +391,47 @@
             width: 100%;
         }
 
+        /* Modal button styles */
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+            font-size: 14px;
+        }
+        .modal-btn-confirm {
+            background: var(--primary);
+            color: white;
+        }
+        .modal-btn-confirm:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+        .modal-btn-cancel {
+            background: var(--glass-border);
+            color: var(--text-main);
+        }
+        .modal-btn-cancel:hover {
+            background: var(--danger);
+            color: white;
+        }
+        .modal-btn-ok {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+        }
+        .modal-btn-ok:hover {
+            background: var(--primary-dark);
+        }
+
         /* ---------- RESPONSIVE ---------- */
         @media (max-width: 1100px) {
             body {
@@ -586,8 +627,6 @@
         </div>
     </div>
 
-
-
     <!-- Analytics Section -->
     <div id="analyticsSection" style="display: none;">
         <div class="analytics-grid">
@@ -603,7 +642,106 @@
     </div>
 </div>
 
+<!-- Admin Alert Modal (for Firebase notifications) -->
+<div id="adminAlertModal" class="sidebar-overlay" style="z-index: 2000; align-items: center; justify-content: center; display: none;">
+    <div class="glass-card" style="width: 90%; max-width: 400px; margin: 0; position: relative;">
+        <button id="closeAdminAlert" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted);">&times;</button>
+        <h3 id="adminAlertTitle" style="color: var(--danger); margin-bottom: 10px;">New Alert</h3>
+        <p id="adminAlertBody" style="color: var(--text-main); font-size: 15px; line-height: 1.5; margin-bottom: 20px; white-space: pre-wrap;"></p>
+        <button id="adminAlertAction" style="background: var(--primary); color: white; padding: 12px; border-radius: 20px; width: 100%; font-weight: 600; cursor: pointer; border: none; transition: 0.2s;">View Incident</button>
+    </div>
+</div>
+
+<!-- Generic Modal for all confirmations and alerts -->
+<div id="genericAlertModal" class="sidebar-overlay" style="z-index: 9999; align-items: center; justify-content: center; display: none;">
+    <div class="glass-card" style="width: 90%; max-width: 400px; margin: 0; position: relative; padding: 24px;">
+        <button onclick="closeModal('genericAlertModal')" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted);">&times;</button>
+        <h3 id="genericAlertTitle" style="color: var(--text-main); margin-top: 0; margin-bottom: 10px;">Alert</h3>
+        <p id="genericAlertBody" style="color: var(--text-muted); font-size: 15px; line-height: 1.5; margin-bottom: 20px; white-space: pre-wrap;"></p>
+        <div class="modal-buttons" id="modalButtons">
+            <button id="modalConfirmBtn" class="modal-btn modal-btn-confirm" style="display: none;">Confirm</button>
+            <button id="modalCancelBtn" class="modal-btn modal-btn-cancel" style="display: none;">Cancel</button>
+            <button id="modalOkBtn" class="modal-btn modal-btn-ok">OK</button>
+        </div>
+    </div>
+</div>
+
 <script>
+    // ---------- MODAL HELPERS ----------
+    let pendingConfirmCallback = null;
+    
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.style.display = 'none';
+        modal.classList.remove('visible');
+        if (modalId === 'genericAlertModal') {
+            pendingConfirmCallback = null;
+        }
+    }
+    
+    function showModal(title, message, onConfirm = null, onCancel = null) {
+        const modal = document.getElementById('genericAlertModal');
+        const modalTitle = document.getElementById('genericAlertTitle');
+        const modalBody = document.getElementById('genericAlertBody');
+        const confirmBtn = document.getElementById('modalConfirmBtn');
+        const cancelBtn = document.getElementById('modalCancelBtn');
+        const okBtn = document.getElementById('modalOkBtn');
+        
+        modalTitle.innerText = title;
+        modalBody.innerText = message;
+        
+        if (onConfirm) {
+            // Show confirm/cancel buttons
+            confirmBtn.style.display = 'block';
+            cancelBtn.style.display = 'block';
+            okBtn.style.display = 'none';
+            pendingConfirmCallback = { confirm: onConfirm, cancel: onCancel };
+        } else {
+            // Just show OK button
+            confirmBtn.style.display = 'none';
+            cancelBtn.style.display = 'none';
+            okBtn.style.display = 'block';
+            pendingConfirmCallback = null;
+        }
+        
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('visible'), 10);
+    }
+    
+    // Modal button event handlers
+    document.getElementById('modalConfirmBtn').onclick = () => {
+        if (pendingConfirmCallback && pendingConfirmCallback.confirm) {
+            pendingConfirmCallback.confirm();
+        }
+        closeModal('genericAlertModal');
+    };
+    
+    document.getElementById('modalCancelBtn').onclick = () => {
+        if (pendingConfirmCallback && pendingConfirmCallback.cancel) {
+            pendingConfirmCallback.cancel();
+        }
+        closeModal('genericAlertModal');
+    };
+    
+    document.getElementById('modalOkBtn').onclick = () => {
+        closeModal('genericAlertModal');
+    };
+    
+    // Replace window.alert with modal
+    window.alert = function(message, title = "Notification") {
+        showModal(title, message);
+    };
+    
+    // Replace window.confirm with modal (returns Promise)
+    window.confirmModal = function(message, title = "Confirmation") {
+        return new Promise((resolve) => {
+            showModal(title, message, 
+                () => resolve(true),
+                () => resolve(false)
+            );
+        });
+    };
+
     // ---------- AUTH & API HELPERS ----------
     const token = localStorage.getItem('token');
     if (!token) {
@@ -630,7 +768,6 @@
     let monthlyChartInstance = null;
     let areaChartInstance = null;
     let allActiveIncidents = [];
-    let allDeletedIncidents = [];
 
     const sidebarEl = document.getElementById('adminSidebar');
     const overlayEl = document.getElementById('sidebarOverlay');
@@ -709,7 +846,7 @@
         document.body.style.overflow = '';
     }
 
-    // ---------- THEME TOGGLE - AFFECTS WHOLE PAGE (including all heading texts) ----------
+    // ---------- THEME TOGGLE ----------
     function applyTheme(theme) {
         if (theme === 'dark') {
             document.documentElement.setAttribute('data-theme', 'dark');
@@ -718,14 +855,11 @@
         }
         localStorage.setItem('theme', theme);
         
-        // Force update any inline styled headings (just to be safe)
         const allHeadings = document.querySelectorAll('.glass-card h3, .glass-card h2, h3');
         allHeadings.forEach(heading => {
-            // Reapply color from CSS variable (no inline override)
             heading.style.color = '';
         });
         
-        // Refresh charts to match new text colors
         if (currentSection === 'analytics') {
             refreshAnalyticsCharts();
         }
@@ -871,7 +1005,7 @@
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const incidents = await res.json();
             
-            allActiveIncidents = incidents; // Store ALL incidents here now
+            allActiveIncidents = incidents;
             applyFilters();
         } catch (err) {
             console.error(err);
@@ -880,32 +1014,52 @@
     }
 
     async function completeIncident(id) {
-        if (!confirm('Mark this incident as resolved and notify the user?')) return;
+        const confirmed = await confirmModal('Mark this incident as resolved and notify the user?', 'Confirm Resolution');
+        if (!confirmed) return;
+        
         try {
             const res = await authFetch(`/admin/incidents/${id}/complete`, { method: 'POST' });
             if (res.ok) {
-                alert('Incident resolved successfully.');
+                showModal('Success', 'Incident resolved successfully. The user has been notified.');
                 loadIncidents();
             } else {
-                alert('Failed to complete incident');
+                let errorMsg = 'Failed to complete incident';
+                try {
+                    const errorData = await res.json();
+                    errorMsg = errorData.detail || errorMsg;
+                } catch(e) {
+                    errorMsg = await res.text() || errorMsg;
+                }
+                showModal('Error', errorMsg);
             }
         } catch (err) {
-            alert('Error: ' + err.message);
+            console.error('Complete incident error:', err);
+            showModal('Error', 'Error: ' + err.message);
         }
     }
 
     async function deleteIncident(id) {
-        if (!confirm('Are you sure you want to remove this report from the map? It will still be safely stored in the database.')) return;
+        const confirmed = await confirmModal('Are you sure you want to remove this report from the map? It will still be safely stored in the database.', 'Confirm Delete');
+        if (!confirmed) return;
+        
         try {
             const res = await authFetch(`/admin/incidents/${id}`, { method: 'DELETE' });
             if (res.ok) {
-                alert('Report successfully marked as deleted and removed from the map.');
+                showModal('Success', 'Report successfully marked as deleted and removed from the map.');
                 loadIncidents();
             } else {
-                alert('Delete failed');
+                let errorMsg = 'Delete failed';
+                try {
+                    const errorData = await res.json();
+                    errorMsg = errorData.detail || errorMsg;
+                } catch(e) {
+                    errorMsg = await res.text() || errorMsg;
+                }
+                showModal('Error', errorMsg);
             }
         } catch (err) {
-            alert('Error: ' + err.message);
+            console.error('Delete incident error:', err);
+            showModal('Error', 'Error: ' + err.message);
         }
     }
 
@@ -978,7 +1132,6 @@
             const fcmToken = await messaging.getToken({ 
                 vapidKey: "BKnT_hLfIL2DlonLwZrXY4kwjBEjlp6BaJIr6_ESnVT_K4R985hNmpftY7A9YA9HWSNjCNEeEcTuN8v6VBFDHeI" 
             });
-            // CORRECTED: changed endpoint from /user/fcm-token to /users/fcm-token
             await authFetch('/users/fcm-token', {
                 method: 'POST',
                 body: JSON.stringify({ token: fcmToken })
@@ -989,14 +1142,29 @@
         }
     }
     
-    // Auto-enable notifications for admin when dashboard loads
     enableAdminNotifications();
+
+    const adminAlertModal = document.getElementById('adminAlertModal');
+    document.getElementById('closeAdminAlert').onclick = () => {
+        adminAlertModal.style.display = 'none';
+        adminAlertModal.classList.remove('visible');
+    };
+    document.getElementById('adminAlertAction').onclick = () => {
+        adminAlertModal.style.display = 'none';
+        adminAlertModal.classList.remove('visible');
+        switchSection('incidents');
+    };
 
     messaging.onMessage((payload) => {
         console.log('Foreground message received: ', payload);
-        alert(`🔔 Admin Alert: ${payload.notification.title}\n${payload.notification.body}`);
+        document.getElementById('adminAlertTitle').innerText = payload.notification.title || 'New Alert';
+        document.getElementById('adminAlertBody').innerText = payload.notification.body || 'A new incident was reported.';
+        
+        adminAlertModal.style.display = 'flex';
+        setTimeout(() => adminAlertModal.classList.add('visible'), 10);
+        
         if (currentSection === 'incidents') {
-            loadIncidents(); // Refresh the table
+            loadIncidents();
         }
     });
 </script>

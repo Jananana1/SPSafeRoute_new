@@ -21,6 +21,49 @@
       gap: 12px;
     }
 
+    .collapsible-body {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+      max-height: 900px;
+      opacity: 1;
+      margin-top: 0;
+    }
+
+    .collapsible-body.collapsed {
+      max-height: 0;
+      opacity: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      margin-top: -12px;
+      border: none;
+      pointer-events: none;
+    }
+
+    .collapse-toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 24px;
+      padding: 10px;
+      min-width: 44px;
+      min-height: 44px;
+      line-height: 1;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .collapse-toggle:hover {
+      background: var(--nav-hover);
+    }
+
+    .collapse-toggle.collapsed {
+      transform: rotate(180deg);
+    }
+
     .glass-panel {
       background: var(--glass-bg);
       backdrop-filter: blur(16px);
@@ -128,11 +171,47 @@
     .nav-buttons button.start {
       background: var(--success);
       color: white;
+      border-radius: 24px !important;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.6), 0 4px 12px rgba(16, 185, 129, 0.4) !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 2px solid transparent;
+    }
+
+    .nav-buttons button.start:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.8), 0 6px 16px rgba(16, 185, 129, 0.5) !important;
+      border: 2px solid rgba(255, 255, 255, 0.5);
     }
 
     .nav-buttons button.stop {
       background: var(--danger);
       color: white;
+      border-radius: 24px !important;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      box-shadow: 0 0 15px rgba(220, 38, 38, 0.6), 0 4px 12px rgba(220, 38, 38, 0.4) !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 2px solid transparent;
+    }
+
+    .nav-buttons button.stop:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 0 20px rgba(220, 38, 38, 0.8), 0 6px 16px rgba(220, 38, 38, 0.5) !important;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .nav-buttons button:disabled {
+      opacity: 0.5 !important;
+      background: var(--text-muted) !important;
+      color: rgba(255, 255, 255, 0.7) !important;
+      cursor: not-allowed !important;
+      transform: none !important;
+      box-shadow: none !important;
+      border: 2px solid transparent !important;
     }
 
     .legend {
@@ -172,18 +251,26 @@
 
   <div class="saferoute-overlay">
     <!-- Header -->
-    <div class="glass-panel header-panel">
-      <button class="btn-back" onclick="location.href='index.html'">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+    <div class="glass-panel header-panel" style="justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="btn-back" onclick="location.href='index.html'">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+        </button>
+        <h2 style="margin:0; font-size: 18px; color: var(--text-main);">Safe Route</h2>
+      </div>
+      <button class="collapse-toggle" id="saferouteCollapseBtn" title="Minimize panel">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
           stroke-linecap="round" stroke-linejoin="round">
-          <path d="m15 18-6-6 6-6" />
+          <path d="m18 15-6-6-6 6" />
         </svg>
       </button>
-      <h2 style="margin:0; font-size: 20px; color: var(--text-main);">Find Safe Route</h2>
     </div>
 
     <!-- Search & Controls -->
-    <div class="glass-panel">
+    <div class="glass-panel collapsible-body" id="saferouteBody">
 
       <!-- Start Location Input -->
       <div style="display: flex; gap: 8px; margin-bottom: 8px;">
@@ -670,7 +757,8 @@
         if (!navigator.geolocation) { statusDiv.innerText = 'Geolocation not supported. Please search for a start location.'; return; }
         navigator.geolocation.getCurrentPosition(
           pos => { performRouting({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
-          err => { statusDiv.innerText = 'Could not get your location. Please type a Start Location.'; }
+          err => { statusDiv.innerText = 'Could not get your location. Please type a Start Location.'; },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
       }
     }
@@ -714,7 +802,8 @@
         document.getElementById('startSearch').value = 'Locating...';
         navigator.geolocation.getCurrentPosition(
           pos => { setDraggableMarker('start', pos.coords.latitude, pos.coords.longitude, 'Current Location'); },
-          err => { document.getElementById('startSearch').value = 'Location error'; }
+          err => { document.getElementById('startSearch').value = 'Location error'; },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
       });
 
@@ -722,12 +811,46 @@
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
           if (!selectedStart) setDraggableMarker('start', pos.coords.latitude, pos.coords.longitude, 'Current Location');
-        }, () => { });
+        }, () => { }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
       }
 
       document.getElementById('findRouteBtn').addEventListener('click', findRoute);
     });
+
+    // --- Collapsible Panel ---
+    const saferouteCollapseBtn = document.getElementById('saferouteCollapseBtn');
+    const saferouteBody = document.getElementById('saferouteBody');
+    if (saferouteCollapseBtn && saferouteBody) {
+      // Load persisted state
+      if (localStorage.getItem('saferoute_collapsed') === 'true') {
+        saferouteBody.classList.add('collapsed');
+        saferouteCollapseBtn.classList.add('collapsed');
+      }
+
+      saferouteCollapseBtn.addEventListener('click', () => {
+        const isCollapsed = saferouteBody.classList.toggle('collapsed');
+        saferouteCollapseBtn.classList.toggle('collapsed', isCollapsed);
+        localStorage.setItem('saferoute_collapsed', isCollapsed);
+      });
+    }
+
   </script>
+<!-- Generic Alert Modal -->
+<div id="genericAlertModal" class="sidebar-overlay" style="z-index: 9999; align-items: center; justify-content: center; display: none; background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(5px);">
+    <div class="glass-card" style="width: 90%; max-width: 400px; margin: 0; position: relative; background: var(--glass-bg, #fff); border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+        <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted, #666);">&times;</button>
+        <h3 id="genericAlertTitle" style="color: var(--text-main, #333); margin-top: 0; margin-bottom: 10px; font-family: sans-serif;">Alert</h3>
+        <p id="genericAlertBody" style="color: var(--text-muted, #666); font-size: 15px; line-height: 1.5; margin-bottom: 20px; white-space: pre-wrap; font-family: sans-serif;"></p>
+        <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="background: var(--primary, #3b82f6); color: white; padding: 12px; border-radius: 20px; width: 100%; font-weight: 600; cursor: pointer; border: none; font-size: 15px;">OK</button>
+    </div>
+</div>
+<script>
+window.alert = function(message, title = "Notification") {
+    document.getElementById('genericAlertTitle').innerText = title;
+    document.getElementById('genericAlertBody').innerText = message;
+    document.getElementById('genericAlertModal').style.display = 'flex';
+};
+</script>
 </body>
 
 </html>

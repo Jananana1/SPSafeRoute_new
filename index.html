@@ -19,6 +19,45 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0f172a">
     <link rel="apple-touch-icon" href="/static/icons/icon-152x152.png">
+    <style>
+        .otp-box {
+            width: 56px;
+            height: 56px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            border: 2px solid var(--glass-border);
+            border-radius: 14px;
+            background: var(--input-bg);
+            color: var(--text-main);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            caret-color: transparent;
+        }
+
+        .otp-box:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+        }
+
+        /* Improved sidebar */
+        .sidebar {
+            overflow: hidden;
+        }
+
+        .nav-item::after {
+            content: "›";
+            font-size: 18px;
+            opacity: 0.4;
+        }
+
+        .user-info-card {
+            background: var(--nav-hover);
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+    </style>
 </head>
 
 <body>
@@ -37,6 +76,9 @@
             <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌗</div>
             <div id="bellIcon" class="control-btn" title="Enable Notifications">🔔</div>
         </div>
+
+        <!-- Sidebar Backdrop for Mobile -->
+        <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
         <!-- Sidebar Menu (Visible when logged in) -->
         <div id="sidebar" class="sidebar hidden">
@@ -108,11 +150,17 @@
             <!-- MFA Panel -->
             <div id="mfaPanel" class="glass-card hidden">
                 <h1 class="app-title">Two-Factor Auth</h1>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:10px;">Enter the 4-digit OTP sent to
-                    your email.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:20px; text-align:center;">Enter the
+                    4-digit OTP sent to your email.</p>
 
-                <label class="input-label" for="mfaOtp">OTP</label>
-                <input type="text" id="mfaOtp" placeholder="4-digit OTP" class="input" maxlength="4">
+                <label class="input-label" style="text-align:center; display:block; margin-bottom:12px;">One-Time
+                    Password</label>
+                <div style="display:flex; gap:12px; justify-content:center; margin-bottom:20px;">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" id="otp0">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" id="otp1">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" id="otp2">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" id="otp3">
+                </div>
 
                 <button id="verifyMfaBtn" class="btn btn-primary">Verify</button>
                 <div class="link" id="cancelMfaBtn">Cancel</div>
@@ -124,7 +172,7 @@
                 <h1 class="app-title">Forgot Password</h1>
 
                 <label class="input-label" for="forgotEmail">Registered Email Address</label>
-                <input type="email" id="forgotEmail" placeholder="user" class="input">
+                <input type="email" id="forgotEmail" placeholder="user@gmail.com" class="input">
 
                 <button id="forgotPasswordBtn" class="btn btn-primary">Send Reset OTP</button>
                 <div class="link" id="backToLoginFromForgotBtn">Back to Login</div>
@@ -135,8 +183,18 @@
             <div id="resetPasswordPanel" class="glass-card hidden">
                 <h1 class="app-title">Reset Password</h1>
 
-                <label class="input-label" for="resetOtpInput">OTP</label>
-                <input type="text" id="resetOtpInput" placeholder="4-digit OTP" class="input" maxlength="4">
+                <label class="input-label" style="text-align:center; display:block; margin-bottom:12px;">One-Time
+                    Password</label>
+                <div style="display:flex; gap:12px; justify-content:center; margin-bottom:20px;">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box"
+                        id="resetOtp0">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box"
+                        id="resetOtp1">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box"
+                        id="resetOtp2">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box"
+                        id="resetOtp3">
+                </div>
 
                 <label class="input-label" for="resetPasswordInput">New Password</label>
                 <input type="password" id="resetPasswordInput" placeholder="Minimum of 8 characters" class="input">
@@ -154,6 +212,7 @@
                 <div class="link" id="backToLoginFromResetBtn">Back to Login</div>
                 <div id="resetMessage" class="error"></div>
             </div>
+
 
             <!-- Register Panel -->
             <div id="registerPanel" class="glass-card hidden">
@@ -341,15 +400,44 @@
         const loginPanel = document.getElementById('loginPanel');
         const registerPanel = document.getElementById('registerPanel');
 
-        document.getElementById('sidebarToggle').addEventListener('click', () => {
-            sidebar.classList.remove('collapsed');
-            sidebarToggle.classList.add('hidden-toggle');
-        });
+        const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 
-        document.getElementById('closeSidebarBtn').addEventListener('click', () => {
+        function openSidebar() {
+            sidebar.classList.remove('collapsed');
+            sidebar.classList.add('mobile-open');
+            sidebarToggle.classList.add('hidden-toggle');
+            sidebarBackdrop.classList.add('active');
+        }
+
+        function closeSidebar() {
             sidebar.classList.add('collapsed');
+            sidebar.classList.remove('mobile-open');
             sidebarToggle.classList.remove('hidden-toggle');
-        });
+            sidebarBackdrop.classList.remove('active');
+        }
+
+        document.getElementById('sidebarToggle').addEventListener('click', openSidebar);
+        document.getElementById('closeSidebarBtn').addEventListener('click', closeSidebar);
+        sidebarBackdrop.addEventListener('click', closeSidebar);
+
+        // Swipe left to close on mobile
+        let touchstartX = 0;
+        let touchendX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchstartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        document.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, {passive: true});
+
+        function handleSwipe() {
+            if (touchendX < touchstartX - 50 && sidebar.classList.contains('mobile-open')) {
+                closeSidebar();
+            }
+        }
 
         let tempMfaToken = null;
 
@@ -376,6 +464,7 @@
             document.getElementById('forgotPasswordPanel').classList.add('hidden');
             loginPanel.classList.remove('hidden');
         });
+
 
         document.getElementById('backToLoginFromResetBtn').addEventListener('click', () => {
             document.getElementById('resetPasswordPanel').classList.add('hidden');
@@ -459,13 +548,31 @@
 
                 document.getElementById('userName').innerText = user.full_name || 'User';
                 document.getElementById('userEmail').innerText = user.email || '';
-                if (user.profile_image_url) {
-                    const avatar = document.getElementById('sidebarAvatar');
-                    const placeholder = document.getElementById('sidebarAvatarPlaceholder');
-                    if (avatar && placeholder) {
-                        avatar.src = user.profile_image_url;
+
+                // Cache for cross-page sidebar sync
+                if (user.full_name) localStorage.setItem('sp_user_name', user.full_name);
+                if (user.email) localStorage.setItem('sp_user_email', user.email);
+
+                const avatar = document.getElementById('sidebarAvatar');
+                const placeholder = document.getElementById('sidebarAvatarPlaceholder');
+
+                // Use latest profile image (from API or cached)
+                const imgUrl = user.profile_image_url || localStorage.getItem('sp_profile_image_url');
+                if (user.profile_image_url) localStorage.setItem('sp_profile_image_url', user.profile_image_url);
+
+                if (avatar && placeholder) {
+                    if (imgUrl) {
+                        avatar.src = imgUrl;
                         avatar.style.display = 'block';
                         placeholder.style.display = 'none';
+                        avatar.onerror = () => {
+                            avatar.style.display = 'none';
+                            placeholder.style.display = 'flex';
+                            localStorage.removeItem('sp_profile_image_url');
+                        };
+                    } else {
+                        avatar.style.display = 'none';
+                        placeholder.style.display = 'flex';
                     }
                 }
                 if (user.is_admin) {
@@ -480,8 +587,16 @@
             sidebar.classList.remove('hidden');
             sidebarToggle.classList.remove('hidden');
             document.getElementById('topRightControls').classList.remove('hidden');
-            sidebar.classList.remove('collapsed');
-            sidebarToggle.classList.add('hidden-toggle');
+            
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('collapsed');
+                sidebarToggle.classList.add('hidden-toggle');
+            } else {
+                sidebar.classList.add('collapsed');
+                sidebar.classList.remove('mobile-open');
+                sidebarToggle.classList.remove('hidden-toggle');
+            }
+
             initMap();
             setTimeout(() => map.invalidateSize(), 100);
             loadIncidentsOnMap();
@@ -502,6 +617,12 @@
                     body: params
                 });
                 const data = await response.json();
+                
+                if (response.status === 403 && data.detail && data.detail.includes("locked")) {
+                    window.location.href = `verify-account.html?email=${encodeURIComponent(email)}`;
+                    return;
+                }
+                
                 if (!response.ok) throw new Error(data.detail);
 
                 if (data.mfa_required) {
@@ -525,7 +646,7 @@
 
         document.getElementById('verifyMfaBtn').addEventListener('click', (e) => {
             withButtonDisable(e.target, async () => {
-                const otp = document.getElementById('mfaOtp').value;
+                const otp = ['otp0', 'otp1', 'otp2', 'otp3'].map(id => document.getElementById(id).value).join('');
                 try {
                     const response = await fetch('/auth/verify-mfa', {
                         method: 'POST',
@@ -622,7 +743,7 @@
         document.getElementById('resetPasswordBtn').addEventListener('click', (e) => {
             withButtonDisable(e.target, async () => {
                 const email = document.getElementById('forgotEmail').value;
-                const otp = document.getElementById('resetOtpInput').value;
+                const otp = ['resetOtp0', 'resetOtp1', 'resetOtp2', 'resetOtp3'].map(id => document.getElementById(id).value).join('');
                 const new_password = document.getElementById('resetPasswordInput').value;
                 const confirm_password = document.getElementById('resetConfirmPasswordInput').value;
 
@@ -641,6 +762,7 @@
                 }
             });
         });
+
 
         function logout() {
             setToken(null);
@@ -672,6 +794,17 @@
                 }
             }).catch(() => logout());
         } else {
+            // Check for forgot password redirect from verify-account
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('forgot')) {
+                const fEmail = urlParams.get('forgot');
+                document.getElementById('email').value = fEmail;
+                loginPanel.classList.add('hidden');
+                document.getElementById('forgotPasswordPanel').classList.remove('hidden');
+                document.getElementById('forgotEmail').value = fEmail;
+                // Remove parameter from URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
             // Initialize map in background for visual effect behind auth panel
             initMap();
         }
@@ -799,7 +932,59 @@
             }
         });
 
+
+        // --- OTP Box Auto-advance Logic ---
+        function setupOtpBoxes(ids) {
+            ids.forEach((id, idx) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('input', e => {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(-1);
+                    if (e.target.value && idx < ids.length - 1) {
+                        document.getElementById(ids[idx + 1]).focus();
+                    }
+                });
+                el.addEventListener('keydown', e => {
+                    if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+                        document.getElementById(ids[idx - 1]).focus();
+                    }
+                });
+                el.addEventListener('paste', e => {
+                    e.preventDefault();
+                    const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+                    ids.forEach((pid, pidx) => {
+                        const pel = document.getElementById(pid);
+                        if (pel) pel.value = paste[pidx] || '';
+                    });
+                    const lastFilled = Math.min(paste.length, ids.length) - 1;
+                    if (lastFilled >= 0) document.getElementById(ids[lastFilled]).focus();
+                });
+            });
+        }
+        setupOtpBoxes(['otp0', 'otp1', 'otp2', 'otp3']);
+        setupOtpBoxes(['resetOtp0', 'resetOtp1', 'resetOtp2', 'resetOtp3']);
+
+        // --- Profile picture sync for sidebar ---
+        // After loadUser, also cache profile image URL for cross-page sync
+        const _origLoadUser = loadUser;
+
     </script>
+<!-- Generic Alert Modal -->
+<div id="genericAlertModal" class="sidebar-overlay" style="z-index: 9999; align-items: center; justify-content: center; display: none; background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(5px);">
+    <div class="glass-card" style="width: 90%; max-width: 400px; margin: 0; position: relative; background: var(--glass-bg, #fff); border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+        <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted, #666);">&times;</button>
+        <h3 id="genericAlertTitle" style="color: var(--text-main, #333); margin-top: 0; margin-bottom: 10px; font-family: sans-serif;">Alert</h3>
+        <p id="genericAlertBody" style="color: var(--text-muted, #666); font-size: 15px; line-height: 1.5; margin-bottom: 20px; white-space: pre-wrap; font-family: sans-serif;"></p>
+        <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="background: var(--primary, #3b82f6); color: white; padding: 12px; border-radius: 20px; width: 100%; font-weight: 600; cursor: pointer; border: none; font-size: 15px;">OK</button>
+    </div>
+</div>
+<script>
+window.alert = function(message, title = "Notification") {
+    document.getElementById('genericAlertTitle').innerText = title;
+    document.getElementById('genericAlertBody').innerText = message;
+    document.getElementById('genericAlertModal').style.display = 'flex';
+};
+</script>
 </body>
 
 </html>

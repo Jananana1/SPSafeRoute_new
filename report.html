@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -18,6 +19,7 @@
       --text-muted: #6b7280;
       --nav-hover: rgba(0, 0, 0, 0.05);
     }
+
     [data-theme="dark"] {
       --glass-bg: rgba(17, 24, 39, 0.95);
       --glass-border: rgba(55, 65, 81, 0.5);
@@ -25,9 +27,11 @@
       --text-muted: #9ca3af;
       --nav-hover: rgba(255, 255, 255, 0.1);
     }
+
     * {
       box-sizing: border-box;
     }
+
     body {
       margin: 0;
       padding: 0;
@@ -36,6 +40,7 @@
       height: 100vh;
       color: var(--text-main);
     }
+
     #map {
       position: absolute;
       top: 0;
@@ -44,6 +49,7 @@
       height: 100%;
       z-index: 1;
     }
+
     .report-overlay {
       position: absolute;
       top: 20px;
@@ -56,22 +62,25 @@
       gap: 12px;
       pointer-events: none;
     }
+
     .glass-panel {
       background: var(--glass-bg);
       backdrop-filter: blur(16px);
       border: 1px solid var(--glass-border);
       border-radius: 20px;
       padding: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
       pointer-events: auto;
     }
+
     .header-panel {
       display: flex;
       align-items: center;
       gap: 16px;
     }
+
     .btn-back {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       border: 1px solid var(--glass-border);
       color: var(--text-main);
       width: 40px;
@@ -84,10 +93,12 @@
       justify-content: center;
       transition: all 0.2s;
     }
+
     .btn-back:hover {
       background: var(--primary);
       color: white;
     }
+
     .suggestions-list {
       background: var(--glass-bg);
       border: 1px solid var(--glass-border);
@@ -98,19 +109,23 @@
       overflow-y: auto;
       backdrop-filter: blur(10px);
     }
+
     .suggestion-item {
       padding: 12px;
       border-bottom: 1px solid var(--glass-border);
       cursor: pointer;
       color: var(--text-main);
     }
+
     .suggestion-item:hover {
       background: var(--nav-hover);
     }
+
     textarea {
       resize: vertical;
       min-height: 80px;
     }
+
     .top-right-controls {
       position: absolute;
       top: 20px;
@@ -120,6 +135,7 @@
       gap: 12px;
       pointer-events: auto;
     }
+
     .control-btn {
       width: 44px;
       height: 44px;
@@ -132,13 +148,15 @@
       justify-content: center;
       font-size: 20px;
       cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       transition: transform 0.2s;
       color: var(--text-main);
     }
+
     .control-btn:hover {
       transform: scale(1.1);
     }
+
     .input {
       width: 100%;
       padding: 12px;
@@ -149,6 +167,7 @@
       color: var(--text-main);
       font-size: 14px;
     }
+
     .btn-primary {
       background: var(--primary);
       color: white;
@@ -159,34 +178,40 @@
       width: 100%;
       font-weight: bold;
     }
+
     .btn-primary:hover {
       opacity: 0.9;
     }
+
     .error {
       color: var(--danger);
       font-size: 14px;
     }
+
     .success {
       color: var(--success);
       font-size: 14px;
     }
+
     .image-preview {
       margin-top: 8px;
       margin-bottom: 12px;
       display: none;
       position: relative;
     }
+
     .image-preview img {
       max-width: 100%;
       max-height: 150px;
       border-radius: 12px;
       object-fit: cover;
     }
+
     .remove-image {
       position: absolute;
       top: 5px;
       right: 5px;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0, 0, 0, 0.7);
       color: white;
       border: none;
       border-radius: 50%;
@@ -198,260 +223,319 @@
       align-items: center;
       justify-content: center;
     }
+
+    .collapsible-body {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+      max-height: 900px;
+      opacity: 1;
+      margin-top: 0;
+    }
+
+    .collapsible-body.collapsed {
+      max-height: 0;
+      opacity: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      margin-top: -12px;
+      border: none;
+      pointer-events: none;
+    }
+
+    .collapse-toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 24px;
+      padding: 10px;
+      min-width: 44px;
+      min-height: 44px;
+      line-height: 1;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .collapse-toggle:hover {
+      background: var(--nav-hover);
+    }
+
+    .collapse-toggle.collapsed {
+      transform: rotate(180deg);
+    }
   </style>
 </head>
+
 <body>
 
-<div id="map"></div>
+  <div id="map"></div>
 
-<div class="top-right-controls">
+  <div class="top-right-controls">
     <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌗</div>
-</div>
-
-<div class="report-overlay">
-  <div class="glass-panel header-panel">
-    <button class="btn-back" onclick="location.href='index.html'">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-    </button>
-    <h2 style="margin:0; font-size: 20px; color: var(--text-main);">Report Incident</h2>
   </div>
 
-  <div class="glass-panel">
-    <select id="incidentType" class="input">
-      <option value="">Select Incident Type</option>
-      <option value="accident">🚨 Accident</option>
-      <option value="crime">🔪 Crime</option>
-      <option value="hazard">⚠️ Hazard</option>
-    </select>
-    
-    <textarea id="incidentDesc" placeholder="Describe what happened..." class="input"></textarea>
-    
-    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-        <input type="text" id="locationSearch" placeholder="Search location (e.g., San Pablo Cathedral)" class="input" style="margin-bottom:0;">
-        <button id="useCurrentLocationBtn" class="btn-back" title="Use Current Location" style="width: 50px; height: 50px; border-radius: 12px;">📍</button>
+  <div class="report-overlay">
+    <div class="glass-panel header-panel" style="justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <button class="btn-back" onclick="location.href='index.html'">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+        </button>
+        <h2 style="margin:0; font-size: 20px; color: var(--text-main);">Report Incident</h2>
+      </div>
+      <button class="collapse-toggle" id="reportCollapseBtn" title="Minimize panel">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="m18 15-6-6-6 6" />
+        </svg>
+      </button>
     </div>
-    <div id="locationSuggestions" class="suggestions-list"></div>
-    
-    <label for="incidentImage" style="font-size: 14px; color: var(--text-main); margin-bottom: 4px; display: block;">Attach Image (Optional)</label>
-    <input type="file" id="incidentImage" accept="image/*" class="input" style="padding: 8px;">
-    <div id="imagePreview" class="image-preview"></div>
-    
-    <button id="submitReportBtn" class="btn-primary" style="margin-top: 10px;">Submit Report</button>
-    <div id="message" class="error" style="margin-top: 12px; text-align:center;"></div>
+
+    <div class="glass-panel collapsible-body" id="reportBody">
+      <select id="incidentType" class="input">
+        <option value="">Select Incident Type</option>
+        <option value="accident">🚨 Accident</option>
+        <option value="crime">🔪 Crime</option>
+        <option value="hazard">⚠️ Hazard</option>
+      </select>
+
+      <textarea id="incidentDesc" placeholder="Describe what happened..." class="input"></textarea>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <input type="text" id="locationSearch" placeholder="Search location (e.g., San Pablo Cathedral)" class="input"
+          style="margin-bottom:0;">
+        <button id="useCurrentLocationBtn" class="btn-back" title="Use Current Location"
+          style="width: 50px; height: 50px; border-radius: 12px;">📍</button>
+      </div>
+      <div id="locationSuggestions" class="suggestions-list"></div>
+
+      <label for="incidentImage"
+        style="font-size: 14px; color: var(--text-main); margin-bottom: 4px; display: block;">Attach Image
+        (Optional)</label>
+      <input type="file" id="incidentImage" accept="image/*" class="input" style="padding: 8px;">
+      <div id="imagePreview" class="image-preview"></div>
+
+      <button id="submitReportBtn" class="btn-primary" style="margin-top: 10px;">Submit Report</button>
+      <div id="message" class="error" style="margin-top: 12px; text-align:center;"></div>
+    </div>
   </div>
-</div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-  // ============================================================
-  // FIXED IMAGE UPLOAD - Now properly saves images to database
-  // ============================================================
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // ============================================================
+    // FIXED IMAGE UPLOAD - Now properly saves images to database
+    // ============================================================
 
-  let TOKEN = localStorage.getItem('token');
-  if (!TOKEN) location.href = 'index.html';
+    let TOKEN = localStorage.getItem('token');
+    if (!TOKEN) location.href = 'index.html';
 
-  const CITY_BOUNDS = { south: 14.0400, west: 121.2000, north: 14.1100, east: 121.3800 };
-  const CITY_CENTER = { lat: 14.0700, lng: 121.3255 };
-  
-  let map;
-  let incidentDraggableMarker = null;
-  let selectedLocation = null;
-  let searchTimeout = null;
-  let currentImageData = null; // Store current image base64 data
+    const CITY_BOUNDS = { south: 14.0400, west: 121.2000, north: 14.1100, east: 121.3800 };
+    const CITY_CENTER = { lat: 14.0700, lng: 121.3255 };
 
-  // Image preview handler
-  document.getElementById('incidentImage').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    const previewDiv = document.getElementById('imagePreview');
-    
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        currentImageData = event.target.result;
-        previewDiv.innerHTML = `
+    let map;
+    let incidentDraggableMarker = null;
+    let selectedLocation = null;
+    let searchTimeout = null;
+    let currentImageData = null; // Store current image base64 data
+
+    // Image preview handler
+    document.getElementById('incidentImage').addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      const previewDiv = document.getElementById('imagePreview');
+
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          currentImageData = event.target.result;
+          previewDiv.innerHTML = `
           <div style="position: relative;">
             <img src="${currentImageData}" alt="Preview">
             <button class="remove-image" onclick="removeImage()">×</button>
           </div>
         `;
-        previewDiv.style.display = 'block';
-      };
-      reader.readAsDataURL(file);
-    } else {
-      removeImage();
-    }
-  });
-  
-  window.removeImage = function() {
-    currentImageData = null;
-    document.getElementById('incidentImage').value = '';
-    document.getElementById('imagePreview').style.display = 'none';
-    document.getElementById('imagePreview').innerHTML = '';
-  };
-
-  async function reverseGeocode(lat, lng) {
-    try {
-      const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1&zoom=18&accept-language=en`;
-      const response = await fetch(url, { headers: { 'User-Agent': 'SP-SafeRoute/1.0' } });
-      const data = await response.json();
-      if (data.display_name) {
-        let name = data.display_name;
-        name = name.replace(', Philippines', '');
-        name = name.replace(/, \d{4}, /g, ', ');
-        if (name.length > 80) name = name.substring(0, 77) + '...';
-        return name;
+          previewDiv.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        removeImage();
       }
-      return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-    } catch (err) {
-      console.error('Reverse geocoding error:', err);
-      return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-    }
-  }
+    });
 
-  function isWithinSanPablo(lat, lng) {
-    return lat >= CITY_BOUNDS.south && lat <= CITY_BOUNDS.north && lng >= CITY_BOUNDS.west && lng <= CITY_BOUNDS.east;
-  }
+    window.removeImage = function () {
+      currentImageData = null;
+      document.getElementById('incidentImage').value = '';
+      document.getElementById('imagePreview').style.display = 'none';
+      document.getElementById('imagePreview').innerHTML = '';
+    };
 
-  async function updateMarkerCoordinate(lat, lng, locationName = null) {
-    const exactLat = parseFloat(lat);
-    const exactLng = parseFloat(lng);
-    if (isNaN(exactLat) || isNaN(exactLng)) return;
-    
-    if (incidentDraggableMarker) {
-      incidentDraggableMarker.setLatLng([exactLat, exactLng]);
-    } else {
-      incidentDraggableMarker = L.marker([exactLat, exactLng], { draggable: true, autoPan: true }).addTo(map);
-      incidentDraggableMarker.bindTooltip("📍 Drag to adjust location", { permanent: true, direction: 'top' });
-      
-      incidentDraggableMarker.on('dragend', async (e) => {
-        const pos = e.target.getLatLng();
-        const newLat = pos.lat;
-        const newLng = pos.lng;
-        
-        const msgDiv = document.getElementById('message');
-        msgDiv.innerText = 'Getting exact location name...';
-        msgDiv.style.color = 'var(--text-main)';
-        
-        const accurateName = await reverseGeocode(newLat, newLng);
-        document.getElementById('locationSearch').value = accurateName;
-        selectedLocation = { lat: newLat, lng: newLng, name: accurateName };
-        
-        if (!isWithinSanPablo(newLat, newLng)) {
-          msgDiv.innerText = '⚠️ Warning: Location outside San Pablo City boundary.';
-          msgDiv.style.color = 'var(--danger)';
-          setTimeout(() => {
-            if (msgDiv.innerText.includes('Warning')) msgDiv.innerText = '';
-          }, 3000);
-        } else {
-          msgDiv.innerText = '✓ Location pinned accurately.';
-          msgDiv.style.color = 'var(--success)';
-          setTimeout(() => {
-            if (msgDiv.innerText === '✓ Location pinned accurately.') msgDiv.innerText = '';
-          }, 1500);
+    async function reverseGeocode(lat, lng) {
+      try {
+        const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1&zoom=18&accept-language=en`;
+        const response = await fetch(url, { headers: { 'User-Agent': 'SP-SafeRoute/1.0' } });
+        const data = await response.json();
+        if (data.display_name) {
+          let name = data.display_name;
+          name = name.replace(', Philippines', '');
+          name = name.replace(/, \d{4}, /g, ', ');
+          if (name.length > 80) name = name.substring(0, 77) + '...';
+          return name;
         }
-      });
+        return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      } catch (err) {
+        console.error('Reverse geocoding error:', err);
+        return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      }
     }
-    
-    map.setView([exactLat, exactLng], 16);
-    
-    let finalName = locationName;
-    if (!finalName) {
-      finalName = await reverseGeocode(exactLat, exactLng);
-    }
-    
-    selectedLocation = { lat: exactLat, lng: exactLng, name: finalName };
-    document.getElementById('locationSearch').value = finalName;
-  }
 
-  async function loadIncidentMarkers() {
-    try {
+    function isWithinSanPablo(lat, lng) {
+      return lat >= CITY_BOUNDS.south && lat <= CITY_BOUNDS.north && lng >= CITY_BOUNDS.west && lng <= CITY_BOUNDS.east;
+    }
+
+    async function updateMarkerCoordinate(lat, lng, locationName = null) {
+      const exactLat = parseFloat(lat);
+      const exactLng = parseFloat(lng);
+      if (isNaN(exactLat) || isNaN(exactLng)) return;
+
+      if (incidentDraggableMarker) {
+        incidentDraggableMarker.setLatLng([exactLat, exactLng]);
+      } else {
+        incidentDraggableMarker = L.marker([exactLat, exactLng], { draggable: true, autoPan: true }).addTo(map);
+        incidentDraggableMarker.bindTooltip("📍 Drag to adjust location", { permanent: true, direction: 'top' });
+
+        incidentDraggableMarker.on('dragend', async (e) => {
+          const pos = e.target.getLatLng();
+          const newLat = pos.lat;
+          const newLng = pos.lng;
+
+          const msgDiv = document.getElementById('message');
+          msgDiv.innerText = 'Getting exact location name...';
+          msgDiv.style.color = 'var(--text-main)';
+
+          const accurateName = await reverseGeocode(newLat, newLng);
+          document.getElementById('locationSearch').value = accurateName;
+          selectedLocation = { lat: newLat, lng: newLng, name: accurateName };
+
+          if (!isWithinSanPablo(newLat, newLng)) {
+            msgDiv.innerText = '⚠️ Warning: Location outside San Pablo City boundary.';
+            msgDiv.style.color = 'var(--danger)';
+            setTimeout(() => {
+              if (msgDiv.innerText.includes('Warning')) msgDiv.innerText = '';
+            }, 3000);
+          } else {
+            msgDiv.innerText = '✓ Location pinned accurately.';
+            msgDiv.style.color = 'var(--success)';
+            setTimeout(() => {
+              if (msgDiv.innerText === '✓ Location pinned accurately.') msgDiv.innerText = '';
+            }, 1500);
+          }
+        });
+      }
+
+      map.setView([exactLat, exactLng], 16);
+
+      let finalName = locationName;
+      if (!finalName) {
+        finalName = await reverseGeocode(exactLat, exactLng);
+      }
+
+      selectedLocation = { lat: exactLat, lng: exactLng, name: finalName };
+      document.getElementById('locationSearch').value = finalName;
+    }
+
+    async function loadIncidentMarkers() {
+      try {
         const res = await fetch('/incidents/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
         const incidents = await res.json();
         if (res.ok) {
-            incidents.forEach(inc => {
-                const status = (inc.status || '').toLowerCase();
-                if (status === 'deleted') return;
+          incidents.forEach(inc => {
+            const status = (inc.status || '').toLowerCase();
+            if (status === 'deleted') return;
 
-                let fillColor, borderColor, fillOpacity;
-                if (['completed', 'resolved', 'dismissed'].includes(status)) {
-                    fillColor = '#aaaaaa';
-                    borderColor = '#888888';
-                    fillOpacity = 0.55;
-                } else {
-                    fillColor = inc.type === 'accident' ? '#ef4444' : inc.type === 'crime' ? '#8b5cf6' : '#f59e0b';
-                    borderColor = '#ffffff';
-                    fillOpacity = 0.8;
-                }
-                
-                L.circleMarker([inc.lat, inc.lng], { radius: 6, color: borderColor, weight: 1, fillColor: fillColor, fillOpacity: fillOpacity }).addTo(map);
-            });
+            let fillColor, borderColor, fillOpacity;
+            if (['completed', 'resolved', 'dismissed'].includes(status)) {
+              fillColor = '#aaaaaa';
+              borderColor = '#888888';
+              fillOpacity = 0.55;
+            } else {
+              fillColor = inc.type === 'accident' ? '#ef4444' : inc.type === 'crime' ? '#8b5cf6' : '#f59e0b';
+              borderColor = '#ffffff';
+              fillOpacity = 0.8;
+            }
+
+            L.circleMarker([inc.lat, inc.lng], { radius: 6, color: borderColor, weight: 1, fillColor: fillColor, fillOpacity: fillOpacity }).addTo(map);
+          });
         }
-    } catch(e){ console.warn("Could not load markers", e); }
-  }
+      } catch (e) { console.warn("Could not load markers", e); }
+    }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
-    
-    map = L.map('map', { zoomControl: false }).setView([CITY_CENTER.lat, CITY_CENTER.lng], 13);
-    const tileUrl = savedTheme === 'dark' 
-        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' 
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+      map = L.map('map', { zoomControl: false }).setView([CITY_CENTER.lat, CITY_CENTER.lng], 13);
+      const tileUrl = savedTheme === 'dark'
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
         : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-    L.tileLayer(tileUrl, { id: 'map-tiles', attribution: '© OpenStreetMap CARTO', maxZoom: 20 }).addTo(map);
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
-    
-    loadIncidentMarkers();
-    
-    map.on('click', async (e) => {
-      const clickedLat = e.latlng.lat;
-      const clickedLng = e.latlng.lng;
-      if (!isWithinSanPablo(clickedLat, clickedLng)) {
-        const msgDiv = document.getElementById('message');
-        msgDiv.innerText = 'Location outside San Pablo City. Please choose a spot within the city limits.';
-        msgDiv.style.color = 'var(--danger)';
-        setTimeout(() => {
-          if (msgDiv.innerText.includes('outside San Pablo')) msgDiv.innerText = '';
-        }, 2500);
-        return;
-      }
-      document.getElementById('message').innerText = '';
-      const locationName = await reverseGeocode(clickedLat, clickedLng);
-      await updateMarkerCoordinate(clickedLat, clickedLng, locationName);
-    });
-  });
+      L.tileLayer(tileUrl, { id: 'map-tiles', attribution: '© OpenStreetMap CARTO', maxZoom: 20 }).addTo(map);
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-  document.getElementById('themeToggleBtn').addEventListener('click', () => {
+      loadIncidentMarkers();
+
+      map.on('click', async (e) => {
+        const clickedLat = e.latlng.lat;
+        const clickedLng = e.latlng.lng;
+        if (!isWithinSanPablo(clickedLat, clickedLng)) {
+          const msgDiv = document.getElementById('message');
+          msgDiv.innerText = 'Location outside San Pablo City. Please choose a spot within the city limits.';
+          msgDiv.style.color = 'var(--danger)';
+          setTimeout(() => {
+            if (msgDiv.innerText.includes('outside San Pablo')) msgDiv.innerText = '';
+          }, 2500);
+          return;
+        }
+        document.getElementById('message').innerText = '';
+        const locationName = await reverseGeocode(clickedLat, clickedLng);
+        await updateMarkerCoordinate(clickedLat, clickedLng, locationName);
+      });
+    });
+
+    document.getElementById('themeToggleBtn').addEventListener('click', () => {
       const currentTheme = document.documentElement.getAttribute('data-theme');
       const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
       if (newTheme === 'dark') {
-          document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.setAttribute('data-theme', 'dark');
       } else {
-          document.documentElement.removeAttribute('data-theme');
+        document.documentElement.removeAttribute('data-theme');
       }
       localStorage.setItem('theme', newTheme);
-      
-      const newTileUrl = newTheme === 'dark' 
-          ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' 
-          : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-      
-      map.eachLayer(layer => {
-          if (layer.options && layer.options.id === 'map-tiles') {
-              layer.setUrl(newTileUrl);
-          }
-      });
-  });
 
-  const locationInput = document.getElementById('locationSearch');
-  const suggestionsDiv = document.getElementById('locationSuggestions');
-  
-  locationInput.addEventListener('input', function(e) {
-    clearTimeout(searchTimeout);
-    const query = e.target.value;
-    if (query.length < 3) { suggestionsDiv.innerHTML = ''; return; }
-    searchTimeout = setTimeout(async () => {
-      const viewbox = `${CITY_BOUNDS.west},${CITY_BOUNDS.south},${CITY_BOUNDS.east},${CITY_BOUNDS.north}`;
-      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ', San Pablo City, Laguna, Philippines')}&format=json&limit=5&viewbox=${viewbox}&bounded=1`;
-      try {
+      const newTileUrl = newTheme === 'dark'
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+
+      map.eachLayer(layer => {
+        if (layer.options && layer.options.id === 'map-tiles') {
+          layer.setUrl(newTileUrl);
+        }
+      });
+    });
+
+    const locationInput = document.getElementById('locationSearch');
+    const suggestionsDiv = document.getElementById('locationSuggestions');
+
+    locationInput.addEventListener('input', function (e) {
+      clearTimeout(searchTimeout);
+      const query = e.target.value;
+      if (query.length < 3) { suggestionsDiv.innerHTML = ''; return; }
+      searchTimeout = setTimeout(async () => {
+        const viewbox = `${CITY_BOUNDS.west},${CITY_BOUNDS.south},${CITY_BOUNDS.east},${CITY_BOUNDS.north}`;
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ', San Pablo City, Laguna, Philippines')}&format=json&limit=5&viewbox=${viewbox}&bounded=1`;
+        try {
           const res = await fetch(url, { headers: { 'User-Agent': 'SP-SafeRoute/1.0' } });
           const suggestions = await res.json();
           suggestionsDiv.innerHTML = '';
@@ -472,118 +556,151 @@
             };
             suggestionsDiv.appendChild(div);
           });
-      } catch (err) { console.warn(err); }
-    }, 500);
-  });
+        } catch (err) { console.warn(err); }
+      }, 500);
+    });
 
-  document.getElementById('useCurrentLocationBtn').addEventListener('click', async () => {
-    if (!navigator.geolocation) return alert('Geolocation not supported');
-    
-    const msgBox = document.getElementById('message');
-    msgBox.innerText = 'Getting your precise location...';
-    msgBox.style.color = 'var(--text-main)';
-    
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const { latitude, longitude } = pos.coords;
-      if (!isWithinSanPablo(latitude, longitude)) {
+    document.getElementById('useCurrentLocationBtn').addEventListener('click', async () => {
+      if (!navigator.geolocation) return alert('Geolocation not supported');
+
+      const msgBox = document.getElementById('message');
+      msgBox.innerText = 'Getting your precise location...';
+      msgBox.style.color = 'var(--text-main)';
+
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        if (!isWithinSanPablo(latitude, longitude)) {
           msgBox.innerText = 'You are outside San Pablo City. Please select a location within the city.';
           msgBox.style.color = 'var(--danger)';
           return;
-      }
-      const locationName = await reverseGeocode(latitude, longitude);
-      await updateMarkerCoordinate(latitude, longitude, locationName);
-      msgBox.innerText = '✓ Location pinned accurately.';
-      msgBox.style.color = 'var(--success)';
-      setTimeout(() => { if (msgBox.innerText === '✓ Location pinned accurately.') msgBox.innerText = ''; }, 2000);
-    }, (err) => {
+        }
+        const locationName = await reverseGeocode(latitude, longitude);
+        await updateMarkerCoordinate(latitude, longitude, locationName);
+        msgBox.innerText = '✓ Location pinned accurately.';
+        msgBox.style.color = 'var(--success)';
+        setTimeout(() => { if (msgBox.innerText === '✓ Location pinned accurately.') msgBox.innerText = ''; }, 2000);
+      }, (err) => {
         console.error('Geolocation error:', err);
         if (err.code === 1) {
-            msgBox.innerText = 'Location access denied. Please enable location services.';
+          msgBox.innerText = 'Location access denied. Please enable location services.';
         } else {
-            msgBox.innerText = 'Could not get your location. Please try again or search manually.';
+          msgBox.innerText = 'Could not get your location. Please try again or search manually.';
         }
         msgBox.style.color = 'var(--danger)';
-    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
-  });
+      }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+    });
 
-  // FIXED SUBMIT: Now sends image as 'image_url' to match database schema
-  document.getElementById('submitReportBtn').addEventListener('click', async () => {
-    const type = document.getElementById('incidentType').value;
-    const description = document.getElementById('incidentDesc').value;
-    const msgBox = document.getElementById('message');
-    
-    if (!type || !description) { 
-      msgBox.innerText = 'Please select a type and add a description.'; 
-      msgBox.style.color = 'var(--danger)'; 
-      return; 
-    }
-    if (!selectedLocation) { 
-      msgBox.innerText = 'Please select a location for the incident.'; 
-      msgBox.style.color = 'var(--danger)'; 
-      return; 
-    }
-    
-    if (incidentDraggableMarker) {
-      const markerLatLng = incidentDraggableMarker.getLatLng();
-      if (Math.abs(markerLatLng.lat - selectedLocation.lat) > 0.0000001 || 
-          Math.abs(markerLatLng.lng - selectedLocation.lng) > 0.0000001) {
-        selectedLocation = { lat: markerLatLng.lat, lng: markerLatLng.lng, name: selectedLocation.name };
-      }
-    }
-    
-    msgBox.style.color = 'var(--text-main)';
-    msgBox.innerText = 'Submitting report...';
-    
-    // CRITICAL FIX: Send image as 'image_url' (matches database column name)
-    const payload = { 
-      type, 
-      description, 
-      lat: selectedLocation.lat, 
-      lng: selectedLocation.lng, 
-      location_name: selectedLocation.name,
-      image_url: currentImageData  // Changed from 'image' to 'image_url' to match database
-    };
-    
-    console.log('Submitting payload:', { ...payload, image_url: payload.image_url ? '[IMAGE DATA]' : null });
-    
-    try {
-      const response = await fetch('/incidents/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
-        body: JSON.stringify(payload)
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+    // FIXED SUBMIT: Now sends image as 'image_url' to match database schema
+    document.getElementById('submitReportBtn').addEventListener('click', async () => {
+      const type = document.getElementById('incidentType').value;
+      const description = document.getElementById('incidentDesc').value;
+      const msgBox = document.getElementById('message');
+
+      if (!type || !description) {
+        msgBox.innerText = 'Please select a type and add a description.';
         msgBox.style.color = 'var(--danger)';
-        msgBox.innerText = errorData.detail || `Failed to report incident (HTTP ${response.status})`;
-        console.error('Server response:', errorData);
-      } else {
-        const responseData = await response.json();
-        console.log('Success:', responseData);
-        msgBox.style.color = 'var(--success)';
-        msgBox.innerText = '✓ Incident reported successfully! Redirecting...';
-        setTimeout(() => location.href = 'index.html', 1500);
+        return;
       }
-    } catch (error) {
-      console.error('Network error:', error);
-      msgBox.style.color = 'var(--danger)';
-      msgBox.innerText = 'Network error. Please check your connection.';
-    }
-  });
-  
-  window.addEventListener('load', () => {
-    if (!selectedLocation && !incidentDraggableMarker) {
-      const infoMsg = document.getElementById('message');
-      infoMsg.innerText = '📍 Click on map, search, use current location, or drag marker to pin incident accurately.';
-      infoMsg.style.color = 'var(--text-main)';
-      setTimeout(() => {
-        if (infoMsg.innerText === '📍 Click on map, search, use current location, or drag marker to pin incident accurately.') {
-          infoMsg.innerText = '';
+      if (!selectedLocation) {
+        msgBox.innerText = 'Please select a location for the incident.';
+        msgBox.style.color = 'var(--danger)';
+        return;
+      }
+
+      if (incidentDraggableMarker) {
+        const markerLatLng = incidentDraggableMarker.getLatLng();
+        if (Math.abs(markerLatLng.lat - selectedLocation.lat) > 0.0000001 ||
+          Math.abs(markerLatLng.lng - selectedLocation.lng) > 0.0000001) {
+          selectedLocation = { lat: markerLatLng.lat, lng: markerLatLng.lng, name: selectedLocation.name };
         }
-      }, 4000);
+      }
+
+      msgBox.style.color = 'var(--text-main)';
+      msgBox.innerText = 'Submitting report...';
+
+      // CRITICAL FIX: Send image as 'image_url' (matches database column name)
+      const payload = {
+        type,
+        description,
+        lat: selectedLocation.lat,
+        lng: selectedLocation.lng,
+        location_name: selectedLocation.name,
+        image_url: currentImageData  // Changed from 'image' to 'image_url' to match database
+      };
+
+      console.log('Submitting payload:', { ...payload, image_url: payload.image_url ? '[IMAGE DATA]' : null });
+
+      try {
+        const response = await fetch('/incidents/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          msgBox.style.color = 'var(--danger)';
+          msgBox.innerText = errorData.detail || `Failed to report incident (HTTP ${response.status})`;
+          console.error('Server response:', errorData);
+        } else {
+          const responseData = await response.json();
+          console.log('Success:', responseData);
+          msgBox.style.color = 'var(--success)';
+          msgBox.innerText = '✓ Incident reported successfully! Redirecting...';
+          setTimeout(() => location.href = 'index.html', 1500);
+        }
+      } catch (error) {
+        console.error('Network error:', error);
+        msgBox.style.color = 'var(--danger)';
+        msgBox.innerText = 'Network error. Please check your connection.';
+      }
+    });
+
+    window.addEventListener('load', () => {
+      if (!selectedLocation && !incidentDraggableMarker) {
+        const infoMsg = document.getElementById('message');
+        infoMsg.innerText = '📍 Click on map, search, use current location, or drag marker to pin incident accurately.';
+        infoMsg.style.color = 'var(--text-main)';
+        setTimeout(() => {
+          if (infoMsg.innerText === '📍 Click on map, search, use current location, or drag marker to pin incident accurately.') {
+            infoMsg.innerText = '';
+          }
+        }, 4000);
+      }
+    });
+
+    const reportCollapseBtn = document.getElementById('reportCollapseBtn');
+    const reportBody = document.getElementById('reportBody');
+    if (reportCollapseBtn && reportBody) {
+      // Load persisted state
+      if (localStorage.getItem('report_collapsed') === 'true') {
+        reportBody.classList.add('collapsed');
+        reportCollapseBtn.classList.add('collapsed');
+      }
+
+      reportCollapseBtn.addEventListener('click', () => {
+        const isCollapsed = reportBody.classList.toggle('collapsed');
+        reportCollapseBtn.classList.toggle('collapsed', isCollapsed);
+        localStorage.setItem('report_collapsed', isCollapsed);
+      });
     }
-  });
+  </script>
+<!-- Generic Alert Modal -->
+<div id="genericAlertModal" class="sidebar-overlay" style="z-index: 9999; align-items: center; justify-content: center; display: none; background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(5px);">
+    <div class="glass-card" style="width: 90%; max-width: 400px; margin: 0; position: relative; background: var(--glass-bg, #fff); border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+        <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted, #666);">&times;</button>
+        <h3 id="genericAlertTitle" style="color: var(--text-main, #333); margin-top: 0; margin-bottom: 10px; font-family: sans-serif;">Alert</h3>
+        <p id="genericAlertBody" style="color: var(--text-muted, #666); font-size: 15px; line-height: 1.5; margin-bottom: 20px; white-space: pre-wrap; font-family: sans-serif;"></p>
+        <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="background: var(--primary, #3b82f6); color: white; padding: 12px; border-radius: 20px; width: 100%; font-weight: 600; cursor: pointer; border: none; font-size: 15px;">OK</button>
+    </div>
+</div>
+<script>
+window.alert = function(message, title = "Notification") {
+    document.getElementById('genericAlertTitle').innerText = title;
+    document.getElementById('genericAlertBody').innerText = message;
+    document.getElementById('genericAlertModal').style.display = 'flex';
+};
 </script>
 </body>
+
 </html>

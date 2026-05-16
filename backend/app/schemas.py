@@ -42,6 +42,10 @@ class CaptchaResponse(BaseModel):
     captcha_id: str
     question: str
 
+class UnlockAccountRequest(BaseModel):
+    email: EmailStr
+    otp: str
+
 # ---------- Incident schemas ----------
 class IncidentCreate(BaseModel):
     type: str

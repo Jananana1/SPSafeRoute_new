@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>SP SafeRoute - Verify Account</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1A73E8">
+</head>
+
+<body>
+    <div id="appLayout">
+        <!-- Floating Background Elements -->
+        <div
+            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none;">
+            <div
+                style="position: absolute; top: -100px; left: -100px; width: 300px; height: 300px; background: var(--primary); border-radius: 50%; filter: blur(80px); opacity: 0.3;">
+            </div>
+            <div
+                style="position: absolute; bottom: -100px; right: -100px; width: 400px; height: 400px; background: #8b5cf6; border-radius: 50%; filter: blur(100px); opacity: 0.2;">
+            </div>
+        </div>
+
+        <div class="auth-container" style="z-index: 10;">
+            <div class="glass-card">
+                <h1 class="app-title"
+                    style="background: var(--danger); -webkit-background-clip: text; background-clip: text; color: transparent;">
+                    Account Locked</h1>
+
+                <p
+                    style="color:var(--text-muted); font-size:14px; margin-bottom:24px; text-align:center; line-height: 1.5;">
+                    Your account is locked due to 5 failed login attempts. Please verify your identity to continue.
+                </p>
+
+                <div id="optionsSection">
+                    <button id="lockedForgotBtn" class="btn"
+                        style="background: rgba(255, 255, 255, 0.1); color: var(--text-main); border: 1px solid var(--glass-border); margin-bottom: 12px; font-weight: 500;">Forgot
+                        Password</button>
+                    <button id="lockedSendCodeBtn" class="btn btn-primary" style="margin-bottom: 24px;">Send
+                        Confirmation Code</button>
+                </div>
+
+                <!-- OTP Section hidden by default -->
+                <div id="unlockOtpSection" class="hidden"
+                    style="margin-top: 10px; padding-top: 20px; border-top: 1px solid var(--glass-border);">
+                    <label class="input-label"
+                        style="text-align:center; display:block; margin-bottom:16px; font-size: 14px;">Enter 4-Digit
+                        Unlock Code</label>
+                    <div style="display:flex; gap:12px; justify-content:center; margin-bottom:20px;">
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box"
+                            id="unlockOtp0">
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box"
+                            id="unlockOtp1">
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box"
+                            id="unlockOtp2">
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box"
+                            id="unlockOtp3">
+                    </div>
+                    <button id="verifyUnlockCodeBtn" class="btn btn-primary">Verify & Unlock</button>
+                </div>
+
+                <div class="link" id="backToLoginBtn" style="margin-top: 24px;">Return to Login</div>
+                <div id="lockedMessage" class="error" style="margin-top: 16px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme application
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+        // Get email from URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get('email');
+
+        if (!email) {
+            window.location.href = 'index.html'; // Fallback if no email provided
+        }
+
+        document.getElementById('backToLoginBtn').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        document.getElementById('lockedForgotBtn').addEventListener('click', () => {
+            // Redirect to index.html with a hash parameter to open forgot password
+            window.location.href = `index.html?forgot=${encodeURIComponent(email)}`;
+        });
+
+        document.getElementById('lockedSendCodeBtn').addEventListener('click', async (e) => {
+            const btn = e.target;
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+            btn.innerText = 'Sending...';
+
+            try {
+                const response = await fetch('/auth/send-unlock-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail);
+
+                document.getElementById('optionsSection').classList.add('hidden');
+                document.getElementById('unlockOtpSection').classList.remove('hidden');
+                document.getElementById('lockedMessage').style.color = 'var(--success)';
+                document.getElementById('lockedMessage').innerText = "OTP sent to your email.";
+                document.getElementById('unlockOtp0').focus();
+            } catch (err) {
+                document.getElementById('lockedMessage').style.color = 'var(--danger)';
+                document.getElementById('lockedMessage').innerText = err.message;
+            } finally {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.innerText = 'Option 2: Send Confirmation Code';
+            }
+        });
+
+        document.getElementById('verifyUnlockCodeBtn').addEventListener('click', async (e) => {
+            const btn = e.target;
+            const otp = ['unlockOtp0', 'unlockOtp1', 'unlockOtp2', 'unlockOtp3'].map(id => document.getElementById(id).value).join('');
+
+            if (otp.length !== 4) {
+                document.getElementById('lockedMessage').style.color = 'var(--danger)';
+                document.getElementById('lockedMessage').innerText = "Please enter the 4-digit code.";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+            btn.innerText = 'Verifying...';
+
+            try {
+                const response = await fetch('/auth/unlock-account', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, otp })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail);
+
+                // Automatically log the user in if token is provided
+                if (data.access_token) {
+                    localStorage.setItem('token', data.access_token);
+                }
+
+                document.getElementById('unlockOtpSection').classList.add('hidden');
+                document.getElementById('lockedMessage').style.color = 'var(--success)';
+                document.getElementById('lockedMessage').innerText = "Account successfully unlocked! Redirecting to homepage...";
+
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+            } catch (err) {
+                document.getElementById('lockedMessage').style.color = 'var(--danger)';
+                document.getElementById('lockedMessage').innerText = err.message;
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.innerText = 'Verify & Unlock';
+            }
+        });
+
+        // OTP Box logic
+        const boxes = [
+            document.getElementById('unlockOtp0'),
+            document.getElementById('unlockOtp1'),
+            document.getElementById('unlockOtp2'),
+            document.getElementById('unlockOtp3')
+        ];
+
+        boxes.forEach((box, i) => {
+            box.addEventListener('input', (e) => {
+                if (box.value.length > 1) box.value = box.value[0];
+                if (box.value !== '' && i < 3) boxes[i + 1].focus();
+            });
+
+            box.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && box.value === '' && i > 0) {
+                    boxes[i - 1].focus();
+                    boxes[i - 1].value = '';
+                }
+            });
+
+            box.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pasteData = e.clipboardData.getData('text').slice(0, 4);
+                if (!/^\d+$/.test(pasteData)) return;
+
+                for (let j = 0; j < pasteData.length && i + j < 4; j++) {
+                    boxes[i + j].value = pasteData[j];
+                    if (i + j < 3) boxes[i + j + 1].focus();
+                    else boxes[3].focus();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

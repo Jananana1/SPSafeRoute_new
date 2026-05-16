@@ -146,12 +146,14 @@ def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     if user.locked_until and user.locked_until > datetime.utcnow():
-        raise HTTPException(status_code=403, detail="Account locked. Try again later.")
+        raise HTTPException(status_code=403, detail="Account locked. Please verify your identity.")
 
     if not auth.verify_password(form_data.password, user.hashed_password):
         user.failed_login_attempts += 1
-        if user.failed_login_attempts >= 3:
-            user.locked_until = datetime.utcnow() + timedelta(minutes=5)
+        if user.failed_login_attempts >= 5:
+            user.locked_until = datetime.utcnow() + timedelta(minutes=30)
+            db.commit()
+            raise HTTPException(status_code=403, detail="Account locked. Please verify your identity.")
         
         hist = models.LoginHistory(user_id=user.id, ip_address=ip, status="failed", created_at=datetime.utcnow())
         db.add(hist)
@@ -256,6 +258,49 @@ def reset_password(req: schemas.PasswordResetConfirm, db: Session = Depends(auth
     db.delete(record)
     db.commit()
     return {"message": "Password successfully reset."}
+
+@app.post("/auth/send-unlock-code")
+def send_unlock_code(req: schemas.ForgotPasswordRequest, db: Session = Depends(auth.get_db)):
+    user = db.query(models.User).filter(models.User.email == req.email).first()
+    if user:
+        otp = auth.generate_otp()
+        otp_record = models.OTPToken(
+            user_id=user.id,
+            otp_code=otp,
+            expires_at=datetime.utcnow() + timedelta(minutes=15)
+        )
+        db.add(otp_record)
+        db.commit()
+        email_service.send_email(user.email, "SP SafeRoute – Account Unlock Verification", f"Your 4-digit OTP to unlock your account is: {otp}", otp_code=otp, email_type="reset")
+    return {"message": "If an account exists, an OTP was sent."}
+
+@app.post("/auth/unlock-account")
+def unlock_account(req: schemas.UnlockAccountRequest, db: Session = Depends(auth.get_db)):
+    user = db.query(models.User).filter(models.User.email == req.email).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid request")
+        
+    record = db.query(models.OTPToken).filter(
+        models.OTPToken.user_id == user.id,
+        models.OTPToken.otp_code == req.otp,
+        models.OTPToken.expires_at > datetime.utcnow()
+    ).first()
+    if not record:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+        
+    user.locked_until = None
+    user.failed_login_attempts = 0
+    db.delete(record)
+    db.commit()
+    
+    # Automatically log the user in
+    access_token = auth.create_access_token(data={"sub": str(user.id)})
+    return {
+        "message": "Account unlocked successfully.",
+        "access_token": access_token,
+        "token_type": "bearer",
+        "mfa_required": False
+    }
 
 
 # ===== FCM Token registration =====

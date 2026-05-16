@@ -31,10 +31,7 @@ def delete_incident(incident_id: int, db: Session = Depends(get_db), admin: mode
     inc = db.query(models.Incident).filter(models.Incident.id == incident_id).first()
     if not inc:
         raise HTTPException(404, "Not found")
-<<<<<<< Updated upstream
-    inc.status = 'deleted'
-=======
-    # Log to history before deleting
+    # Log to history before soft-deleting
     history = models.IncidentHistory(
         incident_id=inc.id,
         action="deleted",
@@ -49,8 +46,7 @@ def delete_incident(incident_id: int, db: Session = Depends(get_db), admin: mode
         actioned_at=datetime.utcnow()
     )
     db.add(history)
-    db.delete(inc)
->>>>>>> Stashed changes
+    inc.status = 'deleted'
     db.commit()
     return {"message": "Deleted"}
 
@@ -110,7 +106,7 @@ def analytics(db: Session = Depends(get_db), admin: models.User = Depends(auth.g
     try:
         # Monthly incident counts
         monthly_sql = text("""
-            SELECT DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count
+            SELECT strftime('%Y-%m', created_at) as month, COUNT(*) as count
             FROM incidents
             GROUP BY month
             ORDER BY month
