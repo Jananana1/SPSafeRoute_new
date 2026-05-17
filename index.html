@@ -74,7 +74,21 @@
         <!-- Top Right Controls (Visible when logged in) -->
         <div id="topRightControls" class="top-right-controls hidden">
             <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌗</div>
-            <div id="bellIcon" class="control-btn" title="Enable Notifications">🔔</div>
+            <div id="bellIcon" class="control-btn" title="Notifications" style="position: relative;">
+                🔔
+                <div id="notifBadge" class="notif-badge hidden">0</div>
+            </div>
+        </div>
+
+        <!-- Notification Panel -->
+        <div id="notificationPanel" class="notification-panel hidden-panel">
+            <div class="notif-header">
+                Notifications
+                <button id="enablePushBtn" class="btn btn-secondary" style="font-size: 11px; padding: 4px 8px; width: auto; margin: 0; border-radius: 8px;">Enable Push</button>
+            </div>
+            <div id="notifList" class="notif-list">
+                <!-- Notifications will be injected here -->
+            </div>
         </div>
 
         <!-- Sidebar Backdrop for Mobile -->
@@ -118,6 +132,8 @@
 
         <!-- Authentication Overlay (Visible when not logged in) -->
         <div id="authOverlay" class="auth-container">
+            <!-- Theme Toggle for Auth Page -->
+            <div id="authThemeToggleBtn" class="control-btn" style="position: absolute; top: 20px; right: 20px; z-index: 1000; cursor: pointer; font-size: 24px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: var(--glass-bg, rgba(255, 255, 255, 0.1)); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.2)); border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); color: var(--text-main);" title="Toggle Theme">🌗</div>
             <script>
                 // Prevent login screen flash when pressing back button
                 if (localStorage.getItem('token')) {
@@ -132,7 +148,10 @@
                 <input type="email" id="email" placeholder="user@gmail.com" class="input">
 
                 <label class="input-label" for="password">Password</label>
-                <input type="password" id="password" placeholder="Enter your password" class="input">
+                <div class="password-wrapper">
+                    <input type="password" id="password" placeholder="Enter your password" class="input">
+                    <button type="button" class="eye-toggle" onclick="togglePassword('password', this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+                </div>
 
                 <button id="loginBtn" class="btn btn-primary">Login</button>
                 <div class="link" id="showForgotPasswordBtn" style="font-size: 12px; margin-top: 12px;">Forgot Password?
@@ -197,13 +216,19 @@
                 </div>
 
                 <label class="input-label" for="resetPasswordInput">New Password</label>
-                <input type="password" id="resetPasswordInput" placeholder="Minimum of 8 characters" class="input">
+                <div class="password-wrapper">
+                    <input type="password" id="resetPasswordInput" placeholder="Minimum of 8 characters" class="input">
+                    <button type="button" class="eye-toggle" onclick="togglePassword('resetPasswordInput', this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+                </div>
                 <div id="resetPasswordStrength"
                     style="font-size: 12px; margin-top: -10px; margin-bottom: 10px; text-align: left; width: 100%;">
                 </div>
 
                 <label class="input-label" for="resetConfirmPasswordInput">Confirm New Password</label>
-                <input type="password" id="resetConfirmPasswordInput" placeholder="Re-enter new password" class="input">
+                <div class="password-wrapper">
+                    <input type="password" id="resetConfirmPasswordInput" placeholder="Re-enter new password" class="input">
+                    <button type="button" class="eye-toggle" onclick="togglePassword('resetConfirmPasswordInput', this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+                </div>
                 <div id="resetPasswordMatchStatus"
                     style="font-size: 12px; margin-top: -10px; margin-bottom: 10px; text-align: left; width: 100%;">
                 </div>
@@ -225,13 +250,19 @@
                 <input type="email" id="regEmail" placeholder="user@gmail.com" class="input">
 
                 <label class="input-label" for="regPassword">Password</label>
-                <input type="password" id="regPassword" placeholder="Minimum of 8 characters" class="input">
+                <div class="password-wrapper">
+                    <input type="password" id="regPassword" placeholder="Minimum of 8 characters" class="input">
+                    <button type="button" class="eye-toggle" onclick="togglePassword('regPassword', this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+                </div>
                 <div id="passwordStrength"
                     style="font-size: 12px; margin-top: -10px; margin-bottom: 10px; text-align: left; width: 100%;">
                 </div>
 
                 <label class="input-label" for="regConfirmPassword">Confirm Password</label>
-                <input type="password" id="regConfirmPassword" placeholder="Re-enter password" class="input">
+                <div class="password-wrapper">
+                    <input type="password" id="regConfirmPassword" placeholder="Re-enter password" class="input">
+                    <button type="button" class="eye-toggle" onclick="togglePassword('regConfirmPassword', this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+                </div>
                 <div id="passwordMatchStatus"
                     style="font-size: 12px; margin-top: -10px; margin-bottom: 10px; text-align: left; width: 100%;">
                 </div>
@@ -255,6 +286,17 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
+        function togglePassword(inputId, toggleEl) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggleEl.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+            } else {
+                input.type = 'password';
+                toggleEl.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+            }
+        }
+
         // --- Helper: disable button during async operation (prevents rate limit hit)
         async function withButtonDisable(button, callback) {
             if (!button || button.disabled) return;
@@ -315,7 +357,7 @@
             document.documentElement.setAttribute('data-theme', 'dark');
         }
 
-        document.getElementById('themeToggleBtn').addEventListener('click', () => {
+        function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             if (newTheme === 'dark') {
@@ -325,7 +367,10 @@
             }
             localStorage.setItem('theme', newTheme);
             updateMapTheme(newTheme);
-        });
+        }
+
+        document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
+        document.getElementById('authThemeToggleBtn').addEventListener('click', toggleTheme);
 
         function initMap() {
             if (!map) {
@@ -358,6 +403,8 @@
             currentTileLayer.addTo(map);
         }
 
+        let incidentMarkersLayer = null;
+
         async function loadIncidentsOnMap() {
             if (!map) return;
             try {
@@ -365,6 +412,11 @@
                 const res = await fetch('/incidents/', { headers: { 'Authorization': `Bearer ${TOKEN}` } });
                 const incidents = await res.json();
                 if (res.ok) {
+                    if (incidentMarkersLayer) {
+                        map.removeLayer(incidentMarkersLayer);
+                    }
+                    incidentMarkersLayer = L.layerGroup().addTo(map);
+
                     incidents.forEach(inc => {
                         const status = (inc.status || '').toLowerCase();
                         if (status === 'deleted') return;
@@ -387,11 +439,18 @@
                             weight: 2,
                             opacity: 1,
                             fillOpacity: fillOpacity
-                        }).addTo(map).bindPopup(`<b>${inc.type.toUpperCase()}</b><br>${inc.description}${['completed', 'resolved', 'dismissed'].includes(status) ? '<br><i>(Resolved)</i>' : ''}`);
+                        }).addTo(incidentMarkersLayer).bindPopup(`<b>${inc.type.toUpperCase()}</b><br>${inc.description}${['completed', 'resolved', 'dismissed'].includes(status) ? '<br><i>(Resolved)</i>' : ''}`);
                     });
                 }
             } catch (e) { console.error('Failed to load incidents', e); }
         }
+        
+        // Auto-refresh incidents on map every 15 seconds
+        setInterval(() => {
+            if (map && TOKEN) {
+                loadIncidentsOnMap();
+            }
+        }, 15000);
 
         // --- UI Interactions ---
         const sidebar = document.getElementById('sidebar');
@@ -557,8 +616,15 @@
                 const placeholder = document.getElementById('sidebarAvatarPlaceholder');
 
                 // Use latest profile image (from API or cached)
-                const imgUrl = user.profile_image_url || localStorage.getItem('sp_profile_image_url');
-                if (user.profile_image_url) localStorage.setItem('sp_profile_image_url', user.profile_image_url);
+                let imgUrl = user.profile_image_url;
+                if (imgUrl === null || imgUrl === 'null') {
+                    localStorage.removeItem('sp_profile_image_url');
+                    imgUrl = null;
+                } else if (imgUrl) {
+                    localStorage.setItem('sp_profile_image_url', imgUrl);
+                } else {
+                    imgUrl = localStorage.getItem('sp_profile_image_url');
+                }
 
                 if (avatar && placeholder) {
                     if (imgUrl) {
@@ -641,6 +707,8 @@
                 }
             } catch (err) {
                 document.getElementById('loginMessage').innerText = err.message;
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
             }
         }
 
@@ -680,6 +748,8 @@
 
             if (password !== confirm_password) {
                 document.getElementById('registerMessage').innerText = "Passwords do not match.";
+                document.getElementById('regPassword').value = '';
+                document.getElementById('regConfirmPassword').value = '';
                 return;
             }
 
@@ -713,6 +783,11 @@
                 }
             } catch (err) {
                 document.getElementById('registerMessage').innerText = err.message;
+                document.getElementById('regName').value = '';
+                document.getElementById('regEmail').value = '';
+                document.getElementById('regPassword').value = '';
+                document.getElementById('regConfirmPassword').value = '';
+                document.getElementById('captchaAnswer').value = '';
             }
         }
 
@@ -772,6 +847,8 @@
             authOverlay.classList.remove('hidden');
             loginPanel.classList.remove('hidden');
             registerPanel.classList.add('hidden');
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
         }
 
         // Attach rate‑limit protection to login and register buttons
@@ -879,12 +956,123 @@
             }
         }
 
-        // --- Bell icon: manual trigger (using the correct URL) ---
-        document.getElementById('bellIcon').addEventListener('click', async () => {
-            if (!TOKEN) { showToast('Not logged in', 'Please login first.', 'warning'); return; }
+        // --- Notification Panel & Push Logic ---
+        let notificationsOpen = false;
+
+        document.getElementById('bellIcon').addEventListener('click', () => {
+            if (!TOKEN) return;
+            const panel = document.getElementById('notificationPanel');
+            if (notificationsOpen) {
+                panel.classList.add('hidden-panel');
+                notificationsOpen = false;
+            } else {
+                panel.classList.remove('hidden-panel');
+                notificationsOpen = true;
+                loadNotifications();
+            }
+        });
+
+        // Close panel if clicked outside
+        document.addEventListener('click', (e) => {
+            const panel = document.getElementById('notificationPanel');
             const bell = document.getElementById('bellIcon');
-            bell.style.opacity = '0.5';
-            bell.style.pointerEvents = 'none';
+            if (notificationsOpen && !panel.contains(e.target) && !bell.contains(e.target)) {
+                panel.classList.add('hidden-panel');
+                notificationsOpen = false;
+            }
+        });
+
+        async function loadNotifications() {
+            try {
+                const response = await fetch('/users/notifications', {
+                    headers: { 'Authorization': `Bearer ${TOKEN}` }
+                });
+                if (!response.ok) return;
+                const notifs = await response.json();
+                const list = document.getElementById('notifList');
+                list.innerHTML = '';
+                
+                let unreadCount = 0;
+                
+                if (notifs.length === 0) {
+                    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">No notifications yet.</div>';
+                } else {
+                    notifs.forEach(n => {
+                        if (!n.is_read) unreadCount++;
+                        
+                        const item = document.createElement('div');
+                        item.className = 'notif-item ' + (n.is_read ? '' : 'unread');
+                        
+                        const date = new Date(n.created_at);
+                        const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ' - ' + date.toLocaleDateString();
+                        
+                        item.innerHTML = `
+                            <div class="notif-title">${n.title}</div>
+                            <div class="notif-body">${n.message}</div>
+                            <div class="notif-time">${timeStr}</div>
+                        `;
+                        
+                        item.onclick = async () => {
+                            if (!n.is_read) {
+                                await fetch(`/users/notifications/${n.id}/read`, {
+                                    method: 'PUT',
+                                    headers: { 'Authorization': `Bearer ${TOKEN}` }
+                                });
+                                item.classList.remove('unread');
+                                n.is_read = true;
+                                unreadCount = Math.max(0, unreadCount - 1);
+                                updateNotifBadge(unreadCount);
+                            }
+                        };
+                        
+                        list.appendChild(item);
+                    });
+                }
+                
+                updateNotifBadge(unreadCount);
+            } catch (err) {
+                console.error("Failed to load notifications", err);
+            }
+        }
+
+        function updateNotifBadge(count) {
+            const badge = document.getElementById('notifBadge');
+            if (!badge) return;
+            if (count > 0) {
+                badge.innerText = count > 99 ? '99+' : count;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        // Auto check notifications on load
+        async function fetchUnreadCount() {
+            if (!TOKEN) return;
+            try {
+                const response = await fetch('/users/notifications', {
+                    headers: { 'Authorization': `Bearer ${TOKEN}` }
+                });
+                if (!response.ok) return;
+                const notifs = await response.json();
+                const unreadCount = notifs.filter(n => !n.is_read).length;
+                updateNotifBadge(unreadCount);
+            } catch (err) {}
+        }
+        setInterval(fetchUnreadCount, 30000);
+        
+        // Fetch initially when login state changes (called in showMainApp)
+        const origShowMainApp = showMainApp;
+        showMainApp = function() {
+            origShowMainApp();
+            fetchUnreadCount();
+        };
+
+        document.getElementById('enablePushBtn').addEventListener('click', async (e) => {
+            const btn = e.target;
+            btn.style.opacity = '0.5';
+            btn.style.pointerEvents = 'none';
+            btn.innerText = 'Enabling...';
             try {
                 if (Notification.permission === 'denied') {
                     showToast('Permission Denied', 'Enable notifications in your browser settings.', 'error');
@@ -906,8 +1094,8 @@
                     body: JSON.stringify({ token: fcmToken })
                 });
                 if (response.ok) {
-                    showToast('Notifications Enabled', 'You will now receive alerts!', 'success');
-                    bell.title = 'Notifications Enabled ✅';
+                    showToast('Notifications Enabled', 'You will now receive push alerts!', 'success');
+                    btn.innerText = 'Enabled';
                 } else {
                     showToast('Server Error', 'Failed to save notification token.', 'error');
                 }
@@ -915,8 +1103,9 @@
                 console.error('Push enable error:', err);
                 showToast('Error', err.message || 'Could not enable notifications.', 'error');
             } finally {
-                bell.style.opacity = '';
-                bell.style.pointerEvents = '';
+                btn.style.opacity = '';
+                btn.style.pointerEvents = '';
+                if (btn.innerText !== 'Enabled') btn.innerText = 'Enable Push';
             }
         });
 

@@ -568,13 +568,13 @@
         <h2>🛡️ SafeRoute</h2>
     </div>
     <div class="admin-nav-item active" data-section="incidents">
-        📋 Incident Reports
+        Incident Reports
     </div>
     <div class="admin-nav-item" data-section="analytics">
-        📊 Analytics & Insights
+        Analytics & Insights
     </div>
     <div class="sidebar-spacer"></div>
-    <button class="admin-nav-item logout-btn" id="logoutButton">🔒 Logout</button>
+    <button class="admin-nav-item logout-btn" id="logoutButton">Logout</button>
 </div>
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
@@ -648,7 +648,7 @@
         <button id="closeAdminAlert" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted);">&times;</button>
         <h3 id="adminAlertTitle" style="color: var(--danger); margin-bottom: 10px;">New Alert</h3>
         <p id="adminAlertBody" style="color: var(--text-main); font-size: 15px; line-height: 1.5; margin-bottom: 20px; white-space: pre-wrap;"></p>
-        <button id="adminAlertAction" style="background: var(--primary); color: white; padding: 12px; border-radius: 20px; width: 100%; font-weight: 600; cursor: pointer; border: none; transition: 0.2s;">View Incident</button>
+    
     </div>
 </div>
 
@@ -997,19 +997,28 @@
 
     if (document.getElementById('incidentSearch')) document.getElementById('incidentSearch').addEventListener('input', applyFilters);
 
-    async function loadIncidents() {
+    async function loadIncidents(isPolling = false) {
         const tbodyActive = document.getElementById('incidentsList');
-        tbodyActive.innerHTML = '<tr><td colspan="8" class="loader-text">⏳ Loading reports...</td></tr>';
+        if (!isPolling) {
+            tbodyActive.innerHTML = '<tr><td colspan="8" class="loader-text">⏳ Loading reports...</td></tr>';
+        }
         try {
             const res = await authFetch('/admin/incidents');
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const incidents = await res.json();
             
+            // If polling and no data changed, avoid re-rendering to keep UI stable
+            if (isPolling && JSON.stringify(incidents) === JSON.stringify(allActiveIncidents)) {
+                return;
+            }
+            
             allActiveIncidents = incidents;
             applyFilters();
         } catch (err) {
             console.error(err);
-            tbodyActive.innerHTML = '<tr><td colspan="8" style="text-align:center; color: #ef4444;">Failed to load incidents</td></tr>';
+            if (!isPolling) {
+                tbodyActive.innerHTML = '<tr><td colspan="8" style="text-align:center; color: #ef4444;">Failed to load incidents</td></tr>';
+            }
         }
     }
 
@@ -1025,11 +1034,14 @@
             } else {
                 let errorMsg = 'Failed to complete incident';
                 try {
-                    const errorData = await res.json();
-                    errorMsg = errorData.detail || errorMsg;
-                } catch(e) {
-                    errorMsg = await res.text() || errorMsg;
-                }
+                    const errorText = await res.text();
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        errorMsg = errorData.detail || errorMsg;
+                    } catch(e) {
+                        errorMsg = errorText || errorMsg;
+                    }
+                } catch(e) {}
                 showModal('Error', errorMsg);
             }
         } catch (err) {
@@ -1050,11 +1062,14 @@
             } else {
                 let errorMsg = 'Delete failed';
                 try {
-                    const errorData = await res.json();
-                    errorMsg = errorData.detail || errorMsg;
-                } catch(e) {
-                    errorMsg = await res.text() || errorMsg;
-                }
+                    const errorText = await res.text();
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        errorMsg = errorData.detail || errorMsg;
+                    } catch(e) {
+                        errorMsg = errorText || errorMsg;
+                    }
+                } catch(e) {}
                 showModal('Error', errorMsg);
             }
         } catch (err) {
@@ -1064,11 +1079,19 @@
     }
 
     // ---------- ANALYTICS ----------
-    async function refreshAnalyticsCharts() {
+    let lastAnalyticsData = null;
+    
+    async function refreshAnalyticsCharts(isPolling = false) {
         try {
             const res = await authFetch('/admin/analytics');
             if (!res.ok) throw new Error('Analytics fetch failed');
             const data = await res.json();
+            
+            if (isPolling && JSON.stringify(data) === lastAnalyticsData) {
+                return;
+            }
+            lastAnalyticsData = JSON.stringify(data);
+            
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
             const textColor = isDark ? '#e2e8f0' : '#1e293b';
             const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
@@ -1105,6 +1128,15 @@
     });
 
     switchSection('incidents');
+    
+    // Polling setup for background AJAX updates
+    setInterval(() => {
+        if (currentSection === 'incidents') {
+            loadIncidents(true);
+        } else if (currentSection === 'analytics') {
+            refreshAnalyticsCharts(true);
+        }
+    }, 15000); // 15 seconds
 
     // --- Firebase & Notifications ---
     const firebaseConfig = {

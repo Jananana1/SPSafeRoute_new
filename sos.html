@@ -54,13 +54,14 @@
     body {
       min-height: 100vh;
       background: radial-gradient(circle at 30% 10%, var(--bg-gradient-start), var(--bg-gradient-end));
+      color: var(--text-primary);
       font-family: system-ui, 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       display: flex;
       flex-direction: column;
       backdrop-filter: blur(2px);
     }
 
-    /* Header with glassmorphic effect - back button left, theme toggle right (like index.html) */
+    /* Header with glassmorphic effect - back button left, theme toggle right */
     .sos-header {
       position: sticky;
       top: 0;
@@ -74,6 +75,13 @@
       border-bottom: 1px solid var(--glass-border);
       z-index: 50;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Left section: back button + SOS text */
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
     }
 
     /* control-btn style exactly like index.html */
@@ -99,6 +107,7 @@
       background: var(--control-btn-hover);
     }
 
+    /* Back button - perfectly centered inside circle */
     .back-btn {
       background: var(--btn-back-bg);
       border: 1px solid var(--glass-border);
@@ -106,7 +115,6 @@
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      font-size: 24px;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -114,11 +122,31 @@
       transition: opacity 0.3s, background 0.3s, color 0.3s, transform 0.2s;
       backdrop-filter: blur(10px);
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+      padding: 0;
+      line-height: 1;
+    }
+
+    .back-btn svg {
+      display: block;
+      width: 24px;
+      height: 24px;
+      stroke: currentColor;
+      stroke-width: 2.5;
     }
 
     .back-btn:hover {
       transform: translateY(-2px);
       background: var(--btn-back-hover, rgba(255, 255, 255, 0.2));
+    }
+
+    /* SOS text beside back button */
+    .sos-header-text {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: 1px;
+      margin: 0;
+      line-height: 1;
     }
 
     /* main container */
@@ -206,7 +234,7 @@
       cursor: not-allowed;
     }
 
-    /* Emergency Action Modal - minimalist glass card (like index auth panels) */
+    /* Emergency Action Modal - minimalist glass card */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -324,7 +352,7 @@
       color: var(--danger-soft);
     }
 
-    /* other elements */
+    /* warning badge & status */
     .warning-badge {
       margin-top: 32px;
       background: var(--status-bg);
@@ -393,6 +421,14 @@
         padding: 12px 16px;
         font-size: 1rem;
       }
+      
+      .header-left {
+        gap: 10px;
+      }
+      
+      .sos-header-text {
+        font-size: 16px;
+      }
     }
   </style>
   <link rel="manifest" href="/manifest.json">
@@ -402,14 +438,16 @@
 <body>
 
   <div class="sos-header">
-    <!-- Back button (left) -->
-    <button class="back-btn" id="backBtn" aria-label="Go back to dashboard">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-        stroke-linecap="round" stroke-linejoin="round">
-        <path d="m15 18-6-6 6-6" />
-      </svg>
-    </button>
-    <h2 style="margin:0; font-size: 18px; color: var(--text-main);">SOS</h2>
+    <!-- Left section: back button (centered) + SOS text -->
+    <div class="header-left">
+      <button class="back-btn" id="backBtn" aria-label="Go back to dashboard">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+      </button>
+      <span class="sos-header-text">SOS</span>
+    </div>
     <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌗</div>
   </div>
 
@@ -422,27 +460,27 @@
     </div>
 
     <div class="warning-badge">
-      ⚠️ EMERGENCY ONLY — Tap SOS, then choose emergency action
+      EMERGENCY ONLY - Tap SOS, then choose emergency action
     </div>
     <div id="sosStatusMessage" class="status-message">
-      ✅ SOS armed · Tap red button if you need help
+      SOS armed - Tap red button if you need help
     </div>
     <div class="safety-footnote">
-      🔒 Your location will be shared with emergency services & trusted contacts
+      Your location will be shared with emergency services and trusted contacts
     </div>
   </div>
 
-  <!-- Emergency Action Modal (Emergency Hotline or Emergency Contact) -->
+  <!-- Emergency Action Modal -->
   <div id="emergencyModal" class="modal-overlay">
     <div class="emergency-modal">
-      <h3>🆘 EMERGENCY</h3>
+      <h3>EMERGENCY</h3>
       <p>Choose your emergency response</p>
       <div class="emergency-actions">
         <button id="callHotlineBtn" class="emergency-btn primary-danger">
-          📞 911 - Emergency Hotline
+          911 - Emergency Hotline
         </button>
         <button id="callContactBtn" class="emergency-btn secondary">
-          👤 Call My Emergency Contact
+          Call My Emergency Contact
         </button>
       </div>
       <button id="cancelModalBtn" class="modal-cancel">Cancel</button>
@@ -451,17 +489,17 @@
 
   <script>
     (function () {
-      // EMERGENCY HOTLINE NUMBER (replaced 911)
+      // EMERGENCY HOTLINE NUMBER
       const EMERGENCY_HOTLINE = "09319948901";
 
-      // ---------- AUTHENTICATION CHECK ----------
+      // AUTHENTICATION CHECK
       const TOKEN = localStorage.getItem('token');
       if (!TOKEN) {
         window.location.replace('index.html');
         return;
       }
 
-      // ---------- THEME MANAGEMENT (exactly like index.html: control-btn, localStorage 'theme') ----------
+      // THEME MANAGEMENT
       let savedTheme = localStorage.getItem('theme');
       if (!savedTheme) {
         savedTheme = 'light';
@@ -489,12 +527,12 @@
       }
       themeToggle.addEventListener('click', toggleAppTheme);
 
-      // ---------- BACK BUTTON ----------
+      // BACK BUTTON
       document.getElementById('backBtn').addEventListener('click', () => {
         window.location.href = 'index.html';
       });
 
-      // ---------- SOS CORE LOGIC + MODAL FLOW (Emergency Hotline or Emergency Contact) ----------
+      // SOS CORE LOGIC + MODAL FLOW
       const sosBtn = document.getElementById('sosTriggerBtn');
       const statusDiv = document.getElementById('sosStatusMessage');
       const modalOverlay = document.getElementById('emergencyModal');
@@ -502,7 +540,7 @@
       const callContactBtn = document.getElementById('callContactBtn');
       const cancelModalBtn = document.getElementById('cancelModalBtn');
 
-      let pendingLocation = null;      // store coordinates until user picks action
+      let pendingLocation = null;
       let sosInProgress = false;
       let cooldownTimer = null;
 
@@ -513,7 +551,6 @@
         else if (isSuccess) statusDiv.classList.add('success');
       }
 
-      // Show/hide modal
       function showModal() {
         modalOverlay.classList.add('active');
       }
@@ -522,7 +559,6 @@
         pendingLocation = null;
       }
 
-      // Send SOS to backend (broadcast location to server)
       async function performSOS(latitude, longitude) {
         const response = await fetch('/sos/', {
           method: 'POST',
@@ -543,7 +579,6 @@
         return await response.json();
       }
 
-      // Store offline SOS for retry (PWA ready)
       function storePendingSOSForRetry(lat, lng) {
         if (!lat || !lng) return;
         const pending = { lat, lng, timestamp: Date.now(), token: TOKEN };
@@ -556,39 +591,33 @@
         localStorage.setItem('pending_sos_alerts', JSON.stringify(queue));
       }
 
-      // Format phone number for tel: link (remove spaces, dashes)
       function formatTelNumber(phone) {
         return phone.replace(/[\s\-\(\)]/g, '');
       }
 
-      // Actual emergency dispatch after user picks option (Hotline or Contact)
       async function dispatchEmergency(contactType, lat, lng) {
         const latFixed = lat.toFixed(6);
         const lngFixed = lng.toFixed(6);
 
         try {
           if (contactType === 'hotline') {
-            setStatus(`🚨 Sending alert & notifying emergency hotline ${EMERGENCY_HOTLINE}...`, false);
+            setStatus(`Sending alert and notifying emergency hotline ${EMERGENCY_HOTLINE}...`, false);
           } else {
-            setStatus(`🚨 Sending alert & notifying your emergency contact...`, false);
+            setStatus(`Sending alert and notifying your emergency contact...`, false);
           }
 
-          // 1) Send SOS to backend (alerts emergency contacts & responders)
           await performSOS(lat, lng);
 
-          setStatus(`✅ SOS Broadcasted! ${contactType === 'hotline' ? 'Emergency hotline' : 'Your contact'} has been alerted.`, false, true);
+          setStatus(`SOS Broadcasted! ${contactType === 'hotline' ? 'Emergency hotline' : 'Your contact'} has been alerted.`, false, true);
 
-          // 2) Based on user selection: trigger phone call
           if (contactType === 'hotline') {
-            // Call the specific emergency hotline number (09319948901)
             const telLink = `tel:${formatTelNumber(EMERGENCY_HOTLINE)}`;
             window.location.href = telLink;
             setTimeout(() => {
-              alert(`🚨 EMERGENCY SIGNAL SENT\n\nYour live location: ${latFixed}, ${lngFixed}\nEmergency hotline (${EMERGENCY_HOTLINE}) has been notified. Call initiated. Stay safe.`);
+              alert(`EMERGENCY SIGNAL SENT\n\nYour live location: ${latFixed}, ${lngFixed}\nEmergency hotline (${EMERGENCY_HOTLINE}) has been notified. Call initiated. Stay safe.`);
             }, 200);
           }
           else if (contactType === 'contact') {
-            // Fetch user's emergency contact from backend (GET /users/me includes emergency_phone)
             try {
               const userRes = await fetch('/users/me', {
                 headers: { 'Authorization': `Bearer ${TOKEN}` }
@@ -597,15 +626,13 @@
               const emergencyPhone = userData.emergency_phone || userData.emergency_contact_number;
 
               if (emergencyPhone && emergencyPhone.trim() !== '') {
-                // Initiate phone call to emergency contact
                 window.location.href = `tel:${formatTelNumber(emergencyPhone)}`;
-                setStatus(`📞 Calling your emergency contact...`, false);
+                setStatus(`Calling your emergency contact...`, false);
                 setTimeout(() => {
-                  alert(`🚨 SOS SENT\n\nLocation: ${latFixed}, ${lngFixed}\nCalling your emergency contact (${emergencyPhone}). Stay safe.`);
+                  alert(`SOS SENT\n\nLocation: ${latFixed}, ${lngFixed}\nCalling your emergency contact (${emergencyPhone}). Stay safe.`);
                 }, 200);
               } else {
-                // No emergency contact set: offer to call emergency hotline instead
-                setStatus(`⚠️ No emergency contact saved. Please set one in profile.`, true);
+                setStatus(`No emergency contact saved. Please set one in profile.`, true);
                 const userChoice = confirm("No emergency contact found. Would you like to call the emergency hotline instead?");
                 if (userChoice) {
                   window.location.href = `tel:${formatTelNumber(EMERGENCY_HOTLINE)}`;
@@ -613,33 +640,31 @@
               }
             } catch (contactErr) {
               console.error('Failed to fetch emergency contact', contactErr);
-              setStatus(`❌ Could not retrieve emergency contact.`, true);
+              setStatus(`Could not retrieve emergency contact.`, true);
               const manualCall = confirm("Unable to fetch your emergency contact. Call emergency hotline now?");
               if (manualCall) window.location.href = `tel:${formatTelNumber(EMERGENCY_HOTLINE)}`;
             }
           }
 
-          // After successful dispatch, reset cooldown state, disable button momentarily
           sosBtn.disabled = true;
           if (cooldownTimer) clearTimeout(cooldownTimer);
           cooldownTimer = setTimeout(() => {
             sosBtn.disabled = false;
             sosBtn.style.opacity = '1';
             cooldownTimer = null;
-            setStatus('✅ SOS armed · Tap red button in emergency', false);
+            setStatus('SOS armed - Tap red button in emergency', false);
           }, 10000);
 
         } catch (err) {
           console.error('SOS dispatch error:', err);
           let friendlyMsg = '';
           if (err.message?.includes('Network') || err.message?.includes('fetch')) {
-            friendlyMsg = '📡 Network error — SOS saved offline. Will retry when online.';
+            friendlyMsg = 'Network error - SOS saved offline. Will retry when online.';
             storePendingSOSForRetry(lat, lng);
           } else {
-            friendlyMsg = `❌ Emergency alert failed: ${err.message}. Please call emergency hotline directly.`;
+            friendlyMsg = `Emergency alert failed: ${err.message}. Please call emergency hotline directly.`;
           }
           setStatus(friendlyMsg, true);
-          // still attempt to offer phone call even if backend fails
           if (contactType === 'hotline') {
             const tryCall = confirm("Backend alert failed, but you can still call the emergency hotline. Call now?");
             if (tryCall) window.location.href = `tel:${formatTelNumber(EMERGENCY_HOTLINE)}`;
@@ -663,14 +688,13 @@
         }
       }
 
-      // Main SOS flow: acquire location -> show modal (Hotline/Contact) -> execute dispatch
       async function initiateSOS() {
         if (sosInProgress) {
-          setStatus('⏳ SOS already in progress...', false);
+          setStatus('SOS already in progress...', false);
           return;
         }
         if (cooldownTimer) {
-          setStatus('⚠️ Please wait before sending another SOS.', true);
+          setStatus('Please wait before sending another SOS.', true);
           return;
         }
 
@@ -683,7 +707,7 @@
         try {
           if (!navigator.geolocation) throw new Error('Geolocation not supported');
 
-          setStatus('📍 Acquiring GPS location... (allow location access)', false);
+          setStatus('Acquiring GPS location... (allow location access)', false);
 
           const position = await new Promise((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -696,20 +720,18 @@
           const { latitude, longitude } = position.coords;
           pendingLocation = { lat: latitude, lng: longitude };
 
-          setStatus(`📍 Location ready (${latitude.toFixed(5)}, ${longitude.toFixed(5)}). Choose emergency action.`, false);
-
-          // Show modal to pick emergency hotline or emergency contact
+          setStatus(`Location ready (${latitude.toFixed(5)}, ${longitude.toFixed(5)}). Choose emergency action.`, false);
           showModal();
 
         } catch (err) {
           console.error('Geolocation error:', err);
           let errorMsg = '';
           if (err.code === 1 || err.message?.includes('denied')) {
-            errorMsg = '🔴 Location permission denied. Please enable location in settings.';
+            errorMsg = 'Location permission denied. Please enable location in settings.';
           } else if (err.code === 3 || err.message?.includes('timeout')) {
-            errorMsg = '⏱️ GPS timeout. Try moving to open area.';
+            errorMsg = 'GPS timeout. Try moving to open area.';
           } else {
-            errorMsg = `❌ Location error: ${err.message}`;
+            errorMsg = `Location error: ${err.message}`;
           }
           setStatus(errorMsg, true);
           sosBtn.disabled = false;
@@ -719,7 +741,6 @@
         }
       }
 
-      // Event handlers for modal buttons
       callHotlineBtn.addEventListener('click', async () => {
         if (!pendingLocation) {
           hideModal();
@@ -728,7 +749,6 @@
           sosInProgress = false;
           return;
         }
-        // Disable modal buttons to prevent double call
         callHotlineBtn.disabled = true;
         callContactBtn.disabled = true;
         await dispatchEmergency('hotline', pendingLocation.lat, pendingLocation.lng);
@@ -757,26 +777,24 @@
 
       cancelModalBtn.addEventListener('click', () => {
         hideModal();
-        setStatus('✅ SOS cancelled. Tap again if needed.', false);
+        setStatus('SOS cancelled. Tap again if needed.', false);
         sosBtn.disabled = false;
         sosBtn.style.opacity = '1';
         sosInProgress = false;
         pendingLocation = null;
         if (cooldownTimer) clearTimeout(cooldownTimer);
         cooldownTimer = setTimeout(() => {
-          if (statusDiv.innerText === '✅ SOS cancelled. Tap again if needed.') {
-            setStatus('✅ SOS armed · Tap red button in emergency', false);
+          if (statusDiv.innerText === 'SOS cancelled. Tap again if needed.') {
+            setStatus('SOS armed - Tap red button in emergency', false);
           }
         }, 3000);
       });
 
-      // Attach SOS button click
       sosBtn.addEventListener('click', (e) => {
         e.preventDefault();
         initiateSOS();
       });
 
-      // Offline retry mechanism for pending SOS (PWA ready)
       async function flushPendingSOSQueue() {
         let queue = [];
         try {
@@ -786,7 +804,7 @@
           if (!queue.length) return;
         } catch (e) { return; }
 
-        setStatus('📡 Connection restored. Sending pending SOS alerts...', false);
+        setStatus('Connection restored. Sending pending SOS alerts...', false);
         let newQueue = [];
         for (const item of queue) {
           try {
@@ -801,9 +819,9 @@
         }
         if (newQueue.length === 0) {
           localStorage.removeItem('pending_sos_alerts');
-          setStatus('✅ Offline SOS alerts delivered.', false, true);
+          setStatus('Offline SOS alerts delivered.', false, true);
           setTimeout(() => {
-            if (statusDiv.innerText.includes('delivered')) setStatus('✅ SOS armed · Tap red button in emergency', false);
+            if (statusDiv.innerText.includes('delivered')) setStatus('SOS armed - Tap red button in emergency', false);
           }, 4000);
         } else {
           localStorage.setItem('pending_sos_alerts', JSON.stringify(newQueue));
@@ -811,12 +829,11 @@
       }
 
       window.addEventListener('online', () => {
-        setStatus('🌐 Back online, checking pending SOS.', false);
+        setStatus('Back online, checking pending SOS.', false);
         flushPendingSOSQueue();
       });
       if (navigator.onLine) flushPendingSOSQueue();
 
-      // Token validation periodic
       async function validateToken() {
         if (!TOKEN) return;
         try {
@@ -829,28 +846,29 @@
       }
       setInterval(validateToken, 120000);
 
-      setStatus('✅ SOS armed · Tap red button in emergency', false);
+      setStatus('SOS armed - Tap red button in emergency', false);
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready.catch(e => console.warn);
       }
     })();
   </script>
-<!-- Generic Alert Modal -->
-<div id="genericAlertModal" class="sidebar-overlay" style="z-index: 9999; align-items: center; justify-content: center; display: none; background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(5px);">
+
+  <!-- Generic Alert Modal -->
+  <div id="genericAlertModal" class="sidebar-overlay" style="z-index: 9999; align-items: center; justify-content: center; display: none; background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(5px);">
     <div class="glass-card" style="width: 90%; max-width: 400px; margin: 0; position: relative; background: var(--glass-bg, #fff); border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-        <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted, #666);">&times;</button>
-        <h3 id="genericAlertTitle" style="color: var(--text-main, #333); margin-top: 0; margin-bottom: 10px; font-family: sans-serif;">Alert</h3>
-        <p id="genericAlertBody" style="color: var(--text-muted, #666); font-size: 15px; line-height: 1.5; margin-bottom: 20px; white-space: pre-wrap; font-family: sans-serif;"></p>
-        <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="background: var(--primary, #3b82f6); color: white; padding: 12px; border-radius: 20px; width: 100%; font-weight: 600; cursor: pointer; border: none; font-size: 15px;">OK</button>
+      <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted, #666);">&times;</button>
+      <h3 id="genericAlertTitle" style="color: var(--text-main, #333); margin-top: 0; margin-bottom: 10px; font-family: sans-serif;">Alert</h3>
+      <p id="genericAlertBody" style="color: var(--text-muted, #666); font-size: 15px; line-height: 1.5; margin-bottom: 20px; white-space: pre-wrap; font-family: sans-serif;"></p>
+      <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="background: var(--primary, #3b82f6); color: white; padding: 12px; border-radius: 20px; width: 100%; font-weight: 600; cursor: pointer; border: none; font-size: 15px;">OK</button>
     </div>
-</div>
-<script>
-window.alert = function(message, title = "Notification") {
-    document.getElementById('genericAlertTitle').innerText = title;
-    document.getElementById('genericAlertBody').innerText = message;
-    document.getElementById('genericAlertModal').style.display = 'flex';
-};
-</script>
+  </div>
+  <script>
+    window.alert = function(message, title = "Notification") {
+      document.getElementById('genericAlertTitle').innerText = title;
+      document.getElementById('genericAlertBody').innerText = message;
+      document.getElementById('genericAlertModal').style.display = 'flex';
+    };
+  </script>
 </body>
 
 </html>

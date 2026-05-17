@@ -388,7 +388,7 @@
     </div>
     <div class="view-name" id="viewName">Loading...</div>
     <div class="view-email" id="viewEmail">...</div>
-    <button id="editProfileBtn" class="btn btn-primary">✏️ Edit Profile</button>
+    <button id="editProfileBtn" class="btn btn-primary">Edit Profile</button>
   </div>
 
   <!-- Edit Mode -->
@@ -397,7 +397,9 @@
       <div class="profile-avatar-container">
         <img id="editAvatarPreview" src="" alt="Profile" class="profile-avatar" style="display: none;">
         <div id="editAvatarPlaceholder" class="profile-avatar">👤</div>
-        <label for="profileImage" class="profile-avatar-overlay" title="Change photo">📷</label>
+        <label for="profileImage" class="profile-avatar-overlay" title="Change photo">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+        </label>
         <input type="file" id="profileImage" class="file-input" accept="image/*" onchange="previewImage(event)">
       </div>
       <button type="button" id="removePhotoBtn" class="btn-remove-photo hidden">
@@ -412,14 +414,23 @@
       <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Leave blank if you don't want to change your password.</p>
 
       <label class="input-label" for="currentPassword">Current Password</label>
-      <input type="password" id="currentPassword" class="input" placeholder="Required to change password">
+      <div class="password-wrapper">
+        <input type="password" id="currentPassword" class="input" placeholder="Required to change password">
+        <button type="button" class="eye-toggle" onclick="togglePassword('currentPassword', this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+      </div>
 
       <label class="input-label" for="newPassword">New Password</label>
-      <input type="password" id="newPassword" class="input" placeholder="Min 8 chars, uppercase, lowercase, numbers">
+      <div class="password-wrapper">
+        <input type="password" id="newPassword" class="input" placeholder="Min 8 chars, uppercase, lowercase, numbers">
+        <button type="button" class="eye-toggle" onclick="togglePassword('newPassword', this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+      </div>
       <div id="passwordStrength" class="error-message"></div>
 
       <label class="input-label" for="confirmPassword">Confirm New Password</label>
-      <input type="password" id="confirmPassword" class="input" placeholder="Confirm new password">
+      <div class="password-wrapper">
+        <input type="password" id="confirmPassword" class="input" placeholder="Confirm new password">
+        <button type="button" class="eye-toggle" onclick="togglePassword('confirmPassword', this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+      </div>
       <div id="passwordMatchMsg" class="error-message"></div>
 
       <div id="messageBox" class="error-message hidden"></div>
@@ -443,6 +454,17 @@
 </div>
 
 <script>
+  function togglePassword(inputId, toggleEl) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+      input.type = 'text';
+      toggleEl.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+    } else {
+      input.type = 'password';
+      toggleEl.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+    }
+  }
+
   // Get token from localStorage
   let TOKEN = localStorage.getItem('token');
   if (!TOKEN) {
@@ -690,6 +712,7 @@
           editPreview.src = bustUrl;
           editPreview.style.display = 'block';
           editPlaceholder.style.display = 'none';
+          localStorage.setItem('sp_profile_image_url', newImageUrl);
         } else {
           // Photo was removed or no photo
           viewAvatar.src = '';
@@ -698,6 +721,7 @@
           editPreview.src = '';
           editPreview.style.display = 'none';
           editPlaceholder.style.display = 'flex';
+          localStorage.removeItem('sp_profile_image_url');
         }
 
         // Update name/email from response

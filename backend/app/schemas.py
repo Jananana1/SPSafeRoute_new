@@ -96,3 +96,10 @@ class FCMTokenCreate(BaseModel):
 class AnalyticsResponse(BaseModel):
     monthly_stats: List[dict]
     area_stats: List[dict]
+
+class NotificationOut(BaseModel):
+    id: int
+    title: str
+    message: str
+    is_read: bool
+    created_at: datetime

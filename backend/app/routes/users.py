@@ -18,6 +18,25 @@ def get_users(db: Session = Depends(auth.get_db), current_user: models.User = De
     users = db.query(models.User).all()
     return users
 
+# ========== NOTIFICATIONS ENDPOINTS ==========
+@router.get("/notifications", response_model=List[schemas.NotificationOut])
+def get_notifications(db: Session = Depends(auth.get_db), current_user: models.User = Depends(auth.get_current_user)):
+    return db.query(models.Notification).filter(
+        models.Notification.user_id == current_user.id
+    ).order_by(models.Notification.created_at.desc()).limit(50).all()
+
+@router.put("/notifications/{notif_id}/read")
+def mark_notification_read(notif_id: int, db: Session = Depends(auth.get_db), current_user: models.User = Depends(auth.get_current_user)):
+    notif = db.query(models.Notification).filter(
+        models.Notification.id == notif_id,
+        models.Notification.user_id == current_user.id
+    ).first()
+    if notif and not notif.is_read:
+        notif.is_read = True
+        db.commit()
+    return {"status": "ok"}
+
+
 # ========== FCM TOKEN ENDPOINT ==========
 @router.post("/fcm-token")
 def save_fcm_token(
@@ -45,6 +64,7 @@ async def update_profile(
     current_password: Optional[str] = Form(None),
     new_password: Optional[str] = Form(None),
     profile_image: Optional[UploadFile] = File(None),
+    remove_profile_image: Optional[bool] = Form(False),
     db: Session = Depends(auth.get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -63,7 +83,9 @@ async def update_profile(
     if full_name is not None:
         current_user.full_name = full_name
         
-    if profile_image:
+    if remove_profile_image:
+        current_user.profile_image_url = None
+    elif profile_image:
         ext = profile_image.filename.split('.')[-1]
         filename = f"{uuid.uuid4()}.{ext}"
         filepath = os.path.join("uploads", "profiles", filename)

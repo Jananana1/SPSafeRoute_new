@@ -19,6 +19,7 @@
       --modal-bg: #ffffff;
       --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
       --card-hover-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
+      --bg-main: #f8fafc;
 
       /* Colors */
       --danger: #ef4444;
@@ -38,6 +39,7 @@
       --modal-bg: #1e293b;
       --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
       --card-hover-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+      --bg-main: #0b0f19;
     }
 
     * {
@@ -59,6 +61,7 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      transition: background 0.3s ease;
     }
 
     /* Header Container */
@@ -508,7 +511,6 @@
     }
 
     // Helper function to properly format image URL
-    // FIXED: Now looks for image_url from the database
     function getImageUrl(imageData) {
       if (!imageData) return null;
 
@@ -545,14 +547,11 @@
         hazard: '#f59e0b'
       };
       const color = typeColors[incident.type] || '#6b7280';
-      const status = (incident.status || '').toLowerCase();
-      const isResolved = ['completed', 'resolved', 'dismissed'].includes(status);
       document.getElementById('modalType').innerHTML = `<span style="color:${color}">${incident.type.toUpperCase()}</span>`;
       document.getElementById('modalDesc').innerText = incident.description || 'No description provided';
       document.getElementById('modalLocation').innerText = incident.location_name || `${incident.lat?.toFixed(4) || 'Unknown'}, ${incident.lng?.toFixed(4) || 'Unknown'}`;
       document.getElementById('modalDate').innerText = formatDate(incident.created_at);
 
-      // FIXED: Use image_url instead of image
       const modalImageDiv = document.getElementById('modalImage');
       const imageUrl = getImageUrl(incident.image_url);
 
@@ -611,7 +610,6 @@
         container.innerHTML = '';
 
         visibleIncidents.forEach(inc => {
-          const status = (inc.status || '').toLowerCase();
           const typeColors = {
             accident: '#ef4444',
             crime: '#8b5cf6',
@@ -622,7 +620,6 @@
           const card = document.createElement('div');
           card.className = `alert-card type-${inc.type}`;
 
-          // FIXED: Use image_url instead of image for thumbnail
           let imageHtml = '';
           const imageUrl = getImageUrl(inc.image_url);
           if (imageUrl) {
@@ -670,22 +667,22 @@
         .replace(/'/g, '&#39;');
     }
   </script>
-<!-- Generic Alert Modal -->
-<div id="genericAlertModal" class="sidebar-overlay" style="z-index: 9999; align-items: center; justify-content: center; display: none; background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(5px);">
+  <!-- Generic Alert Modal -->
+  <div id="genericAlertModal" class="sidebar-overlay" style="z-index: 9999; align-items: center; justify-content: center; display: none; background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(5px);">
     <div class="glass-card" style="width: 90%; max-width: 400px; margin: 0; position: relative; background: var(--glass-bg, #fff); border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-        <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted, #666);">&times;</button>
-        <h3 id="genericAlertTitle" style="color: var(--text-main, #333); margin-top: 0; margin-bottom: 10px; font-family: sans-serif;">Alert</h3>
-        <p id="genericAlertBody" style="color: var(--text-muted, #666); font-size: 15px; line-height: 1.5; margin-bottom: 20px; white-space: pre-wrap; font-family: sans-serif;"></p>
-        <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="background: var(--primary, #3b82f6); color: white; padding: 12px; border-radius: 20px; width: 100%; font-weight: 600; cursor: pointer; border: none; font-size: 15px;">OK</button>
+      <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted, #666);">&times;</button>
+      <h3 id="genericAlertTitle" style="color: var(--text-main, #333); margin-top: 0; margin-bottom: 10px; font-family: sans-serif;">Alert</h3>
+      <p id="genericAlertBody" style="color: var(--text-muted, #666); font-size: 15px; line-height: 1.5; margin-bottom: 20px; white-space: pre-wrap; font-family: sans-serif;"></p>
+      <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="background: var(--primary, #3b82f6); color: white; padding: 12px; border-radius: 20px; width: 100%; font-weight: 600; cursor: pointer; border: none; font-size: 15px;">OK</button>
     </div>
-</div>
-<script>
-window.alert = function(message, title = "Notification") {
-    document.getElementById('genericAlertTitle').innerText = title;
-    document.getElementById('genericAlertBody').innerText = message;
-    document.getElementById('genericAlertModal').style.display = 'flex';
-};
-</script>
+  </div>
+  <script>
+    window.alert = function(message, title = "Notification") {
+      document.getElementById('genericAlertTitle').innerText = title;
+      document.getElementById('genericAlertBody').innerText = message;
+      document.getElementById('genericAlertModal').style.display = 'flex';
+    };
+  </script>
 </body>
 
-</html>
+</html> 
