@@ -26,6 +26,17 @@ def get_db():
         db.close()
 
 
+def sanitize_image_url(image_url: str | None) -> str | None:
+    """
+    If the image_url is a base64 data URI (e.g. 'data:image/png;base64,...'),
+    return None instead — we don't store raw base64 blobs in the history table.
+    Regular URLs (http/https paths) are kept as-is.
+    """
+    if image_url and image_url.startswith("data:"):
+        return None
+    return image_url
+
+
 @router.get("/dashboard", response_class=HTMLResponse)
 def admin_dashboard(
     request: Request,
@@ -84,7 +95,7 @@ def delete_incident(
             lat=inc.lat,
             lng=inc.lng,
             user_id=inc.user_id,
-            image_url=inc.image_url,
+            image_url=sanitize_image_url(inc.image_url),
             reported_at=inc.created_at,
             actioned_at=datetime.utcnow()
         )
@@ -133,7 +144,7 @@ def complete_incident(
             lat=inc.lat,
             lng=inc.lng,
             user_id=inc.user_id,
-            image_url=inc.image_url,
+            image_url=sanitize_image_url(inc.image_url),
             reported_at=inc.created_at,
             actioned_at=datetime.utcnow()
         )

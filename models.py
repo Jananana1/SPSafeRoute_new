@@ -14,8 +14,8 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     failed_login_attempts = Column(Integer, default=0)
     locked_until = Column(DateTime(timezone=True), nullable=True)
-    profile_image_url = Column(String(500), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    profile_image_url = Column(String(500), nullable=True)
 
     @validates('email')
     def validate_email(self, key, address):
@@ -27,6 +27,9 @@ class IncidentStatus(str, enum.Enum):
     REPORTED = "reported"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
+    DELETED = "deleted"
+    RESOLVED = "resolved"
+    DISMISSED = "dismissed"
 
 class Incident(Base):
     __tablename__ = "incidents"
@@ -82,9 +85,33 @@ class PasswordResetToken(Base):
     expires_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+class IncidentHistory(Base):
+    __tablename__ = "incident_history"
+    id = Column(Integer, primary_key=True, index=True)
+    incident_id = Column(Integer, nullable=False)   # original incident ID
+    action = Column(String(20), nullable=False)     # 'resolved' or 'deleted'
+    inc_type = Column(String(50), nullable=False)
+    description = Column(Text, nullable=True)
+    location_name = Column(String(255), nullable=True)
+    lat = Column(Float, nullable=True)
+    lng = Column(Float, nullable=True)
+    user_id = Column(Integer, nullable=True)
+    image_url = Column(Text, nullable=True)          # Changed from String(500) to Text to support base64 image data URIs
+    reported_at = Column(DateTime(timezone=True), nullable=True)
+    actioned_at = Column(DateTime(timezone=True), server_default=func.now())
+
 class CaptchaChallenge(Base):
     __tablename__ = "captcha_challenges"
     id = Column(String(36), primary_key=True, index=True)
     answer = Column(String(20), nullable=False)
     expires_at = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class Notification(Base):
+    __tablename__ = "notifications"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    title = Column(String(255), nullable=False)
+    message = Column(Text, nullable=False)
+    is_read = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

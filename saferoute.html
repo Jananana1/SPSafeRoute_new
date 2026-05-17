@@ -664,11 +664,11 @@
 
       if (safest) {
         const mins = Math.round((safest.displayDuration || safest.duration) / 60);
-        safestBtn.innerHTML = `🛡️ Safe<br><small>${mins}m (${safest.totalIncidents} alerts)</small>`;
+        safestBtn.innerHTML = `🛡️ Safe<br><small>${mins}m (${safest.totalIncidents} alert/s)</small>`;
       }
       if (dangerous) {
         const mins = Math.round((dangerous.displayDuration || dangerous.duration) / 60);
-        dangerousBtn.innerHTML = `⚠️ Dangerous<br><small>${mins}m (${dangerous.totalIncidents} alerts)</small>`;
+        dangerousBtn.innerHTML = `⚠️ Dangerous<br><small>${mins}m (${dangerous.totalIncidents} alert/s)</small>`;
       }
 
       [safestBtn, dangerousBtn].forEach(btn => btn.classList.remove('active'));
