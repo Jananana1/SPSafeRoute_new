@@ -49,7 +49,6 @@ def get_incidents(
     try:
         incidents = (
             db.query(models.Incident)
-            .filter(models.Incident.status != "deleted")
             .order_by(models.Incident.created_at.desc())
             .all()
         )

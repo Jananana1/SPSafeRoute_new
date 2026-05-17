@@ -19,8 +19,11 @@ def get_incidents(
     current_user: models.User = Depends(auth.get_current_user)
 ):
     try:
+        # Return all incidents EXCEPT deleted ones.
+        # resolved/completed incidents are kept so maps can show them as gray dots.
+        # Deleted incidents are completely hidden from all public views.
         incidents = db.query(models.Incident).filter(
-            models.Incident.status != 'completed'
+            models.Incident.status != 'deleted'
         ).order_by(models.Incident.created_at.desc()).all()
         return incidents
     except Exception as e:

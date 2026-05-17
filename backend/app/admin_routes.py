@@ -49,7 +49,6 @@ def get_incidents(
     try:
         incidents = (
             db.query(models.Incident)
-            .filter(models.Incident.status != "deleted")
             .order_by(models.Incident.created_at.desc())
             .all()
         )
@@ -144,20 +143,11 @@ def complete_incident(
 
         # Send push notification (don't let notification failure break the operation)
         try:
-            # 1. Notify the reporter
             push_service.send_push_to_user(
                 db,
                 inc.user_id,
                 "Incident Resolved",
                 f"Your {inc.type} report at {inc.location_name or 'your location'} has been completed."
-            )
-            
-            # 2. Notify other users
-            push_service.send_push_to_other_users(
-                db,
-                exclude_user_id=inc.user_id,
-                title="Incident Resolved",
-                body=f"An incident in {inc.location_name or 'your area'} has been resolved."
             )
         except Exception as notify_error:
             logger.error(f"Push notification error: {str(notify_error)}")

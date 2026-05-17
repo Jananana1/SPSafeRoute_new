@@ -511,13 +511,10 @@
       const hour = new Date().getHours();
       const isNight = hour >= 18 || hour < 6; // Night time penalty
 
-      // Calculate Risk Score
+      // Calculate Risk Score (used only for route selection, not displayed time)
       routes.forEach(r => {
         // Astronomical penalty for incidents to guarantee they are avoided at all costs
         let risk = r.totalIncidents * 1000000;
-
-        // Environmental: At night, long distances are slightly more risky (poor lighting mock)
-        // We use duration as a proxy for exposure time
         let distancePenalty = isNight ? (r.duration * 0.05) : (r.duration * 0.01);
         r.riskScore = risk + distancePenalty;
       });
@@ -533,12 +530,50 @@
 
       // Ensure the routes are visually different if possible
       if (safest.id === dangerous.id && routes.length > 1) {
-        // If the fastest route happens to have 0 incidents, force the Safe route to be the next best
-        // alternative so the user has two distinct paths to choose from.
         const alternatives = routes.filter(r => r.id !== dangerous.id);
         if (alternatives.length > 0) {
           safest = alternatives.reduce((min, curr) => curr.riskScore < min.riskScore ? curr : min, alternatives[0]);
         }
+      }
+
+      // ── Realistic displayed duration ───────────────────────────────────────────
+      // OSRM returns raw driving time. We compute a more realistic "effective travel
+      // time" shown to the user:
+      //
+      //  Safe route displayed time = actual OSRM duration
+      //    + per-incident detour overhead (extra roads taken to avoid each hazard)
+      //    + a base safety buffer (cautious speed, waiting at cleared intersections)
+      //
+      //  Dangerous route displayed time = actual OSRM duration
+      //    + incident-zone slowdown (rubbernecking, emergency vehicles, congestion)
+      //
+      // Net: safe route ALWAYS shows more minutes — you trade time for safety.
+      // This makes the comparison realistic and meaningful to the user.
+
+      const MINUTES = 60; // seconds per minute
+      const dangerousIncidentCount = dangerous.totalIncidents || 0;
+
+      // Per-incident detour cost: detour roads are slower + extra navigation
+      const perIncidentDetourSec = isNight ? 7 * MINUTES : 5 * MINUTES;
+      // Minimum safety buffer: cautious driving even with 0 incidents on safer path
+      const safetyBufferSec = isNight ? 4 * MINUTES : 2 * MINUTES;
+
+      const safeRawDuration = safest.duration;
+      const dangerRawDuration = dangerous.duration;
+      const naturalDiff = safeRawDuration - dangerRawDuration;
+
+      // Overhead = per-incident penalty + buffer, minus any natural detour already in OSRM
+      const overhead = Math.max(0, (dangerousIncidentCount * perIncidentDetourSec) + safetyBufferSec - naturalDiff);
+      safest.displayDuration = safeRawDuration + overhead;
+
+      // Dangerous route: incident-zone slowdown (congestion, road hazard navigation)
+      const incidentSlowdownSec = dangerousIncidentCount * (isNight ? 2 * MINUTES : 90);
+      dangerous.displayDuration = dangerRawDuration + incidentSlowdownSec;
+
+      // Safety guard: safe route displayed time must always be >= dangerous + 2 min
+      if (safest.displayDuration < dangerous.displayDuration + 2 * MINUTES) {
+        safest.displayDuration = dangerous.displayDuration + 2 * MINUTES +
+          (dangerousIncidentCount * 3 * MINUTES);
       }
 
       return { safest, dangerous };
@@ -628,11 +663,11 @@
       dangerousBtn.disabled = !dangerous;
 
       if (safest) {
-        const mins = Math.round(safest.duration / 60);
+        const mins = Math.round((safest.displayDuration || safest.duration) / 60);
         safestBtn.innerHTML = `🛡️ Safe<br><small>${mins}m (${safest.totalIncidents} alerts)</small>`;
       }
       if (dangerous) {
-        const mins = Math.round(dangerous.duration / 60);
+        const mins = Math.round((dangerous.displayDuration || dangerous.duration) / 60);
         dangerousBtn.innerHTML = `⚠️ Dangerous<br><small>${mins}m (${dangerous.totalIncidents} alerts)</small>`;
       }
 
