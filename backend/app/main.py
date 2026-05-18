@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 from fastapi import FastAPI, Depends, HTTPException, status, Response, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -9,6 +11,7 @@ from sqlalchemy.orm import Session
 from datetime import timedelta, datetime
 import random
 import uuid
+from .config import load_project_env
 from . import models, schemas, auth, database, email_service
 from .routes import incidents, users
 from . import admin_routes 
@@ -18,8 +21,17 @@ logging.basicConfig(level=logging.DEBUG)
 # Create tables
 models.Base.metadata.create_all(bind=database.engine)
 
+load_project_env()
+
 # ===== Create FastAPI app =====
 app = FastAPI(title="SP Core Service")
+
+if os.getenv("ENFORCE_HTTPS", "false").lower() in ("1", "true", "yes"):
+    app.add_middleware(HTTPSRedirectMiddleware)
+
+trusted_hosts = os.getenv("TRUSTED_HOSTS")
+if trusted_hosts:
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=[host.strip() for host in trusted_hosts.split(",") if host.strip()])
 
 # ===== Startup event: seed admin =====
 @app.on_event("startup")

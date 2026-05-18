@@ -400,7 +400,7 @@
         <label for="profileImage" class="profile-avatar-overlay" title="Change photo">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
         </label>
-        <input type="file" id="profileImage" class="file-input" accept="image/*" onchange="previewImage(event)">
+        <input type="file" id="profileImage" class="file-input" accept="image/jpeg,image/png,image/gif" onchange="previewImage(event)">
       </div>
       <button type="button" id="removePhotoBtn" class="btn-remove-photo hidden">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
@@ -520,6 +520,40 @@
     }
   }
 
+  const PROFILE_IMAGE_MAX_SIZE_BYTES = 2 * 1024 * 1024;
+  const ALLOWED_PROFILE_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
+
+  function validateFullName(fullName) {
+    const msgBox = document.getElementById('messageBox');
+    if (!fullName || fullName.trim() === '') {
+      return { valid: true };
+    }
+
+    const trimmed = fullName.trim();
+    if (trimmed.length < 2) {
+      return { valid: false, error: 'Full name must be at least 2 characters long.' };
+    }
+    if (trimmed.length > 100) {
+      return { valid: false, error: 'Full name cannot exceed 100 characters.' };
+    }
+    const suspiciousPatterns = /<script|javascript:|onclick|onerror|alert\(|eval\(|<[^>]+>/i;
+    if (suspiciousPatterns.test(trimmed)) {
+      return { valid: false, error: 'Full name contains invalid characters.' };
+    }
+    return { valid: true };
+  }
+
+  function validateProfileImageFile(file) {
+    if (!file) return { valid: true };
+    if (!ALLOWED_PROFILE_IMAGE_TYPES.includes(file.type)) {
+      return { valid: false, error: 'Only JPEG, PNG, or GIF images are allowed.' };
+    }
+    if (file.size > PROFILE_IMAGE_MAX_SIZE_BYTES) {
+      return { valid: false, error: 'Profile image must be 2MB or smaller.' };
+    }
+    return { valid: true };
+  }
+
   // Password match checker
   function checkPasswordMatch() {
     const newPassword = document.getElementById('newPassword').value;
@@ -555,18 +589,30 @@
   // Preview image before upload
   function previewImage(event) {
     const file = event.target.files[0];
-    if (file) {
-      removePhoto = false;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const preview = document.getElementById('editAvatarPreview');
-        preview.src = e.target.result;
-        preview.style.display = 'block';
-        document.getElementById('editAvatarPlaceholder').style.display = 'none';
-        document.getElementById('removePhotoBtn').classList.remove('hidden');
-      }
-      reader.readAsDataURL(file);
+    const msgBox = document.getElementById('messageBox');
+    if (!file) {
+      return;
     }
+
+    const validation = validateProfileImageFile(file);
+    if (!validation.valid) {
+      msgBox.textContent = validation.error;
+      msgBox.classList.remove('hidden');
+      event.target.value = '';
+      return;
+    }
+
+    removePhoto = false;
+    msgBox.classList.add('hidden');
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const preview = document.getElementById('editAvatarPreview');
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+      document.getElementById('editAvatarPlaceholder').style.display = 'none';
+      document.getElementById('removePhotoBtn').classList.remove('hidden');
+    }
+    reader.readAsDataURL(file);
   }
 
   document.getElementById('removePhotoBtn').addEventListener('click', () => {
@@ -648,6 +694,24 @@
     const imageFile = document.getElementById('profileImage').files[0];
     const msgBox = document.getElementById('messageBox');
     
+    // Validate full name if present
+    const fullNameValidation = validateFullName(fullName);
+    if (!fullNameValidation.valid) {
+      msgBox.textContent = fullNameValidation.error;
+      msgBox.classList.remove('hidden');
+      return;
+    }
+
+    // Validate profile image if selected
+    if (imageFile) {
+      const imageValidation = validateProfileImageFile(imageFile);
+      if (!imageValidation.valid) {
+        msgBox.textContent = imageValidation.error;
+        msgBox.classList.remove('hidden');
+        return;
+      }
+    }
+
     // Validate passwords if trying to change
     if (newPassword) {
       if (!currentPassword) {

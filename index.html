@@ -57,6 +57,30 @@
             padding: 12px;
             margin-bottom: 16px;
         }
+
+        /* Login form email validation styling */
+.input-group {
+    margin-bottom: 0;
+    position: relative;
+}
+
+.email-input-wrapper {
+    margin-bottom: 0;
+}
+
+.email-error {
+    font-size: 11px;
+    margin-top: 4px;
+    margin-bottom: 8px;
+    padding-left: 4px;
+    display: none;
+    color: var(--danger);
+    line-height: 1.3;
+}
+
+.password-label {
+    margin-top: 8px;
+}
     </style>
 </head>
 
@@ -140,31 +164,32 @@
                     document.getElementById('authOverlay').classList.add('hidden');
                 }
             </script>
+            
             <!-- Login Panel -->
-            <div id="loginPanel" class="glass-card">
-                <h1 class="app-title">SP SafeRoute</h1>
+<div id="loginPanel" class="glass-card">
+    <h1 class="app-title">SP SafeRoute</h1>
 
-                <label class="input-label" for="email">Email Address</label>
-                <input type="email" id="email" placeholder="user@gmail.com" class="input">
+    <label class="input-label" for="email">Email Address</label>
+    <input type="email" id="email" placeholder="user@gmail.com" class="input">
+    <div id="loginEmailError" class="error" style="font-size: 12px; margin-top: 4px; margin-bottom: 0; color: var(--danger); display: none;">Please enter a valid email address (e.g., user@gmail.com)</div>
 
-                <label class="input-label" for="password">Password</label>
-                <div class="password-wrapper">
-                    <input type="password" id="password" placeholder="Enter your password" class="input">
-                    <button type="button" class="eye-toggle" onclick="togglePassword('password', this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
-                </div>
+    <label class="input-label" for="password" style="margin-top: 12px;">Password</label>
+    <div class="password-wrapper">
+        <input type="password" id="password" placeholder="Enter your password" class="input">
+        <button type="button" class="eye-toggle" onclick="togglePassword('password', this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+    </div>
 
-                <button id="loginBtn" class="btn btn-primary">Login</button>
-                <div class="link" id="showForgotPasswordBtn" style="font-size: 12px; margin-top: 12px;">Forgot Password?
-                </div>
+    <button id="loginBtn" class="btn btn-primary" style="margin-top: 20px;">Login</button>
+    <div class="link" id="showForgotPasswordBtn" style="font-size: 12px; margin-top: 12px;">Forgot Password?
+    </div>
 
-                <div
-                    style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--glass-border); text-align: center;">
-                    <span style="font-size: 13px; color: var(--text-muted);">Don't have an account?</span>
-                    <div class="link" id="showRegisterBtn"
-                        style="display: inline-block; margin-top: 0; margin-left: 5px; font-weight: 600;">Sign Up</div>
-                </div>
-                <div id="loginMessage" class="error"></div>
-            </div>
+    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--glass-border); text-align: center;">
+        <span style="font-size: 13px; color: var(--text-muted);">Don't have an account?</span>
+        <div class="link" id="showRegisterBtn"
+            style="display: inline-block; margin-top: 0; margin-left: 5px; font-weight: 600;">Sign Up</div>
+    </div>
+    <div id="loginMessage" class="error"></div>
+</div>
 
             <!-- MFA Panel -->
             <div id="mfaPanel" class="glass-card hidden">
@@ -296,6 +321,127 @@
                 toggleEl.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
             }
         }
+
+        // ========== VALIDATION FUNCTIONS ==========
+function validateLoginForm(email, password) {
+    // Clear previous messages
+    document.getElementById('loginMessage').innerText = '';
+    
+    // Check if email is present
+    if (!email || email.trim() === '') {
+        document.getElementById('loginMessage').innerText = 'Email address is required';
+        return false;
+    }
+    
+    // Check email format
+    if (!validateLoginEmailFormat(email)) {
+        document.getElementById('loginMessage').innerText = 'Please enter a valid email address (e.g., user@gmail.com)';
+        return false;
+    }
+    
+    // Check if password is present
+    if (!password || password.trim() === '') {
+        document.getElementById('loginMessage').innerText = 'Password is required';
+        return false;
+    }
+    
+    return true;
+}
+
+function validateEmailFormat(email) {
+    const emailRegex = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function validatePasswordStrength(password) {
+    if (password.length < 8) return false;
+    // Optional: Add more strict validation if needed
+    // const hasUpper = /[A-Z]/.test(password);
+    // const hasLower = /[a-z]/.test(password);
+    // const hasNumber = /[0-9]/.test(password);
+    // return hasUpper && hasLower && hasNumber;
+    return true; // Just checking length for now, but you can uncomment above for stricter
+}
+
+function validateRegistrationForm(full_name, email, password, confirm_password, captcha_answer) {
+    // Clear previous message
+    document.getElementById('registerMessage').innerText = '';
+    
+    // Check required fields
+    if (!full_name || full_name.trim() === '') {
+        document.getElementById('registerMessage').innerText = 'Full name is required';
+        return false;
+    }
+    
+    // Check email presence
+    if (!email || email.trim() === '') {
+        document.getElementById('registerMessage').innerText = 'Email address is required';
+        return false;
+    }
+    
+    // Check email format
+    if (!validateEmailFormat(email)) {
+        document.getElementById('registerMessage').innerText = 'Please enter a valid email address (e.g., name@domain.com)';
+        return false;
+    }
+    
+    // Check password presence and strength
+    if (!password || password.trim() === '') {
+        document.getElementById('registerMessage').innerText = 'Password is required';
+        return false;
+    }
+    
+    if (!validatePasswordStrength(password)) {
+        document.getElementById('registerMessage').innerText = 'Password must be at least 8 characters long';
+        return false;
+    }
+    
+    // Check confirm password match (already has visual indicator, but validate before submit)
+    if (password !== confirm_password) {
+        document.getElementById('registerMessage').innerText = 'Passwords do not match';
+        return false;
+    }
+    
+    // Check captcha presence
+    if (!captcha_answer || captcha_answer.trim() === '') {
+        document.getElementById('registerMessage').innerText = 'Please answer the security question';
+        return false;
+    }
+    
+    return true;
+}
+
+// ========== REAL-TIME EMAIL VALIDATION FOR LOGIN ==========
+function validateLoginEmailFormat(email) {
+    const emailRegex = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+// Add real-time email validation to login email field
+const loginEmailInput = document.getElementById('email');
+const loginEmailError = document.getElementById('loginEmailError');
+
+if (loginEmailInput && loginEmailError) {
+    // Validate on input (as user types)
+    loginEmailInput.addEventListener('input', function() {
+        const email = this.value;
+        if (email && email.trim() !== '' && !validateLoginEmailFormat(email)) {
+            loginEmailError.style.display = 'block';
+        } else {
+            loginEmailError.style.display = 'none';
+        }
+    });
+    
+    // Validate on blur (when user leaves the field)
+    loginEmailInput.addEventListener('blur', function() {
+        const email = this.value;
+        if (email && email.trim() !== '' && !validateLoginEmailFormat(email)) {
+            loginEmailError.style.display = 'block';
+        } else {
+            loginEmailError.style.display = 'none';
+        }
+    });
+}
 
         // --- Helper: disable button during async operation (prevents rate limit hit)
         async function withButtonDisable(button, callback) {
@@ -445,6 +591,21 @@
             } catch (e) { console.error('Failed to load incidents', e); }
         }
         
+        function centerMapFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const lat = parseFloat(urlParams.get('lat'));
+            const lng = parseFloat(urlParams.get('lng'));
+            if (!isNaN(lat) && !isNaN(lng)) {
+                if (map) {
+                    map.setView([lat, lng], 16);
+                    L.marker([lat, lng]).addTo(map)
+                        .bindPopup('Incident location')
+                        .openPopup();
+                }
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+
         // Auto-refresh incidents on map every 15 seconds
         setInterval(() => {
             if (map && TOKEN) {
@@ -534,6 +695,47 @@
             document.getElementById('mfaPanel').classList.add('hidden');
             loginPanel.classList.remove('hidden');
             tempMfaToken = null;
+        });
+
+        document.getElementById('verifyMfaBtn').addEventListener('click', async () => {
+            const otp = ['otp0', 'otp1', 'otp2', 'otp3']
+                .map(id => document.getElementById(id).value)
+                .join('');
+            const messageEl = document.getElementById('mfaMessage');
+            messageEl.innerText = '';
+
+            if (otp.length !== 4) {
+                messageEl.innerText = 'Please enter the 4-digit OTP.';
+                return;
+            }
+            if (!tempMfaToken) {
+                messageEl.innerText = 'Your session has expired. Please log in again.';
+                return;
+            }
+
+            try {
+                const response = await fetch('/auth/verify-mfa', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: tempMfaToken, otp })
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.detail || 'OTP verification failed');
+                }
+
+                tempMfaToken = null;
+                setToken(data.access_token);
+                document.getElementById('mfaPanel').classList.add('hidden');
+                const user = await loadUser();
+                if (user && user.is_admin) {
+                    window.location.href = 'backend/app/templates/admin_dashboard.html';
+                } else {
+                    showMainApp();
+                }
+            } catch (err) {
+                messageEl.innerText = err.message;
+            }
         });
 
         // Password strength logic
@@ -666,6 +868,7 @@
             initMap();
             setTimeout(() => map.invalidateSize(), 100);
             loadIncidentsOnMap();
+            centerMapFromUrl();
             // Auto‑register FCM token after showing main app (if user already granted permission)
             setTimeout(() => registerFCMToken(), 1000);
         }
@@ -673,6 +876,12 @@
         async function login() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            
+            // Add validation before making API call
+            if (!validateLoginForm(email, password)) {
+                return;
+            }
+            
             try {
                 const params = new URLSearchParams();
                 params.append('username', email);
@@ -712,88 +921,72 @@
             }
         }
 
-        document.getElementById('verifyMfaBtn').addEventListener('click', (e) => {
-            withButtonDisable(e.target, async () => {
-                const otp = ['otp0', 'otp1', 'otp2', 'otp3'].map(id => document.getElementById(id).value).join('');
-                try {
-                    const response = await fetch('/auth/verify-mfa', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ token: tempMfaToken, otp: otp })
-                    });
-                    const data = await response.json();
-                    if (!response.ok) throw new Error(data.detail);
+       async function register() {
+    const full_name = document.getElementById('regName').value;
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    const confirm_password = document.getElementById('regConfirmPassword').value;
+    const captcha_id = document.getElementById('captchaId').value;
+    const captcha_answer = document.getElementById('captchaAnswer').value;
 
-                    setToken(data.access_token);
-                    const user = await loadUser();
-                    if (user && user.is_admin) {
-                        window.location.href = 'backend/app/templates/admin_dashboard.html';
-                    } else {
-                        document.getElementById('mfaPanel').classList.add('hidden');
-                        showMainApp();
-                    }
-                } catch (err) {
-                    document.getElementById('mfaMessage').innerText = err.message;
-                }
-            });
+    // Add validation before making API call
+    if (!validateRegistrationForm(full_name, email, password, confirm_password, captcha_answer)) {
+        // Clear sensitive fields on validation failure
+        document.getElementById('regPassword').value = '';
+        document.getElementById('regConfirmPassword').value = '';
+        return;
+    }
+
+    try {
+        const response = await fetch('/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password, confirm_password, full_name, captcha_id, captcha_answer })
         });
+        const data = await response.json();
+        if (!response.ok) {
+            loadCaptcha();
+            throw new Error(data.detail);
+        }
 
-        async function register() {
-            const full_name = document.getElementById('regName').value;
-            const email = document.getElementById('regEmail').value;
-            const password = document.getElementById('regPassword').value;
-            const confirm_password = document.getElementById('regConfirmPassword').value;
-            const captcha_id = document.getElementById('captchaId').value;
-            const captcha_answer = document.getElementById('captchaAnswer').value;
-
-            if (password !== confirm_password) {
-                document.getElementById('registerMessage').innerText = "Passwords do not match.";
-                document.getElementById('regPassword').value = '';
-                document.getElementById('regConfirmPassword').value = '';
-                return;
-            }
-
-            try {
-                const response = await fetch('/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password, confirm_password, full_name, captcha_id, captcha_answer })
-                });
-                const data = await response.json();
-                if (!response.ok) {
-                    loadCaptcha();
-                    throw new Error(data.detail);
-                }
-
-                // ── FIXED: show MFA panel after successful registration ──
-                if (data.mfa_required) {
-                    tempMfaToken = data.access_token;
-                    registerPanel.classList.add('hidden');          // hide register
-                    document.getElementById('mfaPanel').classList.remove('hidden'); // show MFA
-                    document.getElementById('mfaOtp').value = '';   // clear any old OTP
-                    document.getElementById('mfaMessage').innerText = '';
-                } else {
-                    setToken(data.access_token);
-                    const user = await loadUser();
-                    if (user && user.is_admin) {
-                        window.location.href = 'backend/app/templates/admin_dashboard.html';
-                    } else {
-                        showMainApp();
-                    }
-                }
-            } catch (err) {
-                document.getElementById('registerMessage').innerText = err.message;
-                document.getElementById('regName').value = '';
-                document.getElementById('regEmail').value = '';
-                document.getElementById('regPassword').value = '';
-                document.getElementById('regConfirmPassword').value = '';
-                document.getElementById('captchaAnswer').value = '';
+        // ── FIXED: show MFA panel after successful registration ──
+        if (data.mfa_required) {
+            tempMfaToken = data.access_token;
+            registerPanel.classList.add('hidden');          // hide register
+            document.getElementById('mfaPanel').classList.remove('hidden'); // show MFA
+            document.getElementById('mfaOtp').value = '';   // clear any old OTP
+            document.getElementById('mfaMessage').innerText = '';
+        } else {
+            setToken(data.access_token);
+            const user = await loadUser();
+            if (user && user.is_admin) {
+                window.location.href = 'backend/app/templates/admin_dashboard.html';
+            } else {
+                showMainApp();
             }
         }
+    } catch (err) {
+        document.getElementById('registerMessage').innerText = err.message;
+        document.getElementById('regName').value = '';
+        document.getElementById('regEmail').value = '';
+        document.getElementById('regPassword').value = '';
+        document.getElementById('regConfirmPassword').value = '';
+        document.getElementById('captchaAnswer').value = '';
+    }
+}
 
         document.getElementById('forgotPasswordBtn').addEventListener('click', (e) => {
             withButtonDisable(e.target, async () => {
-                const email = document.getElementById('forgotEmail').value;
+                const emailInput = document.getElementById('forgotEmail');
+                const email = emailInput.value.trim();
+                const forgotMessage = document.getElementById('forgotMessage');
+                forgotMessage.style.color = 'var(--danger)';
+
+                if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    forgotMessage.innerText = 'Please enter a valid email address.';
+                    return;
+                }
+
                 try {
                     const response = await fetch('/auth/forgot-password', {
                         method: 'POST',
@@ -809,18 +1002,40 @@
                     document.getElementById('resetMessage').innerText = '';
 
                 } catch (err) {
-                    document.getElementById('forgotMessage').style.color = 'var(--danger)';
-                    document.getElementById('forgotMessage').innerText = err.message;
+                    forgotMessage.innerText = err.message;
                 }
             });
         });
 
         document.getElementById('resetPasswordBtn').addEventListener('click', (e) => {
             withButtonDisable(e.target, async () => {
-                const email = document.getElementById('forgotEmail').value;
+                const emailInput = document.getElementById('forgotEmail');
+                const email = emailInput.value.trim();
                 const otp = ['resetOtp0', 'resetOtp1', 'resetOtp2', 'resetOtp3'].map(id => document.getElementById(id).value).join('');
                 const new_password = document.getElementById('resetPasswordInput').value;
                 const confirm_password = document.getElementById('resetConfirmPasswordInput').value;
+                const resetMessage = document.getElementById('resetMessage');
+                resetMessage.style.color = 'var(--danger)';
+
+                if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    resetMessage.innerText = 'Please enter a valid email address before resetting your password.';
+                    return;
+                }
+
+                if (!otp || otp.length !== 4 || !/^[0-9]{4}$/.test(otp)) {
+                    resetMessage.innerText = 'Please enter the complete 4-digit OTP.';
+                    return;
+                }
+
+                if (!new_password || new_password.length < 8) {
+                    resetMessage.innerText = 'New password must be at least 8 characters long.';
+                    return;
+                }
+
+                if (new_password !== confirm_password) {
+                    resetMessage.innerText = 'Passwords do not match.';
+                    return;
+                }
 
                 try {
                     const response = await fetch('/auth/reset-password', {
@@ -833,7 +1048,7 @@
                     alert("Password successfully reset! Please log in.");
                     window.location.href = '/';
                 } catch (err) {
-                    document.getElementById('resetMessage').innerText = err.message;
+                    resetMessage.innerText = err.message;
                 }
             });
         });
@@ -884,6 +1099,7 @@
             }
             // Initialize map in background for visual effect behind auth panel
             initMap();
+            centerMapFromUrl();
         }
 
         // --- Push Notification Toast Helper ---

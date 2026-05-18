@@ -121,11 +121,18 @@
 
         document.getElementById('verifyUnlockCodeBtn').addEventListener('click', async (e) => {
             const btn = e.target;
-            const otp = ['unlockOtp0', 'unlockOtp1', 'unlockOtp2', 'unlockOtp3'].map(id => document.getElementById(id).value).join('');
+            const otpFields = ['unlockOtp0', 'unlockOtp1', 'unlockOtp2', 'unlockOtp3'];
+            const otp = otpFields.map(id => document.getElementById(id).value).join('');
+            const messageEl = document.getElementById('lockedMessage');
+            messageEl.style.color = 'var(--danger)';
 
-            if (otp.length !== 4) {
-                document.getElementById('lockedMessage').style.color = 'var(--danger)';
-                document.getElementById('lockedMessage').innerText = "Please enter the 4-digit code.";
+            if (!otp || otp.length !== 4 || !/^[0-9]{4}$/.test(otp)) {
+                messageEl.innerText = "Please enter the 4-digit numeric code.";
+                return;
+            }
+
+            if (!email) {
+                messageEl.innerText = "Missing email address. Please go back and try again.";
                 return;
             }
 
@@ -173,6 +180,7 @@
 
         boxes.forEach((box, i) => {
             box.addEventListener('input', (e) => {
+                box.value = box.value.replace(/[^0-9]/g, '');
                 if (box.value.length > 1) box.value = box.value[0];
                 if (box.value !== '' && i < 3) boxes[i + 1].focus();
             });

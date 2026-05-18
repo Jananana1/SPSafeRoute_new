@@ -755,12 +755,27 @@
             'Content-Type': 'application/json'
         };
         const response = await fetch(url, options);
-        if (response.status === 401) {
+        if (response.status === 401 || response.status === 403) {
             localStorage.removeItem('token');
             window.location.href = '/';
-            throw new Error('Session expired');
+            throw new Error(response.status === 403 ? 'Unauthorized access' : 'Session expired');
         }
         return response;
+    }
+
+    async function ensureAdmin() {
+        try {
+            const response = await authFetch('/users/me');
+            const user = await response.json();
+            if (!user.is_admin) {
+                throw new Error('Admin access required');
+            }
+            return true;
+        } catch (err) {
+            alert('Admin access required. Please login with an admin account.');
+            window.location.href = '/';
+            return false;
+        }
     }
 
     // ---------- GLOBALS ----------
@@ -1001,6 +1016,9 @@
         const tbodyActive = document.getElementById('incidentsList');
         if (!isPolling) {
             tbodyActive.innerHTML = '<tr><td colspan="8" class="loader-text">⏳ Loading reports...</td></tr>';
+        }
+        if (!(await ensureAdmin())) {
+            return;
         }
         try {
             const res = await authFetch('/admin/incidents');

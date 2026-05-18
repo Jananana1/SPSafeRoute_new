@@ -316,8 +316,8 @@
 
       <label for="incidentImage"
         style="font-size: 14px; color: var(--text-main); margin-bottom: 4px; display: block;">Attach Image
-        (Optional)</label>
-      <input type="file" id="incidentImage" accept="image/*" class="input" style="padding: 8px;">
+        (Optional, Max 5MB)</label>
+      <input type="file" id="incidentImage" accept="image/jpeg,image/png,image/jpg,image/gif" class="input" style="padding: 8px;">
       <div id="imagePreview" class="image-preview"></div>
 
       <button id="submitReportBtn" class="btn-primary" style="margin-top: 10px;">Submit Report</button>
@@ -328,30 +328,190 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     // ============================================================
-    // FIXED IMAGE UPLOAD - Now properly saves images to database
+    // COMPLETE VALIDATION FIX - Client and Server-side enforcement
     // ============================================================
 
     let TOKEN = localStorage.getItem('token');
     if (!TOKEN) location.href = 'index.html';
 
+    // Constants
     const CITY_BOUNDS = { south: 14.0400, west: 121.2000, north: 14.1100, east: 121.3800 };
     const CITY_CENTER = { lat: 14.0700, lng: 121.3255 };
+    const ALLOWED_INCIDENT_TYPES = ['accident', 'crime', 'hazard'];
+    const MAX_IMAGE_SIZE_MB = 5;
+    const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+    const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
 
     let map;
     let incidentDraggableMarker = null;
     let selectedLocation = null;
     let searchTimeout = null;
-    let currentImageData = null; // Store current image base64 data
+    let currentImageData = null;
 
-    // Image preview handler
-    document.getElementById('incidentImage').addEventListener('change', function (e) {
+    // Validation functions
+    function validateIncidentType(type) {
+      if (!type || type.trim() === '') {
+        return { valid: false, error: 'Please select an incident type' };
+      }
+      if (!ALLOWED_INCIDENT_TYPES.includes(type.toLowerCase())) {
+        return { valid: false, error: 'Invalid incident type selected' };
+      }
+      return { valid: true };
+    }
+
+    function validateDescription(description) {
+      if (!description || description.trim() === '') {
+        return { valid: false, error: 'Please provide a description of the incident' };
+      }
+      if (description.trim().length < 10) {
+        return { valid: false, error: 'Description must be at least 10 characters long' };
+      }
+      if (description.trim().length > 1000) {
+        return { valid: false, error: 'Description cannot exceed 1000 characters' };
+      }
+      // Check for potentially malicious content
+      const suspiciousPatterns = /<script|javascript:|onclick|onerror|alert\(|eval\(/i;
+      if (suspiciousPatterns.test(description)) {
+        return { valid: false, error: 'Description contains invalid content' };
+      }
+      return { valid: true };
+    }
+
+    function validateLocation(location) {
+      if (!location) {
+        return { valid: false, error: 'Please select a location for the incident' };
+      }
+      if (typeof location.lat !== 'number' || typeof location.lng !== 'number' || isNaN(location.lat) || isNaN(location.lng)) {
+        return { valid: false, error: 'Invalid location coordinates' };
+      }
+      if (!isWithinSanPablo(location.lat, location.lng)) {
+        return { valid: false, error: 'Location must be within San Pablo City limits' };
+      }
+      if (!location.name || location.name.trim() === '') {
+        return { valid: false, error: 'Location name is required' };
+      }
+      return { valid: true };
+    }
+
+    function validateImage(imageData) {
+      if (!imageData) {
+        return { valid: true }; // Image is optional
+      }
+      
+      // Check file size
+      if (imageData.length > MAX_IMAGE_SIZE_BYTES) {
+        return { 
+          valid: false, 
+          error: `Image size exceeds ${MAX_IMAGE_SIZE_MB}MB limit. Please compress or choose a smaller image.` 
+        };
+      }
+      
+      // Check file format based on base64 header
+      const mimeType = getMimeTypeFromBase64(imageData);
+      if (!ALLOWED_IMAGE_TYPES.includes(mimeType)) {
+        return { 
+          valid: false, 
+          error: 'Invalid image format. Please upload JPEG, PNG, or GIF images only.' 
+        };
+      }
+      
+      return { valid: true };
+    }
+
+    function getMimeTypeFromBase64(base64String) {
+      const header = base64String.substring(0, 20);
+      if (header.includes('/jpeg;') || header.includes('/jpg;')) return 'image/jpeg';
+      if (header.includes('/png;')) return 'image/png';
+      if (header.includes('/gif;')) return 'image/gif';
+      return 'unknown';
+    }
+
+    function compressImage(base64Data, maxSizeMB = 1) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Scale down if too large
+          const maxDimension = 1024;
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = (height * maxDimension) / width;
+              width = maxDimension;
+            } else {
+              width = (width * maxDimension) / height;
+              height = maxDimension;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          let quality = 0.8;
+          let compressed = canvas.toDataURL('image/jpeg', quality);
+          
+          // Adjust quality until size is acceptable or quality is too low
+          while (compressed.length > maxSizeMB * 1024 * 1024 && quality > 0.3) {
+            quality -= 0.1;
+            compressed = canvas.toDataURL('image/jpeg', quality);
+          }
+          
+          resolve(compressed);
+        };
+        img.src = base64Data;
+      });
+    }
+
+    function isWithinSanPablo(lat, lng) {
+      return lat >= CITY_BOUNDS.south && lat <= CITY_BOUNDS.north && 
+             lng >= CITY_BOUNDS.west && lng <= CITY_BOUNDS.east;
+    }
+
+    // Image preview handler with validation
+    document.getElementById('incidentImage').addEventListener('change', async function(e) {
       const file = e.target.files[0];
       const previewDiv = document.getElementById('imagePreview');
+      const msgBox = document.getElementById('message');
 
       if (file) {
+        // Validate file type first
+        if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+          msgBox.innerText = 'Invalid file type. Please upload JPEG, PNG, or GIF images only.';
+          msgBox.style.color = 'var(--danger)';
+          setTimeout(() => {
+            if (msgBox.innerText.includes('Invalid file type')) msgBox.innerText = '';
+          }, 3000);
+          e.target.value = '';
+          return;
+        }
+
+        // Validate file size
+        if (file.size > MAX_IMAGE_SIZE_BYTES) {
+          msgBox.innerText = `File too large. Maximum size is ${MAX_IMAGE_SIZE_MB}MB.`;
+          msgBox.style.color = 'var(--danger)';
+          setTimeout(() => {
+            if (msgBox.innerText.includes('File too large')) msgBox.innerText = '';
+          }, 3000);
+          e.target.value = '';
+          return;
+        }
+
         const reader = new FileReader();
-        reader.onload = function (event) {
-          currentImageData = event.target.result;
+        reader.onload = async function(event) {
+          // Compress large images automatically
+          let imageData = event.target.result;
+          if (imageData.length > 2 * 1024 * 1024) { // If > 2MB, compress
+            msgBox.innerText = 'Compressing image for optimal storage...';
+            msgBox.style.color = 'var(--text-main)';
+            imageData = await compressImage(imageData, 1);
+            msgBox.innerText = '';
+          }
+          
+          currentImageData = imageData;
           previewDiv.innerHTML = `
           <div style="position: relative;">
             <img src="${currentImageData}" alt="Preview">
@@ -366,7 +526,7 @@
       }
     });
 
-    window.removeImage = function () {
+    window.removeImage = function() {
       currentImageData = null;
       document.getElementById('incidentImage').value = '';
       document.getElementById('imagePreview').style.display = 'none';
@@ -390,10 +550,6 @@
         console.error('Reverse geocoding error:', err);
         return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
       }
-    }
-
-    function isWithinSanPablo(lat, lng) {
-      return lat >= CITY_BOUNDS.south && lat <= CITY_BOUNDS.north && lng >= CITY_BOUNDS.west && lng <= CITY_BOUNDS.east;
     }
 
     async function updateMarkerCoordinate(lat, lng, locationName = null) {
@@ -528,7 +684,7 @@
     const locationInput = document.getElementById('locationSearch');
     const suggestionsDiv = document.getElementById('locationSuggestions');
 
-    locationInput.addEventListener('input', function (e) {
+    locationInput.addEventListener('input', function(e) {
       clearTimeout(searchTimeout);
       const query = e.target.value;
       if (query.length < 3) { suggestionsDiv.innerHTML = ''; return; }
@@ -590,58 +746,96 @@
       }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
     });
 
-    // FIXED SUBMIT: Now sends image as 'image_url' to match database schema
+    // Enhanced submit with complete validation
     document.getElementById('submitReportBtn').addEventListener('click', async () => {
       const type = document.getElementById('incidentType').value;
       const description = document.getElementById('incidentDesc').value;
       const msgBox = document.getElementById('message');
 
-      if (!type || !description) {
-        msgBox.innerText = 'Please select a type and add a description.';
-        msgBox.style.color = 'var(--danger)';
-        return;
-      }
-      if (!selectedLocation) {
-        msgBox.innerText = 'Please select a location for the incident.';
+      // Validate incident type
+      const typeValidation = validateIncidentType(type);
+      if (!typeValidation.valid) {
+        msgBox.innerText = typeValidation.error;
         msgBox.style.color = 'var(--danger)';
         return;
       }
 
+      // Validate description
+      const descValidation = validateDescription(description);
+      if (!descValidation.valid) {
+        msgBox.innerText = descValidation.error;
+        msgBox.style.color = 'var(--danger)';
+        return;
+      }
+
+      // Validate location
       if (incidentDraggableMarker) {
         const markerLatLng = incidentDraggableMarker.getLatLng();
-        if (Math.abs(markerLatLng.lat - selectedLocation.lat) > 0.0000001 ||
-          Math.abs(markerLatLng.lng - selectedLocation.lng) > 0.0000001) {
-          selectedLocation = { lat: markerLatLng.lat, lng: markerLatLng.lng, name: selectedLocation.name };
+        if (Math.abs(markerLatLng.lat - (selectedLocation?.lat || 0)) > 0.0000001 ||
+            Math.abs(markerLatLng.lng - (selectedLocation?.lng || 0)) > 0.0000001) {
+          selectedLocation = { 
+            lat: markerLatLng.lat, 
+            lng: markerLatLng.lng, 
+            name: selectedLocation?.name || await reverseGeocode(markerLatLng.lat, markerLatLng.lng)
+          };
         }
+      }
+      
+      const locationValidation = validateLocation(selectedLocation);
+      if (!locationValidation.valid) {
+        msgBox.innerText = locationValidation.error;
+        msgBox.style.color = 'var(--danger)';
+        return;
+      }
+
+      // Validate image (if provided)
+      const imageValidation = validateImage(currentImageData);
+      if (!imageValidation.valid) {
+        msgBox.innerText = imageValidation.error;
+        msgBox.style.color = 'var(--danger)';
+        return;
       }
 
       msgBox.style.color = 'var(--text-main)';
       msgBox.innerText = 'Submitting report...';
 
-      // CRITICAL FIX: Send image as 'image_url' (matches database column name)
+      // Prepare payload with proper validation
       const payload = {
-        type,
-        description,
-        lat: selectedLocation.lat,
-        lng: selectedLocation.lng,
-        location_name: selectedLocation.name,
-        image_url: currentImageData  // Changed from 'image' to 'image_url' to match database
+        type: type.toLowerCase(),
+        description: description.trim(),
+        lat: parseFloat(selectedLocation.lat.toFixed(6)),
+        lng: parseFloat(selectedLocation.lng.toFixed(6)),
+        location_name: selectedLocation.name.trim(),
+        image_url: currentImageData || null
       };
 
-      console.log('Submitting payload:', { ...payload, image_url: payload.image_url ? '[IMAGE DATA]' : null });
+      console.log('Submitting payload:', { 
+        ...payload, 
+        image_url: payload.image_url ? '[IMAGE DATA - ' + payload.image_url.length + ' bytes]' : null 
+      });
 
       try {
         const response = await fetch('/incidents/', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+          headers: { 
+            'Content-Type': 'application/json', 
+            'Authorization': `Bearer ${TOKEN}`
+          },
           body: JSON.stringify(payload)
         });
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
+          let errorMessage;
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.detail || errorData.message || `Failed to report incident (HTTP ${response.status})`;
+          } catch (e) {
+            errorMessage = `Server error (HTTP ${response.status}). Please try again.`;
+          }
+          
           msgBox.style.color = 'var(--danger)';
-          msgBox.innerText = errorData.detail || `Failed to report incident (HTTP ${response.status})`;
-          console.error('Server response:', errorData);
+          msgBox.innerText = errorMessage;
+          console.error('Server response error:', errorMessage);
         } else {
           const responseData = await response.json();
           console.log('Success:', responseData);
@@ -652,7 +846,7 @@
       } catch (error) {
         console.error('Network error:', error);
         msgBox.style.color = 'var(--danger)';
-        msgBox.innerText = 'Network error. Please check your connection.';
+        msgBox.innerText = 'Network error. Please check your connection and try again.';
       }
     });
 
@@ -672,7 +866,6 @@
     const reportCollapseBtn = document.getElementById('reportCollapseBtn');
     const reportBody = document.getElementById('reportBody');
     if (reportCollapseBtn && reportBody) {
-      // Load persisted state
       if (localStorage.getItem('report_collapsed') === 'true') {
         reportBody.classList.add('collapsed');
         reportCollapseBtn.classList.add('collapsed');
@@ -685,22 +878,22 @@
       });
     }
   </script>
-<!-- Generic Alert Modal -->
-<div id="genericAlertModal" class="sidebar-overlay" style="z-index: 9999; align-items: center; justify-content: center; display: none; background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(5px);">
+  <!-- Generic Alert Modal -->
+  <div id="genericAlertModal" class="sidebar-overlay" style="z-index: 9999; align-items: center; justify-content: center; display: none; background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(5px);">
     <div class="glass-card" style="width: 90%; max-width: 400px; margin: 0; position: relative; background: var(--glass-bg, #fff); border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-        <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted, #666);">&times;</button>
-        <h3 id="genericAlertTitle" style="color: var(--text-main, #333); margin-top: 0; margin-bottom: 10px; font-family: sans-serif;">Alert</h3>
-        <p id="genericAlertBody" style="color: var(--text-muted, #666); font-size: 15px; line-height: 1.5; margin-bottom: 20px; white-space: pre-wrap; font-family: sans-serif;"></p>
-        <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="background: var(--primary, #3b82f6); color: white; padding: 12px; border-radius: 20px; width: 100%; font-weight: 600; cursor: pointer; border: none; font-size: 15px;">OK</button>
+      <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted, #666);">&times;</button>
+      <h3 id="genericAlertTitle" style="color: var(--text-main, #333); margin-top: 0; margin-bottom: 10px; font-family: sans-serif;">Alert</h3>
+      <p id="genericAlertBody" style="color: var(--text-muted, #666); font-size: 15px; line-height: 1.5; margin-bottom: 20px; white-space: pre-wrap; font-family: sans-serif;"></p>
+      <button onclick="document.getElementById('genericAlertModal').style.display='none'" style="background: var(--primary, #3b82f6); color: white; padding: 12px; border-radius: 20px; width: 100%; font-weight: 600; cursor: pointer; border: none; font-size: 15px;">OK</button>
     </div>
-</div>
-<script>
-window.alert = function(message, title = "Notification") {
-    document.getElementById('genericAlertTitle').innerText = title;
-    document.getElementById('genericAlertBody').innerText = message;
-    document.getElementById('genericAlertModal').style.display = 'flex';
-};
-</script>
+  </div>
+  <script>
+    window.alert = function(message, title = "Notification") {
+      document.getElementById('genericAlertTitle').innerText = title;
+      document.getElementById('genericAlertBody').innerText = message;
+      document.getElementById('genericAlertModal').style.display = 'flex';
+    };
+  </script>
 </body>
 
 </html>

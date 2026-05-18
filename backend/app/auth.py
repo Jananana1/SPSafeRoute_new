@@ -1,7 +1,15 @@
+import os
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 import re
 import random
+from .config import load_project_env
+
+load_project_env()
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY environment variable must be set.")
 
 def check_password_strength(password: str) -> str:
     """Return 'Weak', 'Strong', or 'Very Strong' based on password composition."""
@@ -31,7 +39,6 @@ from .database import SessionLocal
 from .models import User
 
 # JWT configuration
-SECRET_KEY = "your-super-secret-key-change-in-production"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES =  60 * 24 * 30 
 

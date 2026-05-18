@@ -608,7 +608,9 @@
 
     document.getElementById('viewLocationBtn').addEventListener('click', () => {
       if (currentLocation && currentLocation.lat && currentLocation.lng) {
-        window.open(`https://www.google.com/maps?q=${currentLocation.lat},${currentLocation.lng}`, '_blank');
+        const lat = currentLocation.lat.toFixed(6);
+        const lng = currentLocation.lng.toFixed(6);
+        window.location.href = `index.html?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`;
       } else {
         alert('Location coordinates not available');
       }

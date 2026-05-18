@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, 
 from sqlalchemy.sql import func
 from sqlalchemy.orm import validates
 from .database import Base
+from .encryption import EncryptedString
 import enum
 import re
 
@@ -10,7 +11,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(100), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
-    full_name = Column(String(100), nullable=True)
+    full_name = Column(EncryptedString(255), nullable=True)
     is_admin = Column(Boolean, default=False)
     failed_login_attempts = Column(Integer, default=0)
     locked_until = Column(DateTime(timezone=True), nullable=True)

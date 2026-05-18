@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import os
+import re
 import uuid
 from .. import schemas, models, auth
 
@@ -81,17 +82,40 @@ async def update_profile(
         current_user.hashed_password = auth.get_password_hash(new_password)
         
     if full_name is not None:
-        current_user.full_name = full_name
+        normalized_full_name = full_name.strip()
+        if normalized_full_name == "":
+            current_user.full_name = None
+        else:
+            if len(normalized_full_name) < 2 or len(normalized_full_name) > 100:
+                raise HTTPException(400, "Full name must be between 2 and 100 characters.")
+            suspicious_pattern = re.compile(r"<script|javascript:|onclick|onerror|alert\(|eval\(|<[^>]+>", re.IGNORECASE)
+            if suspicious_pattern.search(normalized_full_name):
+                raise HTTPException(400, "Full name contains invalid characters.")
+            current_user.full_name = normalized_full_name
         
     if remove_profile_image:
         current_user.profile_image_url = None
     elif profile_image:
-        ext = profile_image.filename.split('.')[-1]
-        filename = f"{uuid.uuid4()}.{ext}"
+        allowed_types = {"image/jpeg", "image/png", "image/gif"}
+        allowed_extensions = {"jpg", "jpeg", "png", "gif"}
+        content_type = profile_image.content_type.lower() if profile_image.content_type else ""
+        if content_type not in allowed_types:
+            raise HTTPException(400, "Only JPEG, PNG, or GIF profile images are allowed.")
+
+        filename_ext = os.path.splitext(profile_image.filename)[1].lower().lstrip('.')
+        if filename_ext not in allowed_extensions:
+            raise HTTPException(400, "Invalid profile image file extension.")
+
+        content = await profile_image.read()
+        max_size = 2 * 1024 * 1024
+        if len(content) > max_size:
+            raise HTTPException(400, "Profile image must be 2MB or smaller.")
+
+        filename = f"{uuid.uuid4()}.{filename_ext}"
         filepath = os.path.join("uploads", "profiles", filename)
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         with open(filepath, "wb") as f:
-            f.write(await profile_image.read())
+            f.write(content)
         current_user.profile_image_url = f"/uploads/profiles/{filename}"
         
     db.commit()
