@@ -1108,8 +1108,7 @@ if (loginEmailInput && loginEmailError) {
                     });
                     const data = await response.json();
                     if (!response.ok) throw new Error(data.detail);
-                    alert("Password successfully reset! Please log in.");
-                    window.location.href = '/';
+                    showResetSuccessModal();
                 } catch (err) {
                     resetMessage.innerText = err.message;
                 }
@@ -1469,6 +1468,27 @@ if (loginEmailInput && loginEmailError) {
                    border-radius:10px; font-size:13px; font-weight:700; cursor:pointer;">Install</button>
     </div>
 </div>
+
+<!-- Password Reset Success Modal -->
+<div id="resetSuccessModal" style="z-index: 10000; align-items: center; justify-content: center; display: none; background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(5px);">
+    <div class="glass-card" style="width: 90%; max-width: 400px; margin: 0; position: relative; background: var(--glass-bg, #fff); border-radius: 20px; padding: 32px 24px 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center;">
+        <div style="width: 64px; height: 64px; background: #22c55e; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <h3 style="color: var(--text-main, #333); margin: 0 0 10px; font-family: sans-serif;">Password Reset Successful!</h3>
+        <p style="color: var(--text-muted, #666); font-size: 15px; line-height: 1.5; margin-bottom: 24px; font-family: sans-serif;">Your password has been successfully reset. You can now log in with your new password.</p>
+        <button id="resetSuccessOkBtn" style="background: var(--primary, #3b82f6); color: white; padding: 12px; border-radius: 20px; width: 100%; font-weight: 600; cursor: pointer; border: none; font-size: 15px;">Go to Login</button>
+    </div>
+</div>
+<script>
+function showResetSuccessModal() {
+    document.getElementById('resetSuccessModal').style.display = 'flex';
+}
+document.getElementById('resetSuccessOkBtn').addEventListener('click', function() {
+    document.getElementById('resetSuccessModal').style.display = 'none';
+    window.location.href = '/';
+});
+</script>
 
 <!-- Generic Alert Modal -->
 <div id="genericAlertModal" class="sidebar-overlay" style="z-index: 9999; align-items: center; justify-content: center; display: none; background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(5px);">

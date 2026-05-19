@@ -15,7 +15,7 @@
             box-sizing: border-box;
         }
 
-        /* ----- GLOBAL THEME VARIABLES (Fully dynamic for analytics & insights) ----- */
+        /* ----- LIGHT MODE (default) ----- */
         :root {
             --primary: #1A73E8;
             --primary-dark: #0d5bbf;
@@ -25,6 +25,7 @@
             --glass-border: rgba(0, 0, 0, 0.08);
             --text-main: #0f172a;
             --text-muted: #334155;
+            --text-white: #0f172a; /* for internal use */
             --nav-hover: rgba(0, 0, 0, 0.04);
             --card-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.08);
             --sidebar-shadow: 8px 0 28px -8px rgba(0, 0, 0, 0.12);
@@ -40,23 +41,37 @@
             --heading-color: #0f172a;
             --chart-grid: rgba(0, 0, 0, 0.1);
             --analytics-accent: #8b5cf6;
+            --icon-filter: brightness(0) saturate(100%) invert(13%) sepia(30%) saturate(1230%) hue-rotate(202deg) brightness(94%) contrast(92%);
+            --badge-accident-bg: #ef4444;
+            --badge-hazard-bg: #f59e0b;
+            --badge-crime-bg: #8b5cf6;
+            --stat-number-gradient-start: var(--primary);
+            --stat-number-gradient-end: var(--analytics-accent);
         }
 
+        /* ----- DARK MODEMy-- ALL TEXT BECOMES WHITE ----- */
         [data-theme="dark"] {
-            --glass-bg: rgba(18, 25, 35, 0.88);
-            --glass-bg-solid: rgba(15, 25, 35, 0.96);
-            --glass-border: rgba(255, 255, 255, 0.12);
-            --text-main: #f1f5f9;
-            --text-muted: #cbd5e6;
-            --nav-hover: rgba(255, 255, 255, 0.05);
-            --card-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.4);
-            --sidebar-shadow: 8px 0 28px -8px rgba(0, 0, 0, 0.5);
-            --overlay-bg: rgba(0, 0, 0, 0.6);
+            --glass-bg: rgba(18, 25, 35, 0.92);
+            --glass-bg-solid: rgba(15, 25, 35, 0.98);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --text-main: #ffffff;
+            --text-muted: #f1f5f9;
+            --text-white: #ffffff;
+            --nav-hover: rgba(255, 255, 255, 0.08);
+            --card-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.5);
+            --sidebar-shadow: 8px 0 28px -8px rgba(0, 0, 0, 0.6);
+            --overlay-bg: rgba(0, 0, 0, 0.7);
             --body-bg-start: #0a0f1a;
             --body-bg-end: #0f1420;
-            --heading-color: #f1f5f9;
-            --chart-grid: rgba(255, 255, 255, 0.15);
-            --analytics-accent: #a78bfa;
+            --heading-color: #ffffff;
+            --chart-grid: rgba(255, 255, 255, 0.2);
+            --analytics-accent: #c4b5fd;
+            --icon-filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%);
+            --badge-accident-bg: #b91c1c;
+            --badge-hazard-bg: #d97706;
+            --badge-crime-bg: #7c3aed;
+            --stat-number-gradient-start: #60a5fa;
+            --stat-number-gradient-end: #c4b5fd;
         }
 
         body {
@@ -67,7 +82,7 @@
             transition: background 0.3s ease;
         }
 
-        /* ---------- SIDEBAR (Premium sticky) ---------- */
+        /* ---------- SIDEBAR ---------- */
         .admin-sidebar {
             width: 280px;
             background: var(--glass-bg);
@@ -113,6 +128,16 @@
             font-size: 15px;
             transition: var(--transition-default);
             background: transparent;
+        }
+        
+        .admin-nav-item span:first-child {
+            filter: var(--icon-filter);
+            transition: filter 0.2s;
+            display: inline-block;
+        }
+        
+        .admin-nav-item.active span:first-child {
+            filter: brightness(0) invert(1);
         }
 
         .admin-nav-item:hover {
@@ -280,7 +305,7 @@
             overflow: auto;
         }
 
-        /* Enhanced Analytics Cards & Insights Grid */
+        /* Cards & Analytics */
         .glass-card {
             background: var(--glass-bg);
             backdrop-filter: blur(16px);
@@ -297,7 +322,14 @@
             border-color: var(--primary);
         }
 
-        .glass-card h3, .glass-card h2, .glass-card h4, .card-title {
+        /* ALL text inside cards becomes white in dark mode */
+        .glass-card h3, 
+        .glass-card h2, 
+        .glass-card h4, 
+        .glass-card p, 
+        .glass-card span,
+        .glass-card div,
+        .card-title {
             color: var(--text-main) !important;
             transition: color 0.2s ease;
         }
@@ -328,7 +360,7 @@
         .stat-badge .stat-number {
             font-size: 2.6rem;
             font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), var(--analytics-accent));
+            background: linear-gradient(135deg, var(--stat-number-gradient-start), var(--stat-number-gradient-end));
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
@@ -347,7 +379,7 @@
             width: 100%;
         }
 
-        /* Table & incident styles remain robust */
+        /* Table styles */
         .table-responsive {
             width: 100%;
             overflow-x: auto;
@@ -379,9 +411,9 @@
             font-weight: 700;
             display: inline-block;
         }
-        .badge-accident { background: #ef4444; color: white; }
-        .badge-hazard { background: #f59e0b; color: white; }
-        .badge-crime { background: #8b5cf6; color: white; }
+        .badge-accident { background: var(--badge-accident-bg); color: white; }
+        .badge-hazard { background: var(--badge-hazard-bg); color: white; }
+        .badge-crime { background: var(--badge-crime-bg); color: white; }
 
         .status-completed { color: var(--success); font-weight: 700; }
         .status-pending { color: var(--warning); font-weight: 700; }
@@ -434,7 +466,7 @@
             box-shadow: 0 4px 12px var(--primary-glow);
         }
 
-        /* Modal refinements */
+        /* Modal */
         .modal-buttons {
             display: flex;
             gap: 12px;
@@ -450,6 +482,11 @@
         }
         .modal-btn-confirm { background: var(--primary); color: white; }
         .modal-btn-cancel { background: var(--glass-border); color: var(--text-main); }
+
+        /* Search input */
+        input {
+            color: var(--text-main) !important;
+        }
 
         @media (max-width: 1100px) {
             body { flex-direction: column; }
@@ -475,10 +512,10 @@
 
 <div class="admin-sidebar" id="adminSidebar">
     <div class="admin-sidebar-header"><h2>🛡️ SafeRoute</h2></div>
-    <div class="admin-nav-item active" data-section="incidents">📋 Incident Reports</div>
-    <div class="admin-nav-item" data-section="analytics">📊 Analytics & Insights</div>
+    <div class="admin-nav-item active" data-section="incidents"><span>📋</span> Incident Reports</div>
+    <div class="admin-nav-item" data-section="analytics"><span>📊</span> Analytics & Insights</div>
     <div class="sidebar-spacer"></div>
-    <button class="admin-nav-item logout-btn" id="logoutButton">🚪 Logout</button>
+    <button class="admin-nav-item logout-btn" id="logoutButton"><span>🚪</span> Logout</button>
 </div>
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
@@ -499,7 +536,7 @@
         <div class="glass-card">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
                 <h3>🚨 Live Reports</h3>
-                <input type="text" id="incidentSearch" placeholder="Search by ID, type, location..." style="padding: 10px 16px; border-radius: 40px; border: 1px solid var(--glass-border); background: var(--glass-bg-solid); color: var(--text-main); width: 260px;">
+                <input type="text" id="incidentSearch" placeholder="Search by ID, type, location..." style="padding: 10px 16px; border-radius: 40px; border: 1px solid var(--glass-border); background: var(--glass-bg-solid); width: 260px;">
             </div>
             <div class="status-tabs" style="margin-bottom: 24px;">
                 <button class="status-tab active" data-filter="all">All</button>
@@ -510,21 +547,20 @@
             <div class="table-responsive">
                 <table id="incidentsTable">
                     <thead><tr><th>ID</th><th>Type</th><th>Location</th><th>Description</th><th>User ID</th><th>Status</th><th>Reported</th><th>Actions</th></tr></thead>
-                    <tbody id="incidentsList"><tr><td colspan="8" class="loader-text">📡 Loading incidents...</td></tr></tbody>
+                    <tbody id="incidentsList"><tr><td colspan="8" class="loader-text">📡 Loading incidents......</td></tr>
+                </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- Analytics & Insights Section — fully redesigned for clarity -->
+    <!-- Analytics & Insights Section -->
     <div id="analyticsSection" style="display: none;">
-        <!-- KPI Summary Row: Enhanced insights at a glance -->
         <div class="insight-summary" id="kpiSummary">
             <div class="stat-badge"><div class="stat-number" id="totalIncidentsStat">-</div><div class="stat-label">Total Reports</div></div>
             <div class="stat-badge"><div class="stat-number" id="pendingStat">-</div><div class="stat-label">Pending Action</div></div>
             <div class="stat-badge"><div class="stat-number" id="resolvedStat">-</div><div class="stat-label">Resolved</div></div>
         </div>
-
         <div class="analytics-grid">
             <div class="glass-card">
                 <h3 style="margin-top:0; display: flex; align-items: center; gap: 8px;">📈 Monthly Incident Trends</h3>
@@ -537,8 +573,6 @@
                 <p class="stat-label" style="margin-top: 12px; text-align: center;">Most prone areas by incident density</p>
             </div>
         </div>
-        
-        <!-- Additional insight card: type breakdown summary (dynamic) -->
         <div class="glass-card">
             <h3>📌 Incident Type Distribution</h3>
             <div id="typeBreakdown" style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-around; margin-top: 16px;"></div>
@@ -550,14 +584,14 @@
 <div id="genericAlertModal" class="modal-overlay" style="display: none;">
     <div class="glass-card" style="width: 90%; max-width: 400px; margin: 0; padding: 24px;">
         <button onclick="closeModal('genericAlertModal')" style="float: right; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted);">&times;</button>
-        <h3 id="genericAlertTitle" style="color: var(--text-main);">Alert</h3>
-        <p id="genericAlertBody" style="color: var(--text-muted); margin: 16px 0;">Message</p>
+        <h3 id="genericAlertTitle">Alert</h3>
+        <p id="genericAlertBody" style="margin: 16px 0;">Message</p>
         <div class="modal-buttons"><button id="modalConfirmBtn" class="modal-btn modal-btn-confirm" style="display:none;">Confirm</button><button id="modalCancelBtn" class="modal-btn modal-btn-cancel" style="display:none;">Cancel</button><button id="modalOkBtn" class="modal-btn modal-btn-confirm">OK</button></div>
     </div>
 </div>
 
 <script>
-    // ---------- MODAL HELPERS ----------
+    // MODAL HELPERS 
     let pendingConfirmCallback = null;
     function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; if(modalId === 'genericAlertModal') pendingConfirmCallback = null; }
     function showModal(title, message, onConfirm = null, onCancel = null) {
@@ -577,7 +611,6 @@
     window.confirmModal = (message, title) => new Promise(resolve => showModal(title, message, () => resolve(true), () => resolve(false)));
     window.alert = (message, title = "Notification") => showModal(title, message);
     
-    // Auth helpers
     const token = localStorage.getItem('token');
     if (!token) window.location.href = '/';
     async function authFetch(url, options = {}) {
@@ -600,10 +633,30 @@
     window.addEventListener('resize', () => { if(window.innerWidth > 1100) { sidebar.classList.remove('hidden'); overlay.classList.remove('visible'); document.body.style.overflow = ''; } else if(!sidebar.classList.contains('hidden')) setSidebar(true); });
     if(window.innerWidth <= 1100) sidebar.classList.add('hidden');
     
-    // Theme management
-    function applyTheme(theme) { if(theme === 'dark') document.documentElement.setAttribute('data-theme','dark'); else document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme',theme); if(currentSection === 'analytics') refreshAnalyticsCharts(); }
-    applyTheme(localStorage.getItem('theme') || 'light');
-    themeToggle.addEventListener('click', () => { const isDark = document.documentElement.getAttribute('data-theme') === 'dark'; applyTheme(isDark ? 'light' : 'dark'); });
+    // Theme management with icon swapping
+    function applyTheme(theme) {
+        if(theme === 'dark') {
+            document.documentElement.setAttribute('data-theme','dark');
+            themeToggle.innerHTML = '☀️';
+            themeToggle.title = 'Light Mode';
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+            themeToggle.innerHTML = '🌙';
+            themeToggle.title = 'Dark Mode';
+        }
+        localStorage.setItem('theme',theme);
+        if(currentSection === 'analytics') refreshAnalyticsCharts();
+        // Force re-render table to update text colors
+        if(currentSection === 'incidents' && allIncidents.length) applyFilters();
+    }
+    
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+    
+    themeToggle.addEventListener('click', () => { 
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark'; 
+        applyTheme(isDark ? 'light' : 'dark'); 
+    });
     
     function switchSection(section) {
         currentSection = section;
@@ -615,7 +668,6 @@
     }
     document.querySelectorAll('.admin-nav-item[data-section]').forEach(nav => nav.addEventListener('click', () => switchSection(nav.getAttribute('data-section'))));
     
-    // Incident logic
     function renderIncidentsTable(incidents) {
         const tbody = document.getElementById('incidentsList');
         if(!incidents.length) { tbody.innerHTML = '<tr><td colspan="8" class="loader-text">No reports found</td></tr>'; return; }
@@ -633,7 +685,6 @@
             const actions = row.insertCell(7), wrap = document.createElement('div'); wrap.className = 'actions-wrapper';
             if(!isDel && !isComp) {
                 let resolveBtn = document.createElement('button');
-                resolveBtn.type = 'button';
                 resolveBtn.textContent = 'Resolve';
                 resolveBtn.className = 'action-btn btn-success';
                 resolveBtn.onclick = () => completeIncident(inc.id);
@@ -641,36 +692,30 @@
             }
             if(!isDel) {
                 let delBtn = document.createElement('button');
-                delBtn.type = 'button';
                 delBtn.textContent = 'Delete';
                 delBtn.className = 'action-btn btn-danger';
                 delBtn.onclick = () => deleteIncident(inc.id);
                 wrap.appendChild(delBtn);
             } else {
-                wrap.innerHTML = '<span style="font-size:12px;">—</span>';
+                wrap.innerHTML = '<span style="font-size:12px;">no action</span>';
             }
             actions.appendChild(wrap);
         });
     }
-    let currentFilter = 'all', searchTerm = '';
+    
+    let currentFilter = 'all';
     function applyFilters() { if(!allIncidents) return; const term = document.getElementById('incidentSearch')?.value.toLowerCase() || ''; const filtered = allIncidents.filter(inc => { const status = inc.status; let match=false; if(currentFilter==='all') match=true; else if(currentFilter==='deleted') match=status==='deleted'; else if(currentFilter==='completed') match=status==='completed'; else match=status!=='completed' && status!=='deleted'; if(!match) return false; if(term) return (inc.type||'').toLowerCase().includes(term) || (inc.location_name||'').toLowerCase().includes(term) || (inc.description||'').toLowerCase().includes(term) || String(inc.id).includes(term); return true; }); renderIncidentsTable(filtered); }
     document.getElementById('incidentSearch')?.addEventListener('input', applyFilters);
     document.querySelectorAll('.status-tab').forEach(tab => tab.addEventListener('click', e => { document.querySelectorAll('.status-tab').forEach(t=>t.classList.remove('active')); e.target.classList.add('active'); currentFilter = e.target.getAttribute('data-filter'); applyFilters(); }));
+    
     async function loadIncidents() { if(!await ensureAdmin()) return; try { const res = await authFetch('/admin/incidents'); allIncidents = await res.json(); applyFilters(); } catch(e){ console.error(e); document.getElementById('incidentsList').innerHTML='<tr><td colspan="8" class="loader-text">Error loading</td></tr>'; } }
     async function completeIncident(id) { if(!await confirmModal('Resolve this incident & notify user?','Confirm')) return; try { const res = await authFetch(`/admin/incidents/${id}/complete`,{method:'POST'}); if(res.ok){ alert('Resolved successfully.'); loadIncidents(); } else alert('Failed to resolve'); } catch(e){ alert('Error: '+e.message); } }
     async function deleteIncident(id) { if(!await confirmModal('Delete this report from map?','Confirm Delete')) return; try { const res = await authFetch(`/admin/incidents/${id}`,{method:'DELETE'}); if(res.ok){ alert('Deleted from map.'); loadIncidents(); } else alert('Delete failed'); } catch(e){ alert(e.message); } }
     
-    // Analytics & insights full fix — with dynamic KPI, type distribution & chart theming
-    let lastAnalyticsHash = '';
     async function refreshAnalyticsCharts() {
         try {
             const res = await authFetch('/admin/analytics');
             const data = await res.json();
-            const hash = JSON.stringify(data);
-            if(hash === lastAnalyticsHash) return;
-            lastAnalyticsHash = hash;
-            
-            // Update KPI Cards
             const total = data.monthly_stats.reduce((sum, m) => sum + m.count, 0);
             document.getElementById('totalIncidentsStat').innerText = total;
             let pendingCount = 0, resolvedCount = 0;
@@ -678,15 +723,14 @@
             document.getElementById('pendingStat').innerText = pendingCount;
             document.getElementById('resolvedStat').innerText = resolvedCount;
             
-            // Type breakdown
             const typeMap = new Map();
             if(allIncidents.length) { allIncidents.forEach(inc => { if(inc.status !== 'deleted') typeMap.set(inc.type, (typeMap.get(inc.type) || 0) + 1); }); }
             const typeDiv = document.getElementById('typeBreakdown');
-            typeDiv.innerHTML = Array.from(typeMap.entries()).map(([type, cnt]) => `<div style="background:var(--glass-bg-solid); border-radius:28px; padding:12px 20px; text-align:center; min-width:100px;"><strong style="color:var(--text-main);">${type.toUpperCase()}</strong><div style="font-size:28px; font-weight:700; color:var(--primary);">${cnt}</div><span class="stat-label">incidents</span></div>`).join('') || '<span class="stat-label">No active incidents data</span>';
+            typeDiv.innerHTML = Array.from(typeMap.entries()).map(([type, cnt]) => `<div style="background:var(--glass-bg-solid); border-radius:28px; padding:12px 20px; text-align:center; min-width:100px;"><strong style="color:var(--text-main);">${type.toUpperCase()}</strong><div style="font-size:28px; font-weight:700; color:var(--primary);">${cnt}</div><span class="stat-label" style="color:var(--text-muted);">incidents</span></div>`).join('') || '<span class="stat-label" style="color:var(--text-muted);">No active incidents data</span>';
             
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            const textColor = isDark ? '#e2e8f0' : '#1e293b';
-            const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+            const textColor = isDark ? '#ffffff' : '#1e293b';
+            const gridColor = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)';
             Chart.defaults.color = textColor;
             
             const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
@@ -694,14 +738,14 @@
             monthlyChart = new Chart(monthlyCtx, {
                 type: 'line',
                 data: { labels: data.monthly_stats.map(m => m.month), datasets: [{ label: 'Incidents', data: data.monthly_stats.map(m => m.count), borderColor: '#1A73E8', backgroundColor: 'rgba(26,115,232,0.1)', fill: true, tension: 0.3, pointBackgroundColor: '#1A73E8', pointBorderColor: '#fff', pointRadius: 4 }] },
-                options: { responsive: true, maintainAspectRatio: true, scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor }, beginAtZero: true } } }
+                options: { responsive: true, maintainAspectRatio: true, scales: { x: { grid: { color: gridColor }, ticks: { color: textColor } }, y: { grid: { color: gridColor }, beginAtZero: true, ticks: { color: textColor } } } }
             });
             const areaCtx = document.getElementById('areaChart').getContext('2d');
             if(areaChart) areaChart.destroy();
             areaChart = new Chart(areaCtx, {
                 type: 'bar',
                 data: { labels: data.area_stats.map(a => a.area), datasets: [{ label: 'Incidents', data: data.area_stats.map(a => a.count), backgroundColor: '#8b5cf6', borderRadius: 8, barPercentage: 0.65 }] },
-                options: { responsive: true, maintainAspectRatio: true, scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor }, beginAtZero: true } } }
+                options: { responsive: true, maintainAspectRatio: true, scales: { x: { grid: { color: gridColor }, ticks: { color: textColor } }, y: { grid: { color: gridColor }, beginAtZero: true, ticks: { color: textColor } } } }
             });
         } catch(err) { console.error('Analytics error', err); }
     }
@@ -710,30 +754,12 @@
     switchSection('incidents');
     setInterval(() => { if(currentSection === 'incidents') loadIncidents(); else if(currentSection === 'analytics') refreshAnalyticsCharts(); }, 15000);
     
-    // Firebase Notifications - light integration
     const firebaseConfig = { apiKey: "AIzaSyBv92XnzznnO-e7q-F7n8IqiyABvj2fhwU", authDomain: "spsaferoute.firebaseapp.com", projectId: "spsaferoute", storageBucket: "spsaferoute.firebasestorage.app", messagingSenderId: "328821048277", appId: "1:328821048277:web:e5ea508b9b90180ec0b35c" };
     firebase.initializeApp(firebaseConfig);
     const messaging = firebase.messaging();
-    if('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js', { scope: '/' })
-            .then(reg => {
-                console.log('[SW] Admin SW registered:', reg.scope);
-                return navigator.serviceWorker.getRegistrations();
-            })
-            .then(registrations => {
-                registrations.forEach(existingReg => {
-                    if (existingReg.active && existingReg.active.scriptURL.includes('/firebase-messaging-sw.js')) {
-                        existingReg.unregister().then(unregistered => {
-                            if (unregistered) console.log('[SW] Unregistered old Firebase messaging SW:', existingReg.active.scriptURL);
-                        });
-                    }
-                });
-            })
-            .catch(err => console.error('[SW] Admin SW registration failed:', err));
-    }
     async function enableNotifications() { if(!token) return; try { const permission = await Notification.requestPermission(); if(permission !== 'granted') return; await navigator.serviceWorker.register('/sw.js', { scope: '/' }); const reg = await navigator.serviceWorker.ready; const fcmToken = await messaging.getToken({ vapidKey: "BKnT_hLfIL2DlonLwZrXY4kwjBEjlp6BaJIr6_ESnVT_K4R985hNmpftY7A9YA9HWSNjCNEeEcTuN8v6VBFDHeI", serviceWorkerRegistration: reg }); await authFetch('/users/fcm-token', { method: 'POST', body: JSON.stringify({ token: fcmToken }) }); } catch(e){ console.warn(e); } }
     enableNotifications();
     messaging.onMessage(() => { if(currentSection === 'incidents') loadIncidents(); alert('New incident reported!', 'Live Alert'); });
 </script>
 </body>
-</html>
+</html> 
