@@ -18,7 +18,10 @@
 
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0f172a">
-    <link rel="apple-touch-icon" href="/static/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SafeRoute">
     <style>
         .otp-box {
             width: 56px;
@@ -486,11 +489,71 @@ if (loginEmailInput && loginEmailError) {
         firebase.initializeApp(firebaseConfig);
         const messaging = firebase.messaging();
 
+        // ── Register caching + Firebase messaging service worker ──
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/firebase-messaging-sw.js')
-                .then(reg => console.log('Service Worker registered successfully:', reg))
-                .catch(err => console.error('Service Worker registration failed:', err));
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => {
+                    console.log('[SW] SW registered:', reg.scope);
+                    return navigator.serviceWorker.getRegistrations();
+                })
+                .then(registrations => {
+                    registrations.forEach(existingReg => {
+                        if (existingReg.active && existingReg.active.scriptURL.includes('/firebase-messaging-sw.js')) {
+                            existingReg.unregister().then(unregistered => {
+                                if (unregistered) console.log('[SW] Unregistered old Firebase messaging SW:', existingReg.active.scriptURL);
+                            });
+                        }
+                    });
+                })
+                .catch(err => console.error('[SW] SW registration failed:', err));
         }
+
+        // ── PWA Install Prompt ────────────────────────────────────
+        let deferredInstallPrompt = null;
+        window.addEventListener('beforeinstallprompt', e => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+            // Show install banner after 3 seconds if not dismissed before
+            setTimeout(() => {
+                const banner = document.getElementById('pwaInstallBanner');
+                if (banner && deferredInstallPrompt) banner.style.display = 'flex';
+            }, 3000);
+        });
+
+        function installPWA() {
+            if (!deferredInstallPrompt) return;
+            deferredInstallPrompt.prompt();
+            deferredInstallPrompt.userChoice.then(choice => {
+                console.log('[PWA] Install choice:', choice.outcome);
+                deferredInstallPrompt = null;
+                document.getElementById('pwaInstallBanner').style.display = 'none';
+            });
+        }
+
+        function dismissInstallBanner() {
+            document.getElementById('pwaInstallBanner').style.display = 'none';
+            deferredInstallPrompt = null;
+        }
+
+        window.addEventListener('appinstalled', () => {
+            console.log('[PWA] App installed successfully');
+            const banner = document.getElementById('pwaInstallBanner');
+            if (banner) banner.style.display = 'none';
+        });
+
+        // ── Offline / Online status banner ───────────────────────
+        function updateOnlineStatus() {
+            const banner = document.getElementById('offlineBanner');
+            if (!banner) return;
+            if (!navigator.onLine) {
+                banner.style.display = 'flex';
+            } else {
+                banner.style.display = 'none';
+            }
+        }
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
 
         let map;
         let darkTileLayer;
@@ -1138,6 +1201,7 @@ if (loginEmailInput && loginEmailError) {
             }
             try {
                 if (!('serviceWorker' in navigator)) return;
+                await navigator.serviceWorker.register('/sw.js', { scope: '/' });
                 const permission = Notification.permission;
                 if (permission === 'denied') return; // user explicitly denied, don't prompt
                 // Only prompt if not yet granted
@@ -1146,9 +1210,10 @@ if (loginEmailInput && loginEmailError) {
                     : (await Notification.requestPermission()) === 'granted';
                 if (!granted) return;
 
-                await navigator.serviceWorker.ready;
+                const reg = await navigator.serviceWorker.ready;
                 const fcmToken = await messaging.getToken({
-                    vapidKey: "BKnT_hLfIL2DlonLwZrXY4kwjBEjlp6BaJIr6_ESnVT_K4R985hNmpftY7A9YA9HWSNjCNEeEcTuN8v6VBFDHeI"
+                    vapidKey: "BKnT_hLfIL2DlonLwZrXY4kwjBEjlp6BaJIr6_ESnVT_K4R985hNmpftY7A9YA9HWSNjCNEeEcTuN8v6VBFDHeI",
+                    serviceWorkerRegistration: reg
                 });
                 if (!fcmToken) {
                     console.warn('No FCM token returned');
@@ -1299,9 +1364,10 @@ if (loginEmailInput && loginEmailError) {
                     showToast('Permission Denied', 'Notifications were not allowed.', 'warning');
                     return;
                 }
-                await navigator.serviceWorker.ready;
+                const reg = await navigator.serviceWorker.ready;
                 const fcmToken = await messaging.getToken({
-                    vapidKey: "BKnT_hLfIL2DlonLwZrXY4kwjBEjlp6BaJIr6_ESnVT_K4R985hNmpftY7A9YA9HWSNjCNEeEcTuN8v6VBFDHeI"
+                    vapidKey: "BKnT_hLfIL2DlonLwZrXY4kwjBEjlp6BaJIr6_ESnVT_K4R985hNmpftY7A9YA9HWSNjCNEeEcTuN8v6VBFDHeI",
+                    serviceWorkerRegistration: reg
                 });
                 if (!fcmToken) { showToast('Token Error', 'Could not get notification token.', 'error'); return; }
                 const response = await fetch('/users/fcm-token', {
@@ -1374,6 +1440,36 @@ if (loginEmailInput && loginEmailError) {
         const _origLoadUser = loadUser;
 
     </script>
+<!-- ── Offline Banner ──────────────────────────────────── -->
+<div id="offlineBanner" style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:99999;
+     background:#ef4444; color:#fff; padding:10px 16px; align-items:center; justify-content:center;
+     gap:8px; font-size:14px; font-weight:600; box-shadow:0 -2px 10px rgba(0,0,0,0.2);">
+    <span>📡</span>
+    <span>You're offline — some features may be unavailable</span>
+</div>
+
+<!-- ── PWA Install Banner ───────────────────────────────── -->
+<div id="pwaInstallBanner" style="display:none; position:fixed; bottom:60px; left:12px; right:12px; z-index:99998;
+     background:#0f172a; color:#fff; border-radius:16px; padding:14px 16px;
+     align-items:center; justify-content:space-between; gap:10px;
+     box-shadow:0 4px 20px rgba(0,0,0,0.35); font-family:sans-serif;">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <img src="/static/icons/android-chrome-192x192.png" style="width:40px; height:40px; border-radius:10px;" alt="icon">
+        <div>
+            <div style="font-weight:700; font-size:14px;">Install SP SafeRoute</div>
+            <div style="font-size:12px; opacity:0.7;">Add to home screen for offline access</div>
+        </div>
+    </div>
+    <div style="display:flex; gap:8px; flex-shrink:0;">
+        <button onclick="dismissInstallBanner()"
+            style="background:rgba(255,255,255,0.15); border:none; color:#fff; padding:8px 12px;
+                   border-radius:10px; font-size:13px; cursor:pointer;">Not now</button>
+        <button onclick="installPWA()"
+            style="background:#667eea; border:none; color:#fff; padding:8px 14px;
+                   border-radius:10px; font-size:13px; font-weight:700; cursor:pointer;">Install</button>
+    </div>
+</div>
+
 <!-- Generic Alert Modal -->
 <div id="genericAlertModal" class="sidebar-overlay" style="z-index: 9999; align-items: center; justify-content: center; display: none; background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(5px);">
     <div class="glass-card" style="width: 90%; max-width: 400px; margin: 0; position: relative; background: var(--glass-bg, #fff); border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">

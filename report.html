@@ -5,6 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>SP SafeRoute - Report Incident</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     /* Reset & base variables */
@@ -333,6 +335,69 @@
 
     let TOKEN = localStorage.getItem('token');
     if (!TOKEN) location.href = 'index.html';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBv92XnzznnO-e7q-F7n8IqiyABvj2fhwU",
+      authDomain: "spsaferoute.firebaseapp.com",
+      projectId: "spsaferoute",
+      storageBucket: "spsaferoute.firebasestorage.app",
+      messagingSenderId: "328821048277",
+      appId: "1:328821048277:web:e5ea508b9b90180ec0b35c"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
+    let fcmRegistered = false;
+
+    async function registerFCMToken() {
+      if (!TOKEN || fcmRegistered) return;
+      if (typeof firebase === 'undefined' || typeof messaging === 'undefined') return;
+      if (!('serviceWorker' in navigator)) return;
+      try {
+        await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        registrations.forEach(existingReg => {
+          if (existingReg.active && existingReg.active.scriptURL.includes('/firebase-messaging-sw.js')) {
+            existingReg.unregister().then(unregistered => {
+              if (unregistered) console.log('[SW] Unregistered old Firebase messaging SW:', existingReg.active.scriptURL);
+            });
+          }
+        });
+
+        const permission = Notification.permission;
+        if (permission === 'denied') return;
+        const granted = permission === 'granted' || (await Notification.requestPermission()) === 'granted';
+        if (!granted) return;
+
+        const reg = await navigator.serviceWorker.ready;
+        const fcmToken = await messaging.getToken({
+          vapidKey: "BKnT_hLfIL2DlonLwZrXY4kwjBEjlp6BaJIr6_ESnVT_K4R985hNmpftY7A9YA9HWSNjCNEeEcTuN8v6VBFDHeI",
+          serviceWorkerRegistration: reg
+        });
+        if (!fcmToken) return;
+
+        const response = await fetch('/users/fcm-token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${TOKEN}`
+          },
+          body: JSON.stringify({ token: fcmToken })
+        });
+
+        if (response.ok) {
+          fcmRegistered = true;
+          console.log('[FCM] Token registered from report page');
+        } else {
+          console.warn('[FCM] Could not save token from report page', await response.text());
+        }
+      } catch (err) {
+        console.warn('[FCM] report page registration error', err);
+      }
+    }
+
+    window.addEventListener('load', () => {
+      setTimeout(registerFCMToken, 500);
+    });
 
     // Constants
     const CITY_BOUNDS = { south: 14.0400, west: 121.2000, north: 14.1100, east: 121.3800 };

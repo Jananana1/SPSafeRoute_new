@@ -45,11 +45,11 @@ def save_fcm_token(
     db: Session = Depends(auth.get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    # Delete existing token for this user (optional – replace old token)
+    # Keep exactly one active token per account, and remove any stale duplicate token rows.
     db.query(models.FCMToken).filter(
-        models.FCMToken.user_id == current_user.id
-    ).delete()
-    # Save the new token
+        (models.FCMToken.user_id == current_user.id) |
+        (models.FCMToken.token == data.token)
+    ).delete(synchronize_session=False)
     new_token = models.FCMToken(
         user_id=current_user.id,
         token=data.token

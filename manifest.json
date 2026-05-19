@@ -3,10 +3,12 @@
   "short_name": "SafeRoute",
   "description": "Community incident reporting and safety navigation",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "theme_color": "#667eea",
+  "theme_color": "#0f172a",
   "background_color": "#ffffff",
   "orientation": "portrait",
+  "categories": ["navigation", "utilities", "social"],
   "icons": [
     {
       "src": "/static/icons/favicon-16x16.png",
@@ -34,6 +36,29 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Report Incident",
+      "short_name": "Report",
+      "description": "Quickly report a new incident",
+      "url": "/report.html",
+      "icons": [{ "src": "/static/icons/favicon-32x32.png", "sizes": "32x32" }]
+    },
+    {
+      "name": "SOS",
+      "short_name": "SOS",
+      "description": "Send an emergency SOS alert",
+      "url": "/sos.html",
+      "icons": [{ "src": "/static/icons/favicon-32x32.png", "sizes": "32x32" }]
+    },
+    {
+      "name": "Safe Route",
+      "short_name": "Route",
+      "description": "Find a safe route",
+      "url": "/saferoute.html",
+      "icons": [{ "src": "/static/icons/favicon-32x32.png", "sizes": "32x32" }]
     }
   ]
 }

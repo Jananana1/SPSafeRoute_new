@@ -49,12 +49,11 @@ def create_incident(
         db.commit()
         db.refresh(db_incident)
 
-        # Broadcast to all OTHER users (exclude reporter)
-        from ..push_service import send_push_to_other_users
+        # Broadcast to all non-admin users and admins separately so installed reporters notify admin too
+        from ..push_service import send_push_to_all_users
         location = incident.location_name or "your area"
-        send_push_to_other_users(
+        send_push_to_all_users(
             db,
-            exclude_user_id=current_user.id,
             title="New Incident Reported",
             body=f"{incident.type.capitalize()} reported at {location}"
         )

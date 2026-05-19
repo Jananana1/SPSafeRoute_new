@@ -60,7 +60,7 @@ def send_fcm_notification(token: str, title: str, body: str,
                 notification=messaging.AndroidNotification(icon=icon)
             ),
             webpush=messaging.WebpushConfig(
-                notification=messaging.WebpushNotification(icon=icon)
+                notification=messaging.WebpushNotification(icon=icon, badge=icon)
             ),
             token=token,
         )

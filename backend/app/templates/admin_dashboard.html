@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>SafeRoute | Admin Dashboard — Complete Dark Mode Fix</title>
+    <title>SafeRoute | Admin Dashboard — Refined Analytics & Insights</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- Firebase SDKs for FCM -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -15,7 +15,7 @@
             box-sizing: border-box;
         }
 
-        /* ----- GLOBAL THEME VARIABLES (Full page theming) ----- */
+        /* ----- GLOBAL THEME VARIABLES (Fully dynamic for analytics & insights) ----- */
         :root {
             --primary: #1A73E8;
             --primary-dark: #0d5bbf;
@@ -32,11 +32,14 @@
             --danger-dark: #dc2626;
             --success: #10b981;
             --warning: #f59e0b;
+            --info: #3b82f6;
             --transition-default: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
             --overlay-bg: rgba(0, 0, 0, 0.4);
             --body-bg-start: rgba(26, 115, 232, 0.08);
             --body-bg-end: rgba(139, 92, 246, 0.04);
             --heading-color: #0f172a;
+            --chart-grid: rgba(0, 0, 0, 0.1);
+            --analytics-accent: #8b5cf6;
         }
 
         [data-theme="dark"] {
@@ -52,9 +55,10 @@
             --body-bg-start: #0a0f1a;
             --body-bg-end: #0f1420;
             --heading-color: #f1f5f9;
+            --chart-grid: rgba(255, 255, 255, 0.15);
+            --analytics-accent: #a78bfa;
         }
 
-        /* Full page background that changes with theme */
         body {
             background: radial-gradient(ellipse at 20% 30%, var(--body-bg-start), var(--body-bg-end));
             font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -177,7 +181,6 @@
             gap: 20px;
         }
 
-        /* Hamburger button: hidden on desktop, visible only on mobile */
         .sidebar-toggle {
             display: none;
             width: 46px;
@@ -226,7 +229,6 @@
             border-radius: 40px;
             border: 1px solid var(--glass-border);
             backdrop-filter: blur(4px);
-            transition: background 0.2s;
         }
 
         .control-btn {
@@ -250,7 +252,6 @@
             transform: scale(0.96);
         }
 
-        /* Sidebar overlay for mobile */
         .sidebar-overlay {
             position: fixed;
             inset: 0;
@@ -267,7 +268,19 @@
             pointer-events: auto;
         }
 
-        /* cards & tables - all text now uses CSS variables */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+            overflow: auto;
+        }
+
+        /* Enhanced Analytics Cards & Insights Grid */
         .glass-card {
             background: var(--glass-bg);
             backdrop-filter: blur(16px);
@@ -276,23 +289,65 @@
             padding: 28px;
             margin-bottom: 28px;
             box-shadow: var(--card-shadow);
-            transition: background 0.2s, border 0.2s;
+            transition: background 0.2s, border 0.2s, transform 0.2s ease;
         }
 
-        /* Fix for all heading texts inside cards */
-        .glass-card h3,
-        .glass-card h2,
-        .glass-card h4,
-        .card-title {
+        .glass-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+
+        .glass-card h3, .glass-card h2, .glass-card h4, .card-title {
             color: var(--text-main) !important;
             transition: color 0.2s ease;
         }
 
-        /* Ensure any direct heading styling uses variable */
-        h3 {
-            color: var(--text-main);
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 28px;
+            margin-bottom: 32px;
         }
 
+        .insight-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-badge {
+            background: var(--glass-bg-solid);
+            border-radius: 28px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+            transition: all 0.2s;
+        }
+
+        .stat-badge .stat-number {
+            font-size: 2.6rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--analytics-accent));
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            line-height: 1.2;
+        }
+
+        .stat-badge .stat-label {
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-top: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        canvas {
+            max-height: 320px;
+            width: 100%;
+        }
+
+        /* Table & incident styles remain robust */
         .table-responsive {
             width: 100%;
             overflow-x: auto;
@@ -303,8 +358,6 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
-            min-width: 100%;
-            table-layout: fixed;
         }
 
         th, td {
@@ -312,37 +365,11 @@
             border-bottom: 1px solid var(--glass-border);
             color: var(--text-main);
             vertical-align: middle;
-            transition: color 0.2s, border-color 0.2s;
         }
 
         th {
             font-weight: 700;
             color: var(--text-muted);
-            letter-spacing: 0.4px;
-            text-align: left;
-        }
-        th:nth-child(1) { width: 5%; }
-        th:nth-child(2) { width: 10%; }
-        th:nth-child(3) { width: 16%; }
-        th:nth-child(4) { width: 24%; }
-        th:nth-child(5) { width: 8%; }
-        th:nth-child(6) { width: 10%; }
-        th:nth-child(7) { width: 12%; }
-        th:nth-child(8) { width: 15%; }
-
-        /* General text wrap for table cells */
-        td {
-            white-space: normal;
-            word-break: break-word;
-        }
-
-        /* Actions column */
-        .actions-wrapper {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            align-items: center;
-            min-height: 28px;
         }
 
         .badge {
@@ -359,7 +386,13 @@
         .status-completed { color: var(--success); font-weight: 700; }
         .status-pending { color: var(--warning); font-weight: 700; }
 
-        /* Fixed button sizing */
+        .actions-wrapper {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
         .action-btn {
             width: 76px;
             padding: 7px 0;
@@ -369,29 +402,39 @@
             font-weight: 600;
             cursor: pointer;
             transition: 0.15s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            letter-spacing: 0.3px;
+            position: relative;
+            z-index: 2;
         }
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
-        .action-btn:hover {
-            transform: translateY(-1px);
-            filter: brightness(0.95);
+        .action-btn:hover { transform: translateY(-1px); filter: brightness(0.95); }
+
+        .status-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--glass-bg-solid);
+            padding: 4px;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+        }
+        .status-tab {
+            padding: 8px 18px;
+            border-radius: 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition-default);
+        }
+        .status-tab.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px var(--primary-glow);
         }
 
-        .analytics-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 28px;
-        }
-        canvas {
-            max-height: 320px;
-            width: 100%;
-        }
-
-        /* Modal button styles */
+        /* Modal refinements */
         .modal-buttons {
             display: flex;
             gap: 12px;
@@ -404,819 +447,293 @@
             font-weight: 600;
             cursor: pointer;
             border: none;
-            transition: 0.2s;
-            font-size: 14px;
         }
-        .modal-btn-confirm {
-            background: var(--primary);
-            color: white;
-        }
-        .modal-btn-confirm:hover {
-            background: var(--primary-dark);
-            transform: translateY(-1px);
-        }
-        .modal-btn-cancel {
-            background: var(--glass-border);
-            color: var(--text-main);
-        }
-        .modal-btn-cancel:hover {
-            background: var(--danger);
-            color: white;
-        }
-        .modal-btn-ok {
-            background: var(--primary);
-            color: white;
-            width: 100%;
-        }
-        .modal-btn-ok:hover {
-            background: var(--primary-dark);
-        }
+        .modal-btn-confirm { background: var(--primary); color: white; }
+        .modal-btn-cancel { background: var(--glass-border); color: var(--text-main); }
 
-        /* ---------- RESPONSIVE ---------- */
         @media (max-width: 1100px) {
-            body {
-                flex-direction: column;
-            }
-            .sidebar-toggle {
-                display: flex;
-            }
+            body { flex-direction: column; }
+            .sidebar-toggle { display: flex; }
             .admin-sidebar {
                 position: fixed;
-                top: 0;
-                left: 0;
-                bottom: 0;
-                width: 280px;
                 transform: translateX(0);
                 z-index: 1300;
-                background: var(--glass-bg);
-                backdrop-filter: blur(28px);
-                transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1), background 0.2s;
-                box-shadow: 8px 0 30px rgba(0, 0, 0, 0.3);
             }
-            .admin-sidebar.hidden {
-                transform: translateX(-100%);
-            }
-            .admin-content {
-                padding: 20px 20px 32px;
-                width: 100%;
-            }
-            .top-bar {
-                top: 12px;
-            }
-            .sidebar-overlay {
-                backdrop-filter: blur(3px);
-            }
+            .admin-sidebar.hidden { transform: translateX(-100%); }
+            .admin-content { padding: 20px; }
+            .analytics-grid { grid-template-columns: 1fr; }
+            .insight-summary { grid-template-columns: 1fr; gap: 12px; }
         }
-
         @media (max-width: 680px) {
-            .admin-content {
-                padding: 16px;
-            }
-            .top-bar {
-                padding: 8px 16px;
-            }
-            .top-bar-left h1 {
-                font-size: 18px;
-            }
-            .sidebar-toggle {
-                width: 40px;
-                height: 40px;
-                font-size: 22px;
-            }
-            .admin-welcome {
-                font-size: 12px;
-                padding: 5px 12px;
-            }
-            .control-btn {
-                width: 40px;
-                height: 40px;
-                font-size: 20px;
-            }
-            .glass-card {
-                padding: 18px;
-            }
-            .action-btn {
-                padding: 6px 12px;
-                min-width: 65px;
-                font-size: 11px;
-            }
+            .admin-content { padding: 16px; }
+            .glass-card { padding: 18px; }
         }
-
-        .loader-text {
-            text-align: center;
-            padding: 40px;
-            color: var(--text-muted);
-        }
-        button {
-            background: none;
-            border: none;
-        }
-
-        /* Status Tabs Styling */
-        .status-tabs {
-            display: flex;
-            gap: 4px;
-            background: var(--glass-bg-solid);
-            padding: 4px;
-            border-radius: 24px;
-            border: 1px solid var(--glass-border);
-            overflow-x: auto;
-        }
-        .status-tab {
-            padding: 8px 18px;
-            border-radius: 20px;
-            border: none;
-            background: transparent;
-            color: var(--text-muted);
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: var(--transition-default);
-            white-space: nowrap;
-        }
-        .status-tab[data-filter="all"].active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 12px var(--primary-glow);
-        }
-        .status-tab[data-filter="pending"].active {
-            background: var(--warning);
-            color: white;
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-        }
-        .status-tab[data-filter="completed"].active {
-            background: var(--success);
-            color: white;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-        .status-tab[data-filter="deleted"].active {
-            background: var(--danger);
-            color: white;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-        }
-        .status-tab:hover:not(.active) {
-            background: var(--nav-hover);
-            color: var(--text-main);
-        }
+        .loader-text { text-align: center; padding: 40px; color: var(--text-muted); }
     </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
 <div class="admin-sidebar" id="adminSidebar">
-    <div class="admin-sidebar-header">
-        <h2>🛡️ SafeRoute</h2>
-    </div>
-    <div class="admin-nav-item active" data-section="incidents">
-        Incident Reports
-    </div>
-    <div class="admin-nav-item" data-section="analytics">
-        Analytics & Insights
-    </div>
+    <div class="admin-sidebar-header"><h2>🛡️ SafeRoute</h2></div>
+    <div class="admin-nav-item active" data-section="incidents">📋 Incident Reports</div>
+    <div class="admin-nav-item" data-section="analytics">📊 Analytics & Insights</div>
     <div class="sidebar-spacer"></div>
-    <button class="admin-nav-item logout-btn" id="logoutButton">Logout</button>
+    <button class="admin-nav-item logout-btn" id="logoutButton">🚪 Logout</button>
 </div>
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
 <div class="admin-content">
     <div class="top-bar">
         <div class="top-bar-left">
-            <div class="sidebar-toggle" id="mobileSidebarToggle" aria-label="Menu">☰</div>
-            <h1>Dashboard Overview</h1>
+            <div class="sidebar-toggle" id="mobileSidebarToggle">☰</div>
+            <h1>Command Center</h1>
         </div>
         <div class="top-bar-right">
-            <span class="admin-welcome">Welcome Admin</span>
-            <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌗</div>
+            <span class="admin-welcome">👋 Welcome Admin</span>
+            <div id="themeToggleBtn" class="control-btn" title="Toggle Theme">🌙</div>
         </div>
     </div>
 
     <!-- Incidents Section -->
     <div id="incidentsSection">
         <div class="glass-card">
-            <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
-                <!-- Top Row: Title & Search -->
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                    <h3 style="margin: 0; font-size: 20px; display: flex; align-items: center; gap: 8px;">All Reports</h3>
-                    <div style="position: relative; width: 100%; max-width: 320px;">
-                        <input type="text" id="incidentSearch" placeholder="Search reports..." style="width: 100%; padding: 10px 16px; border-radius: 24px; border: 1px solid var(--glass-border); background: var(--glass-bg-solid); color: var(--text-main); font-size: 14px; outline: none; transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
-                    </div>
-                </div>
-
-                <!-- Bottom Row: Status Tabs -->
-                <div style="display: flex;">
-                    <div class="status-tabs" style="display: inline-flex;">
-                        <button class="status-tab active" data-filter="all">All</button>
-                        <button class="status-tab" data-filter="pending">Pending</button>
-                        <button class="status-tab" data-filter="completed">Resolved</button>
-                        <button class="status-tab" data-filter="deleted">Deleted</button>
-                    </div>
-                </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
+                <h3>🚨 Live Reports</h3>
+                <input type="text" id="incidentSearch" placeholder="Search by ID, type, location..." style="padding: 10px 16px; border-radius: 40px; border: 1px solid var(--glass-border); background: var(--glass-bg-solid); color: var(--text-main); width: 260px;">
+            </div>
+            <div class="status-tabs" style="margin-bottom: 24px;">
+                <button class="status-tab active" data-filter="all">All</button>
+                <button class="status-tab" data-filter="pending">Pending</button>
+                <button class="status-tab" data-filter="completed">Resolved</button>
+                <button class="status-tab" data-filter="deleted">Deleted</button>
             </div>
             <div class="table-responsive">
                 <table id="incidentsTable">
-                    <thead>
-                        <tr>
-                            <th>ID</th><th>Type</th><th>Location</th><th>Description</th><th>User ID</th><th>Status</th><th>Reported</th><th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="incidentsList">
-                        <tr><td colspan="8" class="loader-text">📡 Loading incidents...</td></tr>
-                    </tbody>
+                    <thead><tr><th>ID</th><th>Type</th><th>Location</th><th>Description</th><th>User ID</th><th>Status</th><th>Reported</th><th>Actions</th></tr></thead>
+                    <tbody id="incidentsList"><tr><td colspan="8" class="loader-text">📡 Loading incidents...</td></tr></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- Analytics Section -->
+    <!-- Analytics & Insights Section — fully redesigned for clarity -->
     <div id="analyticsSection" style="display: none;">
+        <!-- KPI Summary Row: Enhanced insights at a glance -->
+        <div class="insight-summary" id="kpiSummary">
+            <div class="stat-badge"><div class="stat-number" id="totalIncidentsStat">-</div><div class="stat-label">Total Reports</div></div>
+            <div class="stat-badge"><div class="stat-number" id="pendingStat">-</div><div class="stat-label">Pending Action</div></div>
+            <div class="stat-badge"><div class="stat-number" id="resolvedStat">-</div><div class="stat-label">Resolved</div></div>
+        </div>
+
         <div class="analytics-grid">
             <div class="glass-card">
-                <h3 style="margin-top:0;">📈 Monthly Trends</h3>
-                <canvas id="monthlyChart"></canvas>
+                <h3 style="margin-top:0; display: flex; align-items: center; gap: 8px;">📈 Monthly Incident Trends</h3>
+                <canvas id="monthlyChart" style="max-height: 320px;"></canvas>
+                <p class="stat-label" style="margin-top: 12px; text-align: center;">Year-over-year safety fluctuations</p>
             </div>
             <div class="glass-card">
-                <h3 style="margin-top:0;">📍 Most Prone Areas</h3>
-                <canvas id="areaChart"></canvas>
+                <h3 style="margin-top:0; display: flex; align-items: center; gap: 8px;">📍 High-Risk Zones</h3>
+                <canvas id="areaChart" style="max-height: 320px;"></canvas>
+                <p class="stat-label" style="margin-top: 12px; text-align: center;">Most prone areas by incident density</p>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- Admin Alert Modal (for Firebase notifications) -->
-<div id="adminAlertModal" class="sidebar-overlay" style="z-index: 2000; align-items: center; justify-content: center; display: none;">
-    <div class="glass-card" style="width: 90%; max-width: 400px; margin: 0; position: relative;">
-        <button id="closeAdminAlert" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted);">&times;</button>
-        <h3 id="adminAlertTitle" style="color: var(--danger); margin-bottom: 10px;">New Alert</h3>
-        <p id="adminAlertBody" style="color: var(--text-main); font-size: 15px; line-height: 1.5; margin-bottom: 20px; white-space: pre-wrap;"></p>
-    
-    </div>
-</div>
-
-<!-- Generic Modal for all confirmations and alerts -->
-<div id="genericAlertModal" class="sidebar-overlay" style="z-index: 9999; align-items: center; justify-content: center; display: none;">
-    <div class="glass-card" style="width: 90%; max-width: 400px; margin: 0; position: relative; padding: 24px;">
-        <button onclick="closeModal('genericAlertModal')" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted);">&times;</button>
-        <h3 id="genericAlertTitle" style="color: var(--text-main); margin-top: 0; margin-bottom: 10px;">Alert</h3>
-        <p id="genericAlertBody" style="color: var(--text-muted); font-size: 15px; line-height: 1.5; margin-bottom: 20px; white-space: pre-wrap;"></p>
-        <div class="modal-buttons" id="modalButtons">
-            <button id="modalConfirmBtn" class="modal-btn modal-btn-confirm" style="display: none;">Confirm</button>
-            <button id="modalCancelBtn" class="modal-btn modal-btn-cancel" style="display: none;">Cancel</button>
-            <button id="modalOkBtn" class="modal-btn modal-btn-ok">OK</button>
+        
+        <!-- Additional insight card: type breakdown summary (dynamic) -->
+        <div class="glass-card">
+            <h3>📌 Incident Type Distribution</h3>
+            <div id="typeBreakdown" style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-around; margin-top: 16px;"></div>
         </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div id="genericAlertModal" class="modal-overlay" style="display: none;">
+    <div class="glass-card" style="width: 90%; max-width: 400px; margin: 0; padding: 24px;">
+        <button onclick="closeModal('genericAlertModal')" style="float: right; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted);">&times;</button>
+        <h3 id="genericAlertTitle" style="color: var(--text-main);">Alert</h3>
+        <p id="genericAlertBody" style="color: var(--text-muted); margin: 16px 0;">Message</p>
+        <div class="modal-buttons"><button id="modalConfirmBtn" class="modal-btn modal-btn-confirm" style="display:none;">Confirm</button><button id="modalCancelBtn" class="modal-btn modal-btn-cancel" style="display:none;">Cancel</button><button id="modalOkBtn" class="modal-btn modal-btn-confirm">OK</button></div>
     </div>
 </div>
 
 <script>
     // ---------- MODAL HELPERS ----------
     let pendingConfirmCallback = null;
-    
-    function closeModal(modalId) {
-        const modal = document.getElementById(modalId);
-        modal.style.display = 'none';
-        modal.classList.remove('visible');
-        if (modalId === 'genericAlertModal') {
-            pendingConfirmCallback = null;
-        }
-    }
-    
+    function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; if(modalId === 'genericAlertModal') pendingConfirmCallback = null; }
     function showModal(title, message, onConfirm = null, onCancel = null) {
         const modal = document.getElementById('genericAlertModal');
-        const modalTitle = document.getElementById('genericAlertTitle');
-        const modalBody = document.getElementById('genericAlertBody');
-        const confirmBtn = document.getElementById('modalConfirmBtn');
-        const cancelBtn = document.getElementById('modalCancelBtn');
-        const okBtn = document.getElementById('modalOkBtn');
-        
-        modalTitle.innerText = title;
-        modalBody.innerText = message;
-        
+        document.getElementById('genericAlertTitle').innerText = title;
+        document.getElementById('genericAlertBody').innerText = message;
+        const confirmBtn = document.getElementById('modalConfirmBtn'), cancelBtn = document.getElementById('modalCancelBtn'), okBtn = document.getElementById('modalOkBtn');
         if (onConfirm) {
-            // Show confirm/cancel buttons
-            confirmBtn.style.display = 'block';
-            cancelBtn.style.display = 'block';
-            okBtn.style.display = 'none';
+            confirmBtn.style.display = 'block'; cancelBtn.style.display = 'block'; okBtn.style.display = 'none';
             pendingConfirmCallback = { confirm: onConfirm, cancel: onCancel };
-        } else {
-            // Just show OK button
-            confirmBtn.style.display = 'none';
-            cancelBtn.style.display = 'none';
-            okBtn.style.display = 'block';
-            pendingConfirmCallback = null;
-        }
-        
+        } else { confirmBtn.style.display = 'none'; cancelBtn.style.display = 'none'; okBtn.style.display = 'block'; pendingConfirmCallback = null; }
         modal.style.display = 'flex';
-        setTimeout(() => modal.classList.add('visible'), 10);
     }
+    document.getElementById('modalConfirmBtn').onclick = () => { if(pendingConfirmCallback) pendingConfirmCallback.confirm(); closeModal('genericAlertModal'); };
+    document.getElementById('modalCancelBtn').onclick = () => { if(pendingConfirmCallback && pendingConfirmCallback.cancel) pendingConfirmCallback.cancel(); closeModal('genericAlertModal'); };
+    document.getElementById('modalOkBtn').onclick = () => closeModal('genericAlertModal');
+    window.confirmModal = (message, title) => new Promise(resolve => showModal(title, message, () => resolve(true), () => resolve(false)));
+    window.alert = (message, title = "Notification") => showModal(title, message);
     
-    // Modal button event handlers
-    document.getElementById('modalConfirmBtn').onclick = () => {
-        if (pendingConfirmCallback && pendingConfirmCallback.confirm) {
-            pendingConfirmCallback.confirm();
-        }
-        closeModal('genericAlertModal');
-    };
-    
-    document.getElementById('modalCancelBtn').onclick = () => {
-        if (pendingConfirmCallback && pendingConfirmCallback.cancel) {
-            pendingConfirmCallback.cancel();
-        }
-        closeModal('genericAlertModal');
-    };
-    
-    document.getElementById('modalOkBtn').onclick = () => {
-        closeModal('genericAlertModal');
-    };
-    
-    // Replace window.alert with modal
-    window.alert = function(message, title = "Notification") {
-        showModal(title, message);
-    };
-    
-    // Replace window.confirm with modal (returns Promise)
-    window.confirmModal = function(message, title = "Confirmation") {
-        return new Promise((resolve) => {
-            showModal(title, message, 
-                () => resolve(true),
-                () => resolve(false)
-            );
-        });
-    };
-
-    // ---------- AUTH & API HELPERS ----------
+    // Auth helpers
     const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.href = '/';
-    }
-
+    if (!token) window.location.href = '/';
     async function authFetch(url, options = {}) {
-        options.headers = {
-            ...options.headers,
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        };
-        const response = await fetch(url, options);
-        if (response.status === 401 || response.status === 403) {
-            localStorage.removeItem('token');
-            window.location.href = '/';
-            throw new Error(response.status === 403 ? 'Unauthorized access' : 'Session expired');
-        }
-        return response;
+        options.headers = { ...options.headers, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+        const res = await fetch(url, options);
+        if (res.status === 401 || res.status === 403) { localStorage.removeItem('token'); window.location.href = '/'; throw new Error('Auth failed'); }
+        return res;
     }
+    async function ensureAdmin() { try { const res = await authFetch('/users/me'); const user = await res.json(); if (!user.is_admin) throw new Error(); return true; } catch(e) { alert('Admin access required.'); window.location.href = '/'; return false; } }
 
-    async function ensureAdmin() {
-        try {
-            const response = await authFetch('/users/me');
-            const user = await response.json();
-            if (!user.is_admin) {
-                throw new Error('Admin access required');
-            }
-            return true;
-        } catch (err) {
-            alert('Admin access required. Please login with an admin account.');
-            window.location.href = '/';
-            return false;
-        }
+    let currentSection = 'incidents', monthlyChart = null, areaChart = null, allIncidents = [];
+    const sidebar = document.getElementById('adminSidebar'), overlay = document.getElementById('sidebarOverlay'), hamburger = document.getElementById('mobileSidebarToggle');
+    const incidentsPanel = document.getElementById('incidentsSection'), analyticsPanel = document.getElementById('analyticsSection');
+    const themeToggle = document.getElementById('themeToggleBtn'), logoutBtn = document.getElementById('logoutButton');
+    
+    function isMobile() { return window.innerWidth <= 1100; }
+    function setSidebar(open) { if(!isMobile()) return; sidebar.classList.toggle('hidden', !open); overlay.classList.toggle('visible', open); document.body.style.overflow = open ? 'hidden' : ''; }
+    hamburger?.addEventListener('click', () => setSidebar(sidebar.classList.contains('hidden')));
+    overlay.addEventListener('click', () => setSidebar(false));
+    window.addEventListener('resize', () => { if(window.innerWidth > 1100) { sidebar.classList.remove('hidden'); overlay.classList.remove('visible'); document.body.style.overflow = ''; } else if(!sidebar.classList.contains('hidden')) setSidebar(true); });
+    if(window.innerWidth <= 1100) sidebar.classList.add('hidden');
+    
+    // Theme management
+    function applyTheme(theme) { if(theme === 'dark') document.documentElement.setAttribute('data-theme','dark'); else document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme',theme); if(currentSection === 'analytics') refreshAnalyticsCharts(); }
+    applyTheme(localStorage.getItem('theme') || 'light');
+    themeToggle.addEventListener('click', () => { const isDark = document.documentElement.getAttribute('data-theme') === 'dark'; applyTheme(isDark ? 'light' : 'dark'); });
+    
+    function switchSection(section) {
+        currentSection = section;
+        incidentsPanel.style.display = section === 'incidents' ? 'block' : 'none';
+        analyticsPanel.style.display = section === 'analytics' ? 'block' : 'none';
+        document.querySelectorAll('.admin-nav-item[data-section]').forEach(nav => nav.classList.toggle('active', nav.getAttribute('data-section') === section));
+        if(section === 'incidents') loadIncidents(); else refreshAnalyticsCharts();
+        if(isMobile()) setSidebar(false);
     }
-
-    // ---------- GLOBALS ----------
-    let currentSection = 'incidents';
-    let monthlyChartInstance = null;
-    let areaChartInstance = null;
-    let allActiveIncidents = [];
-
-    const sidebarEl = document.getElementById('adminSidebar');
-    const overlayEl = document.getElementById('sidebarOverlay');
-    const hamburgerBtn = document.getElementById('mobileSidebarToggle');
-    const incidentsPanel = document.getElementById('incidentsSection');
-    const analyticsPanel = document.getElementById('analyticsSection');
-    const themeToggle = document.getElementById('themeToggleBtn');
-    const logoutButton = document.getElementById('logoutButton');
-
-    // ---------- SIDEBAR LOGIC (mobile only) ----------
-    function isMobile() {
-        return window.innerWidth <= 1100;
-    }
-
-    function setSidebarState(open) {
-        if (!isMobile()) {
-            sidebarEl.classList.remove('hidden');
-            overlayEl.classList.remove('visible');
-            document.body.style.overflow = '';
-            return;
-        }
-        if (open) {
-            sidebarEl.classList.remove('hidden');
-            overlayEl.classList.add('visible');
-            document.body.style.overflow = 'hidden';
-        } else {
-            sidebarEl.classList.add('hidden');
-            overlayEl.classList.remove('visible');
-            document.body.style.overflow = '';
-        }
-    }
-
-    function closeSidebarOnMobile() {
-        if (isMobile() && !sidebarEl.classList.contains('hidden')) {
-            setSidebarState(false);
-        }
-    }
-
-    if (hamburgerBtn) {
-        hamburgerBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (isMobile()) {
-                const isHidden = sidebarEl.classList.contains('hidden');
-                setSidebarState(isHidden);
-            }
-        });
-    }
-
-    overlayEl.addEventListener('click', () => {
-        closeSidebarOnMobile();
-    });
-
-    window.addEventListener('resize', () => {
-        if (window.innerWidth > 1100) {
-            sidebarEl.classList.remove('hidden');
-            overlayEl.classList.remove('visible');
-            document.body.style.overflow = '';
-        } else {
-            if (!sidebarEl.classList.contains('hidden')) {
-                overlayEl.classList.add('visible');
-                document.body.style.overflow = 'hidden';
-            } else {
-                overlayEl.classList.remove('visible');
-                document.body.style.overflow = '';
-            }
-        }
-    });
-
-    // Initialize
-    if (window.innerWidth > 1100) {
-        sidebarEl.classList.remove('hidden');
-        overlayEl.classList.remove('visible');
-    } else {
-        sidebarEl.classList.add('hidden');
-        overlayEl.classList.remove('visible');
-        document.body.style.overflow = '';
-    }
-
-    // ---------- THEME TOGGLE ----------
-    function applyTheme(theme) {
-        if (theme === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        } else {
-            document.documentElement.removeAttribute('data-theme');
-        }
-        localStorage.setItem('theme', theme);
-        
-        const allHeadings = document.querySelectorAll('.glass-card h3, .glass-card h2, h3');
-        allHeadings.forEach(heading => {
-            heading.style.color = '';
-        });
-        
-        if (currentSection === 'analytics') {
-            refreshAnalyticsCharts();
-        }
-    }
-
-    const storedTheme = localStorage.getItem('theme') || 'light';
-    applyTheme(storedTheme);
-
-    themeToggle.addEventListener('click', () => {
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        applyTheme(isDark ? 'light' : 'dark');
-    });
-
-    // ---------- NAVIGATION ----------
-    function switchSection(sectionId) {
-        currentSection = sectionId;
-        incidentsPanel.style.display = 'none';
-        analyticsPanel.style.display = 'none';
-
-        if (sectionId === 'incidents') {
-            incidentsPanel.style.display = 'block';
-            loadIncidents();
-        } else {
-            analyticsPanel.style.display = 'block';
-            refreshAnalyticsCharts();
-        }
-        document.querySelectorAll('.admin-nav-item[data-section]').forEach(item => {
-            if (item.getAttribute('data-section') === sectionId) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
-        if (isMobile()) closeSidebarOnMobile();
-    }
-
-    document.querySelectorAll('.admin-nav-item[data-section]').forEach(nav => {
-        nav.addEventListener('click', () => {
-            const section = nav.getAttribute('data-section');
-            switchSection(section);
-        });
-    });
-
-    // ---------- INCIDENTS API ----------
+    document.querySelectorAll('.admin-nav-item[data-section]').forEach(nav => nav.addEventListener('click', () => switchSection(nav.getAttribute('data-section'))));
+    
+    // Incident logic
     function renderIncidentsTable(incidents) {
         const tbody = document.getElementById('incidentsList');
-        if (!incidents.length) {
-            tbody.innerHTML = '<tr><td colspan="8" class="loader-text">No incidents found</td></tr>';
-            return;
-        }
+        if(!incidents.length) { tbody.innerHTML = '<tr><td colspan="8" class="loader-text">No reports found</td></tr>'; return; }
         tbody.innerHTML = '';
         incidents.forEach(inc => {
             const row = tbody.insertRow();
             row.insertCell(0).textContent = inc.id;
             row.insertCell(1).innerHTML = `<span class="badge badge-${inc.type}">${inc.type.toUpperCase()}</span>`;
-            row.insertCell(2).textContent = inc.location_name || `${parseFloat(inc.lat).toFixed(3)}, ${parseFloat(inc.lng).toFixed(3)}`;
-            row.insertCell(3).textContent = inc.description?.substring(0, 70) || '—';
+            row.insertCell(2).textContent = inc.location_name || `${parseFloat(inc.lat).toFixed(2)}, ${parseFloat(inc.lng).toFixed(2)}`;
+            row.insertCell(3).textContent = inc.description?.substring(0, 65) || '—';
             row.insertCell(4).textContent = inc.user_id;
-            const isCompleted = inc.status === 'completed';
-            const isDeleted = inc.status === 'deleted';
-            
-            let statusHtml = '';
-            if (isDeleted) statusHtml = `<span style="color:var(--text-muted); font-weight:700;">Deleted</span>`;
-            else if (isCompleted) statusHtml = `<span class="status-completed">Resolved</span>`;
-            else statusHtml = `<span class="status-pending">Pending</span>`;
-            
-            row.insertCell(5).innerHTML = statusHtml;
-            row.insertCell(6).textContent = new Date(inc.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-            
-            const actionsCell = row.insertCell(7);
-            const wrapper = document.createElement('div');
-            wrapper.className = 'actions-wrapper';
-
-            if (!isDeleted) {
-                if (!isCompleted) {
-                    const resolveBtn = document.createElement('button');
-                    resolveBtn.textContent = 'Resolve';
-                    resolveBtn.className = 'action-btn btn-success';
-                    resolveBtn.onclick = () => completeIncident(inc.id);
-                    wrapper.appendChild(resolveBtn);
-                }
-                const deleteBtn = document.createElement('button');
-                deleteBtn.textContent = 'Delete';
-                deleteBtn.className = 'action-btn btn-danger';
-                deleteBtn.onclick = () => deleteIncident(inc.id);
-                wrapper.appendChild(deleteBtn);
-            } else {
-                wrapper.innerHTML = '<span style="color:var(--text-muted); font-style:italic; font-size:12px;">No Actions</span>';
+            const isDel = inc.status === 'deleted', isComp = inc.status === 'completed';
+            row.insertCell(5).innerHTML = isDel ? '<span style="color:var(--text-muted);">Deleted</span>' : (isComp ? '<span class="status-completed">Resolved</span>' : '<span class="status-pending">Pending</span>');
+            row.insertCell(6).textContent = new Date(inc.created_at).toLocaleString(undefined, { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+            const actions = row.insertCell(7), wrap = document.createElement('div'); wrap.className = 'actions-wrapper';
+            if(!isDel && !isComp) {
+                let resolveBtn = document.createElement('button');
+                resolveBtn.type = 'button';
+                resolveBtn.textContent = 'Resolve';
+                resolveBtn.className = 'action-btn btn-success';
+                resolveBtn.onclick = () => completeIncident(inc.id);
+                wrap.appendChild(resolveBtn);
             }
-            actionsCell.appendChild(wrapper);
+            if(!isDel) {
+                let delBtn = document.createElement('button');
+                delBtn.type = 'button';
+                delBtn.textContent = 'Delete';
+                delBtn.className = 'action-btn btn-danger';
+                delBtn.onclick = () => deleteIncident(inc.id);
+                wrap.appendChild(delBtn);
+            } else {
+                wrap.innerHTML = '<span style="font-size:12px;">—</span>';
+            }
+            actions.appendChild(wrap);
         });
     }
-
-    let currentStatusFilter = 'all';
-
-    document.querySelectorAll('.status-tab').forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
-            e.target.classList.add('active');
-            currentStatusFilter = e.target.getAttribute('data-filter');
-            applyFilters();
-        });
-    });
-
-    function applyFilters() {
-        const term = document.getElementById('incidentSearch') ? document.getElementById('incidentSearch').value.toLowerCase() : '';
-        const statusFilter = currentStatusFilter;
-
-        const filtered = allActiveIncidents.filter(inc => {
-            const incStatus = (inc.status || '').toLowerCase();
-            let statusMatch = false;
-            
-            if (statusFilter === 'all') statusMatch = true;
-            else if (statusFilter === 'deleted') statusMatch = incStatus === 'deleted';
-            else if (statusFilter === 'completed') statusMatch = incStatus === 'completed';
-            else if (statusFilter === 'pending') statusMatch = incStatus !== 'completed' && incStatus !== 'deleted';
-            
-            if (!statusMatch) return false;
-
-            if (term) {
-                return (
-                    (inc.type || '').toLowerCase().includes(term) ||
-                    (inc.location_name || '').toLowerCase().includes(term) ||
-                    (inc.description || '').toLowerCase().includes(term) ||
-                    String(inc.id).includes(term) ||
-                    String(inc.user_id).includes(term) ||
-                    incStatus.includes(term)
-                );
-            }
-            return true;
-        });
-        
-        renderIncidentsTable(filtered);
-    }
-
-    if (document.getElementById('incidentSearch')) document.getElementById('incidentSearch').addEventListener('input', applyFilters);
-
-    async function loadIncidents(isPolling = false) {
-        const tbodyActive = document.getElementById('incidentsList');
-        if (!isPolling) {
-            tbodyActive.innerHTML = '<tr><td colspan="8" class="loader-text">⏳ Loading reports...</td></tr>';
-        }
-        if (!(await ensureAdmin())) {
-            return;
-        }
-        try {
-            const res = await authFetch('/admin/incidents');
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const incidents = await res.json();
-            
-            // If polling and no data changed, avoid re-rendering to keep UI stable
-            if (isPolling && JSON.stringify(incidents) === JSON.stringify(allActiveIncidents)) {
-                return;
-            }
-            
-            allActiveIncidents = incidents;
-            applyFilters();
-        } catch (err) {
-            console.error(err);
-            if (!isPolling) {
-                tbodyActive.innerHTML = '<tr><td colspan="8" style="text-align:center; color: #ef4444;">Failed to load incidents</td></tr>';
-            }
-        }
-    }
-
-    async function completeIncident(id) {
-        const confirmed = await confirmModal('Mark this incident as resolved and notify the user?', 'Confirm Resolution');
-        if (!confirmed) return;
-        
-        try {
-            const res = await authFetch(`/admin/incidents/${id}/complete`, { method: 'POST' });
-            if (res.ok) {
-                showModal('Success', 'Incident resolved successfully. The user has been notified.');
-                loadIncidents();
-            } else {
-                let errorMsg = 'Failed to complete incident';
-                try {
-                    const errorText = await res.text();
-                    try {
-                        const errorData = JSON.parse(errorText);
-                        errorMsg = errorData.detail || errorMsg;
-                    } catch(e) {
-                        errorMsg = errorText || errorMsg;
-                    }
-                } catch(e) {}
-                showModal('Error', errorMsg);
-            }
-        } catch (err) {
-            console.error('Complete incident error:', err);
-            showModal('Error', 'Error: ' + err.message);
-        }
-    }
-
-    async function deleteIncident(id) {
-        const confirmed = await confirmModal('Are you sure you want to remove this report from the map? It will still be safely stored in the database.', 'Confirm Delete');
-        if (!confirmed) return;
-        
-        try {
-            const res = await authFetch(`/admin/incidents/${id}`, { method: 'DELETE' });
-            if (res.ok) {
-                showModal('Success', 'Report successfully marked as deleted and removed from the map.');
-                loadIncidents();
-            } else {
-                let errorMsg = 'Delete failed';
-                try {
-                    const errorText = await res.text();
-                    try {
-                        const errorData = JSON.parse(errorText);
-                        errorMsg = errorData.detail || errorMsg;
-                    } catch(e) {
-                        errorMsg = errorText || errorMsg;
-                    }
-                } catch(e) {}
-                showModal('Error', errorMsg);
-            }
-        } catch (err) {
-            console.error('Delete incident error:', err);
-            showModal('Error', 'Error: ' + err.message);
-        }
-    }
-
-    // ---------- ANALYTICS ----------
-    let lastAnalyticsData = null;
+    let currentFilter = 'all', searchTerm = '';
+    function applyFilters() { if(!allIncidents) return; const term = document.getElementById('incidentSearch')?.value.toLowerCase() || ''; const filtered = allIncidents.filter(inc => { const status = inc.status; let match=false; if(currentFilter==='all') match=true; else if(currentFilter==='deleted') match=status==='deleted'; else if(currentFilter==='completed') match=status==='completed'; else match=status!=='completed' && status!=='deleted'; if(!match) return false; if(term) return (inc.type||'').toLowerCase().includes(term) || (inc.location_name||'').toLowerCase().includes(term) || (inc.description||'').toLowerCase().includes(term) || String(inc.id).includes(term); return true; }); renderIncidentsTable(filtered); }
+    document.getElementById('incidentSearch')?.addEventListener('input', applyFilters);
+    document.querySelectorAll('.status-tab').forEach(tab => tab.addEventListener('click', e => { document.querySelectorAll('.status-tab').forEach(t=>t.classList.remove('active')); e.target.classList.add('active'); currentFilter = e.target.getAttribute('data-filter'); applyFilters(); }));
+    async function loadIncidents() { if(!await ensureAdmin()) return; try { const res = await authFetch('/admin/incidents'); allIncidents = await res.json(); applyFilters(); } catch(e){ console.error(e); document.getElementById('incidentsList').innerHTML='<tr><td colspan="8" class="loader-text">Error loading</td></tr>'; } }
+    async function completeIncident(id) { if(!await confirmModal('Resolve this incident & notify user?','Confirm')) return; try { const res = await authFetch(`/admin/incidents/${id}/complete`,{method:'POST'}); if(res.ok){ alert('Resolved successfully.'); loadIncidents(); } else alert('Failed to resolve'); } catch(e){ alert('Error: '+e.message); } }
+    async function deleteIncident(id) { if(!await confirmModal('Delete this report from map?','Confirm Delete')) return; try { const res = await authFetch(`/admin/incidents/${id}`,{method:'DELETE'}); if(res.ok){ alert('Deleted from map.'); loadIncidents(); } else alert('Delete failed'); } catch(e){ alert(e.message); } }
     
-    async function refreshAnalyticsCharts(isPolling = false) {
+    // Analytics & insights full fix — with dynamic KPI, type distribution & chart theming
+    let lastAnalyticsHash = '';
+    async function refreshAnalyticsCharts() {
         try {
             const res = await authFetch('/admin/analytics');
-            if (!res.ok) throw new Error('Analytics fetch failed');
             const data = await res.json();
+            const hash = JSON.stringify(data);
+            if(hash === lastAnalyticsHash) return;
+            lastAnalyticsHash = hash;
             
-            if (isPolling && JSON.stringify(data) === lastAnalyticsData) {
-                return;
-            }
-            lastAnalyticsData = JSON.stringify(data);
+            // Update KPI Cards
+            const total = data.monthly_stats.reduce((sum, m) => sum + m.count, 0);
+            document.getElementById('totalIncidentsStat').innerText = total;
+            let pendingCount = 0, resolvedCount = 0;
+            if(allIncidents.length) { pendingCount = allIncidents.filter(i => i.status !== 'completed' && i.status !== 'deleted').length; resolvedCount = allIncidents.filter(i => i.status === 'completed').length; }
+            document.getElementById('pendingStat').innerText = pendingCount;
+            document.getElementById('resolvedStat').innerText = resolvedCount;
+            
+            // Type breakdown
+            const typeMap = new Map();
+            if(allIncidents.length) { allIncidents.forEach(inc => { if(inc.status !== 'deleted') typeMap.set(inc.type, (typeMap.get(inc.type) || 0) + 1); }); }
+            const typeDiv = document.getElementById('typeBreakdown');
+            typeDiv.innerHTML = Array.from(typeMap.entries()).map(([type, cnt]) => `<div style="background:var(--glass-bg-solid); border-radius:28px; padding:12px 20px; text-align:center; min-width:100px;"><strong style="color:var(--text-main);">${type.toUpperCase()}</strong><div style="font-size:28px; font-weight:700; color:var(--primary);">${cnt}</div><span class="stat-label">incidents</span></div>`).join('') || '<span class="stat-label">No active incidents data</span>';
             
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
             const textColor = isDark ? '#e2e8f0' : '#1e293b';
             const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-            
             Chart.defaults.color = textColor;
             
             const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-            if (monthlyChartInstance) monthlyChartInstance.destroy();
-            monthlyChartInstance = new Chart(monthlyCtx, {
+            if(monthlyChart) monthlyChart.destroy();
+            monthlyChart = new Chart(monthlyCtx, {
                 type: 'line',
-                data: {
-                    labels: data.monthly_stats.map(m => m.month),
-                    datasets: [{ label: 'Incidents Reported', data: data.monthly_stats.map(m => m.count), borderColor: '#1A73E8', tension: 0.3, fill: true, backgroundColor: 'rgba(26, 115, 232, 0.1)' }]
-                },
+                data: { labels: data.monthly_stats.map(m => m.month), datasets: [{ label: 'Incidents', data: data.monthly_stats.map(m => m.count), borderColor: '#1A73E8', backgroundColor: 'rgba(26,115,232,0.1)', fill: true, tension: 0.3, pointBackgroundColor: '#1A73E8', pointBorderColor: '#fff', pointRadius: 4 }] },
                 options: { responsive: true, maintainAspectRatio: true, scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor }, beginAtZero: true } } }
             });
-
             const areaCtx = document.getElementById('areaChart').getContext('2d');
-            if (areaChartInstance) areaChartInstance.destroy();
-            areaChartInstance = new Chart(areaCtx, {
+            if(areaChart) areaChart.destroy();
+            areaChart = new Chart(areaCtx, {
                 type: 'bar',
-                data: {
-                    labels: data.area_stats.map(a => a.area),
-                    datasets: [{ label: 'Incidents', data: data.area_stats.map(a => a.count), backgroundColor: '#8b5cf6', borderRadius: 6 }]
-                },
+                data: { labels: data.area_stats.map(a => a.area), datasets: [{ label: 'Incidents', data: data.area_stats.map(a => a.count), backgroundColor: '#8b5cf6', borderRadius: 8, barPercentage: 0.65 }] },
                 options: { responsive: true, maintainAspectRatio: true, scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor }, beginAtZero: true } } }
             });
-        } catch (err) { console.error('Analytics error:', err); }
+        } catch(err) { console.error('Analytics error', err); }
     }
-
-    logoutButton.addEventListener('click', () => {
-        localStorage.removeItem('token');
-        window.location.href = '/';
-    });
-
-    switchSection('incidents');
     
-    // Polling setup for background AJAX updates
-    setInterval(() => {
-        if (currentSection === 'incidents') {
-            loadIncidents(true);
-        } else if (currentSection === 'analytics') {
-            refreshAnalyticsCharts(true);
-        }
-    }, 15000); // 15 seconds
-
-    // --- Firebase & Notifications ---
-    const firebaseConfig = {
-        apiKey: "AIzaSyBv92XnzznnO-e7q-F7n8IqiyABvj2fhwU",
-        authDomain: "spsaferoute.firebaseapp.com",
-        projectId: "spsaferoute",
-        storageBucket: "spsaferoute.firebasestorage.app",
-        messagingSenderId: "328821048277",
-        appId: "1:328821048277:web:e5ea508b9b90180ec0b35c"
-    };
+    logoutBtn.addEventListener('click', () => { localStorage.removeItem('token'); window.location.href='/'; });
+    switchSection('incidents');
+    setInterval(() => { if(currentSection === 'incidents') loadIncidents(); else if(currentSection === 'analytics') refreshAnalyticsCharts(); }, 15000);
+    
+    // Firebase Notifications - light integration
+    const firebaseConfig = { apiKey: "AIzaSyBv92XnzznnO-e7q-F7n8IqiyABvj2fhwU", authDomain: "spsaferoute.firebaseapp.com", projectId: "spsaferoute", storageBucket: "spsaferoute.firebasestorage.app", messagingSenderId: "328821048277", appId: "1:328821048277:web:e5ea508b9b90180ec0b35c" };
     firebase.initializeApp(firebaseConfig);
     const messaging = firebase.messaging();
-
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/firebase-messaging-sw.js')
-            .then(reg => console.log('Service Worker registered successfully:', reg))
-            .catch(err => console.error('Service Worker registration failed:', err));
+    if('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(reg => {
+                console.log('[SW] Admin SW registered:', reg.scope);
+                return navigator.serviceWorker.getRegistrations();
+            })
+            .then(registrations => {
+                registrations.forEach(existingReg => {
+                    if (existingReg.active && existingReg.active.scriptURL.includes('/firebase-messaging-sw.js')) {
+                        existingReg.unregister().then(unregistered => {
+                            if (unregistered) console.log('[SW] Unregistered old Firebase messaging SW:', existingReg.active.scriptURL);
+                        });
+                    }
+                });
+            })
+            .catch(err => console.error('[SW] Admin SW registration failed:', err));
     }
-
-    async function enableAdminNotifications() {
-        if (!token) return;
-        try {
-            const permission = await Notification.requestPermission();
-            if (permission !== 'granted') return;
-            const fcmToken = await messaging.getToken({ 
-                vapidKey: "BKnT_hLfIL2DlonLwZrXY4kwjBEjlp6BaJIr6_ESnVT_K4R985hNmpftY7A9YA9HWSNjCNEeEcTuN8v6VBFDHeI" 
-            });
-            await authFetch('/users/fcm-token', {
-                method: 'POST',
-                body: JSON.stringify({ token: fcmToken })
-            });
-            console.log('Admin notifications enabled.');
-        } catch (err) {
-            console.error("Admin FCM Error:", err);
-        }
-    }
-    
-    enableAdminNotifications();
-
-    const adminAlertModal = document.getElementById('adminAlertModal');
-    document.getElementById('closeAdminAlert').onclick = () => {
-        adminAlertModal.style.display = 'none';
-        adminAlertModal.classList.remove('visible');
-    };
-    document.getElementById('adminAlertAction').onclick = () => {
-        adminAlertModal.style.display = 'none';
-        adminAlertModal.classList.remove('visible');
-        switchSection('incidents');
-    };
-
-    messaging.onMessage((payload) => {
-        console.log('Foreground message received: ', payload);
-        document.getElementById('adminAlertTitle').innerText = payload.notification.title || 'New Alert';
-        document.getElementById('adminAlertBody').innerText = payload.notification.body || 'A new incident was reported.';
-        
-        adminAlertModal.style.display = 'flex';
-        setTimeout(() => adminAlertModal.classList.add('visible'), 10);
-        
-        if (currentSection === 'incidents') {
-            loadIncidents();
-        }
-    });
+    async function enableNotifications() { if(!token) return; try { const permission = await Notification.requestPermission(); if(permission !== 'granted') return; await navigator.serviceWorker.register('/sw.js', { scope: '/' }); const reg = await navigator.serviceWorker.ready; const fcmToken = await messaging.getToken({ vapidKey: "BKnT_hLfIL2DlonLwZrXY4kwjBEjlp6BaJIr6_ESnVT_K4R985hNmpftY7A9YA9HWSNjCNEeEcTuN8v6VBFDHeI", serviceWorkerRegistration: reg }); await authFetch('/users/fcm-token', { method: 'POST', body: JSON.stringify({ token: fcmToken }) }); } catch(e){ console.warn(e); } }
+    enableNotifications();
+    messaging.onMessage(() => { if(currentSection === 'incidents') loadIncidents(); alert('New incident reported!', 'Live Alert'); });
 </script>
 </body>
 </html>

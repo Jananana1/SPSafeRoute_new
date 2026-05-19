@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey, Enum as SQLEnum
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey, Enum as SQLEnum, UniqueConstraint
 from sqlalchemy.sql import func
 from sqlalchemy.orm import validates
 from .database import Base
@@ -56,6 +56,9 @@ class SosAlert(Base):
 # For Firebase: store FCM registration token
 class FCMToken(Base):
     __tablename__ = "fcm_tokens"
+    __table_args__ = (
+        UniqueConstraint("user_id", name="uq_fcm_tokens_user_id"),
+    )
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     token = Column(String(255), nullable=False)

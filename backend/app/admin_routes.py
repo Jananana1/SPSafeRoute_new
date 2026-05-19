@@ -152,7 +152,7 @@ def complete_incident(
         db.add(history)
         db.commit()
 
-        # Send push notification (don't let notification failure break the operation)
+        # Send push notification to the reporter
         try:
             push_service.send_push_to_user(
                 db,
@@ -161,8 +161,20 @@ def complete_incident(
                 f"Your {inc.type} report at {inc.location_name or 'your location'} has been completed."
             )
         except Exception as notify_error:
-            logger.error(f"Push notification error: {str(notify_error)}")
-            # Continue even if notification fails
+            logger.error(f"Reporter push notification error: {str(notify_error)}")
+            # Continue even if reporter notification fails
+
+        # Notify all other accounts once, excluding the reporter.
+        try:
+            push_service.send_push_to_all_users(
+                db,
+                exclude_user_id=inc.user_id,
+                title="Incident Resolved",
+                body=f"A {inc.type} report at {inc.location_name or 'a location'} was resolved."
+            )
+        except Exception as notify_error:
+            logger.error(f"Other users push notification error: {str(notify_error)}")
+            # Continue even if other users notification fails
 
         return JSONResponse(content={"message": "Completed and user notified"})
 
